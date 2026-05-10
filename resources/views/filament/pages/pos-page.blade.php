@@ -499,7 +499,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 
 {{-- ══════════════ MODAL: COBRO ══════════════ --}}
 @if($showPaymentModal)
-<div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.confirmSale()">
+<div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())">
     <div class="modal-box" style="max-width:420px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
             <p style="font-size:1rem;font-weight:900;color:white;">Cobrar Venta</p>
@@ -530,21 +530,23 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         @if($paymentMethod === 'efectivo')
         <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;">
             <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
-            <input id="amount-input" type="number" wire:model.live="amountReceived"
+            <input id="amount-input" type="number"
+                x-model="localAmount"
                 style="width:100%;padding:.6rem;border-radius:.7rem;border:1.5px solid #86efac;background:white;font-size:1.25rem;font-weight:800;text-align:center;outline:none;"
-                @keydown.enter.prevent="$wire.confirmSale()"
                 @focus="$event.target.select()" />
-            @php $vuelto = max(0, $amountReceived - $this->getCartTotal()); @endphp
+            @php $cartTotal = $this->getCartTotal(); @endphp
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
                 <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
-                <p style="font-size:1.35rem;font-weight:900;color:{{ $vuelto >= 0 ? '#16a34a' : '#dc2626' }};">Gs.&nbsp;{{ number_format($vuelto, 0, ',', '.') }}</p>
+                <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
+                   :style="localAmount >= {{ $cartTotal }} ? 'font-size:1.35rem;font-weight:900;color:#16a34a;' : 'font-size:1.35rem;font-weight:900;color:#dc2626;'"></p>
             </div>
         </div>
         @endif
 
         <div style="display:flex;gap:.65rem;">
             <button wire:click="closePaymentModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">Cancelar</button>
-            <button wire:click="confirmSale" wire:loading.attr="disabled"
+            <button @click="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())"
+                wire:loading.attr="disabled" wire:target="confirmSale"
                 style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;box-shadow:0 4px 14px rgba(79,70,229,.35);">
                 <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span wire:loading.remove wire:target="confirmSale">Confirmar</span>
@@ -563,6 +565,7 @@ function posApp() {
         activeIdx: -1,
         isFullscreen: false,
         edit: { open: false, idx: null, qty: 1, precio: 0, descr: '' },
+        localAmount: 0,
 
         init() {
             this.$watch('$wire.searchResults', () => { this.activeIdx = -1; });
@@ -573,6 +576,7 @@ function posApp() {
             window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
             window.addEventListener('focus-amount', () => {
                 this.$nextTick(() => {
+                    this.localAmount = this.$wire.amountReceived;
                     const el = document.getElementById('amount-input');
                     el?.focus();
                     el?.select();
