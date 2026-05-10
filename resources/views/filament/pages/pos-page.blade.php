@@ -82,11 +82,13 @@
 }
 .dark .pos-body { border-color: #374151; }
 
-/* ─── Panel izquierdo: carrito ─── */
+/* ─── Panel derecho: carrito ─── */
 .pos-cart {
     width: 420px; flex-shrink: 0; display: flex; flex-direction: column;
-    border-right: 1px solid #e5e7eb; background: white;
+    border-left: 1px solid #e5e7eb; background: white;
+    order: 2;
 }
+.pos-products { order: 1; }
 .dark .pos-cart { background: #1f2937; border-color: #374151; }
 .cart-header {
     padding: .65rem 1rem; font-size: .78rem; font-weight: 700;
