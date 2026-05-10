@@ -9,12 +9,6 @@ class Login extends BaseLogin
 {
     public function authenticate(): ?LoginResponse
     {
-        // Forzar "recordarme" siempre activo
-        $this->form->fill([
-            ...$this->form->getState(),
-            'remember' => true,
-        ]);
-
         return parent::authenticate();
     }
 }
