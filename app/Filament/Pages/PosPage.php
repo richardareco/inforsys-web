@@ -311,8 +311,13 @@ class PosPage extends Page
                     'tipo_moneda' => 'GS',
                 ]);
 
-                // 6. Capturar cajanr y enlazarlo en invo1
-                $cajanr = DB::connection('delphi')->getPdo()->lastInsertId();
+                // 6. Obtener el nro (PK) del registro insertado, luego leer el cajanr
+                //    que generó el trigger (cajanr es un campo separado del PK)
+                $nro    = DB::connection('delphi')->getPdo()->lastInsertId();
+                $cajanr = DB::connection('delphi')
+                    ->table('cajareg')
+                    ->where('nro', $nro)
+                    ->value('cajanr');
 
                 DB::connection('delphi')->table('invo1')
                     ->where('invnr', $invnr)

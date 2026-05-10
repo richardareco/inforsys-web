@@ -3,10 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\FinancialStatsWidget;
+use App\Filament\Widgets\MetodosPagoChartWidget;
 use App\Filament\Widgets\TopClientesWidget;
 use App\Filament\Widgets\TopProductosWidget;
+use App\Filament\Widgets\VelocimetroKpiWidget;
 use App\Filament\Widgets\VendedoresWidget;
 use App\Filament\Widgets\VentasChartWidget;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -65,6 +68,8 @@ class Dashboard extends BaseDashboard
         return [
             FinancialStatsWidget::class,
             VentasChartWidget::class,
+            MetodosPagoChartWidget::class,
+            VelocimetroKpiWidget::class,
             TopProductosWidget::class,
             TopClientesWidget::class,
             VendedoresWidget::class,
@@ -74,5 +79,19 @@ class Dashboard extends BaseDashboard
     public function getColumns(): int | string | array
     {
         return 2;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('exportPdf')
+                ->label('Exportar PDF')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('gray')
+                ->url(fn () => route('dashboard.export-pdf', [
+                    'period' => $this->filters['period'] ?? 'dia',
+                ]))
+                ->openUrlInNewTab(),
+        ];
     }
 }
