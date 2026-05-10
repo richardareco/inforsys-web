@@ -1,0 +1,11 @@
+{
+    "name": "Inforsys POS",
+    "short_name": "Inforsys",
+    "description": "Sistema de Punto de Venta Inforsys",
+    "start_url": "/admin",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#0047AB",
+    "orientation": "any",
+    "icons": []
+}

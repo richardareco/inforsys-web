@@ -46,7 +46,14 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 fn (): HtmlString => new HtmlString(
-                    '<script>if(!localStorage.getItem("theme")&&!localStorage.getItem("appearance")){localStorage.setItem("theme","dark");document.documentElement.classList.add("dark");}</script>'
+                    '<script>if(!localStorage.getItem("theme")&&!localStorage.getItem("appearance")){localStorage.setItem("theme","dark");document.documentElement.classList.add("dark");}</script>' .
+                    '<link rel="manifest" href="/manifest.json">' .
+                    '<meta name="theme-color" content="#0047AB">' .
+                    '<meta name="mobile-web-app-capable" content="yes">' .
+                    '<meta name="apple-mobile-web-app-capable" content="yes">' .
+                    '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' .
+                    '<meta name="apple-mobile-web-app-title" content="Inforsys">' .
+                    '<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js");}</script>'
                 )
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
