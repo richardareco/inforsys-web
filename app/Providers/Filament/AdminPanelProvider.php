@@ -71,10 +71,8 @@ class AdminPanelProvider extends PanelProvider
     border-bottom-color: rgba(255,255,255,0.08) !important;
 }
 /* nombre de empresa / brand */
+.fi-sidebar-header *,
 .fi-sidebar-header a,
-.fi-sidebar-header span,
-.fi-sidebar-header p,
-.fi-sidebar-header img + span,
 .fi-brand-name {
     color: #ffffff !important;
 }
