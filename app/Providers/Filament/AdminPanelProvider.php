@@ -67,8 +67,8 @@ class AdminPanelProvider extends PanelProvider
 }
 .fi-sidebar-header,
 .fi-sidebar > div:first-child {
-    background-color: #1a2a3d !important;
-    border-bottom-color: rgba(255,255,255,0.08) !important;
+    background-color: #253347 !important;
+    border-bottom-color: transparent !important;
 }
 /* nombre de empresa / brand */
 .fi-sidebar-header *,
