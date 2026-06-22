@@ -47,11 +47,12 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::HEAD_START,
                 fn (): HtmlString => new HtmlString(
                     '<link rel="manifest" href="/manifest.json">' .
-                    '<meta name="theme-color" content="#1e293b">' .
+                    '<link rel="apple-touch-icon" href="/images/icon-192.png">' .
+                    '<meta name="theme-color" content="#0047AB">' .
                     '<meta name="mobile-web-app-capable" content="yes">' .
                     '<meta name="apple-mobile-web-app-capable" content="yes">' .
                     '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' .
-                    '<meta name="apple-mobile-web-app-title" content="Inforsys">' .
+                    '<meta name="apple-mobile-web-app-title" content="InforsysPdv">' .
                     '<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js");}</script>'
                 )
             )
