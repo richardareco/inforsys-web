@@ -10,7 +10,7 @@ class TopProductosWidget extends Widget
 {
     use InteractsWithPageFilters;
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 6;
     protected int | string | array $columnSpan = 1;
     protected static string $view = 'filament.widgets.top-productos';
 

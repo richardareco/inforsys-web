@@ -12,8 +12,9 @@ class PosPage extends Page
     protected static string  $view            = 'filament.pages.pos-page';
     protected static ?string $navigationIcon  = 'heroicon-o-shopping-cart';
     protected static ?string $navigationLabel = 'POS';
+    protected static ?string $navigationGroup = 'Ventas';
     protected static ?string $title           = 'Punto de Venta';
-    protected static ?int    $navigationSort  = 0;
+    protected static ?int    $navigationSort  = 1;
 
     // Búsqueda
     public string $search        = '';

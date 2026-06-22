@@ -10,7 +10,7 @@ class VendedoresWidget extends Widget
 {
     use InteractsWithPageFilters;
 
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 8;
     protected int | string | array $columnSpan = 'full';
     protected static string $view = 'filament.widgets.vendedores';
 
