@@ -5,88 +5,66 @@
     $changeStr = $change !== null
         ? ($change >= 0 ? '+' : '') . number_format($change, 1, ',', '.') . '%'
         : null;
+    $bg        = $card['solidBg'] ?? $card['cardBg'] ?? '#6366f1';
 @endphp
 
-<div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700" style="
+<div style="
+    background: {{ $bg }};
     border-radius: 1rem;
-    padding: 1rem 1.1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 1.1rem 1.2rem 1rem;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.13);
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 105px;
 ">
+    {{-- Círculos decorativos --}}
+    <div style="position:absolute;top:-18px;right:-18px;width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,0.1);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-22px;right:16px;width:55px;height:55px;border-radius:50%;background:rgba(255,255,255,0.06);pointer-events:none;"></div>
 
-    {{-- Top row: label + icon --}}
-    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem;">
+    {{-- Label --}}
+    <p style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:rgba(255,255,255,0.75);margin:0;line-height:1.3;">
+        {{ $card['label'] }}
+    </p>
 
-        <p style="
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: #6b7280;
-            margin: 0;
-            line-height: 1.4;
-        ">{{ $card['label'] }}</p>
+    {{-- Valor principal --}}
+    <p style="font-size:1.3rem;font-weight:800;color:#ffffff;margin:0;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        {{ $card['value'] }}
+    </p>
 
-        <div style="
-            background: {{ $card['iconBg'] }};
-            border-radius: 0.6rem;
-            padding: 0.45rem;
-            flex-shrink: 0;
-        ">
-            <x-dynamic-component
-                :component="$card['icon']"
-                style="width:1.1rem; height:1.1rem; color:{{ $card['iconColor'] }}" />
+    {{-- Footer: badge de cambio o subtexto + icono --}}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.35rem;">
+
+        <div>
+            @if ($changeStr !== null)
+                <span style="
+                    display:inline-flex;align-items:center;gap:3px;
+                    padding:2px 8px;border-radius:999px;
+                    font-size:0.62rem;font-weight:700;
+                    background:rgba(255,255,255,0.2);color:#fff;
+                ">
+                    @if($hasUp)
+                        <svg style="width:.55rem;height:.55rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                        </svg>
+                    @else
+                        <svg style="width:.55rem;height:.55rem" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    @endif
+                    {{ $changeStr }}
+                </span>
+            @elseif ($sub)
+                <p style="font-size:0.62rem;color:rgba(255,255,255,0.7);margin:0;">{{ $sub }}</p>
+            @endif
         </div>
 
+        <x-dynamic-component
+            :component="$card['icon']"
+            style="width:1.5rem;height:1.5rem;color:rgba(255,255,255,0.55);flex-shrink:0;"
+        />
+
     </div>
-
-    {{-- Amount --}}
-    <p style="
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    " class="dark-value">{{ $card['value'] }}</p>
-
-    {{-- Badge / sub --}}
-    <div>
-        @if ($changeStr !== null)
-            <span style="
-                display: inline-flex;
-                align-items: center;
-                gap: 2px;
-                padding: 2px 8px;
-                border-radius: 999px;
-                font-size: 0.7rem;
-                font-weight: 700;
-                background: {{ $hasUp ? 'rgba(22,163,74,0.12)' : 'rgba(225,29,72,0.12)' }};
-                color: {{ $hasUp ? '#16a34a' : '#e11d48' }};
-            ">
-                @if ($hasUp)
-                    <svg style="width:0.6rem;height:0.6rem;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
-                    </svg>
-                @else
-                    <svg style="width:0.6rem;height:0.6rem;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                @endif
-                {{ $changeStr }}
-            </span>
-        @elseif ($sub)
-            <p style="font-size:0.68rem; color:#9ca3af; margin:0;">{{ $sub }}</p>
-        @endif
-    </div>
-
 </div>
-
-<style>
-    .dark .dark-value { color: #f9fafb !important; }
-    .dark [style*="background: rgba"] { /* dark mode card bg handled via rgba opacity */ }
-</style>
