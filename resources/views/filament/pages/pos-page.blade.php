@@ -256,7 +256,8 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             {{-- Cliente (combobox buscable) --}}
             <div style="flex:2;min-width:120px;"
                  x-data="posClienteCombo(@js($clientes), @js($clienteId))"
-                 @click.outside="close()">
+                 @click.outside="close()"
+                 wire:ignore>
                 <label class="sel-label">Cliente</label>
                 <div style="position:relative;">
                     <input type="text"
@@ -711,6 +712,7 @@ function posClienteCombo(clientes, initialId) {
             this.selectedName = c.custname; this.selectedId = c.custnr;
             this.query = ''; this.open = false;
             this.$wire.set('clienteId', c.custnr);
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('focus-search')));
         },
         pickHighlighted() { const item = this.filtered[this.hl]; if (item) this.pick(item); },
         moveDown() {

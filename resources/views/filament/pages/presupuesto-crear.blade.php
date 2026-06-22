@@ -164,7 +164,8 @@
             {{-- Combobox cliente --}}
             <div style="flex:2;min-width:180px;"
                  x-data="clienteCombo(@js($clientes), @js($clienteId))"
-                 @click.outside="close()">
+                 @click.outside="close()"
+                 wire:ignore>
                 <label class="sel-lbl">Cliente</label>
                 <div class="cliente-combo">
                     <input type="text" class="cliente-combo-input" x-ref="clienteInput"
@@ -505,6 +506,7 @@ function clienteCombo(clientes, initialId) {
             this.selectedName = c.custname; this.selectedId = c.custnr;
             this.query = ''; this.open = false;
             this.$wire.set('clienteId', c.custnr);
+            this.$nextTick(() => window.dispatchEvent(new CustomEvent('focus-search')));
         },
         pickHighlighted() { const item = this.filtered[this.hl]; if (item) this.pick(item); },
         moveDown() {
