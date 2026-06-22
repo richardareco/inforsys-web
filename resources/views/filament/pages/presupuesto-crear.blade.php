@@ -27,6 +27,38 @@
 .pres-sel:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
 .sel-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; display: block; margin-bottom: .15rem; }
 
+/* ─── Combobox de cliente ─── */
+.cliente-combo { position: relative; }
+.cliente-combo-input {
+    width: 100%; padding: .38rem 2rem .38rem .65rem;
+    border: 1px solid #d1d5db; border-radius: .55rem;
+    font-size: .8rem; background: #f9fafb; color: #111827; outline: none;
+    cursor: text; transition: border-color .12s;
+}
+.dark .cliente-combo-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
+.cliente-combo-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); background: white; }
+.dark .cliente-combo-input:focus { background: #1f2937; }
+.cliente-combo-icon {
+    position: absolute; right: .55rem; top: 50%; transform: translateY(-50%);
+    color: #9ca3af; pointer-events: none;
+}
+.cliente-dropdown {
+    position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 60;
+    background: white; border: 1.5px solid #6366f1; border-radius: .65rem;
+    max-height: 220px; overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
+}
+.dark .cliente-dropdown { background: #1f2937; border-color: #4f46e5; }
+.cliente-option {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    padding: .5rem .85rem; border-bottom: 1px solid #f3f4f6; cursor: pointer;
+    transition: background .08s;
+}
+.dark .cliente-option { border-color: #374151; }
+.cliente-option:last-child { border-bottom: none; }
+.cliente-option:hover, .cliente-option.hl { background: #f5f3ff; }
+.dark .cliente-option:hover, .dark .cliente-option.hl { background: rgba(99,102,241,.12); }
+
 /* ─── Buscador ─── */
 .pres-search-wrap { position: relative; }
 .pres-search {
@@ -133,13 +165,42 @@
         {{-- Fila 1: cliente, deposito, obs --}}
         <div style="display:flex;gap:.6rem;flex-wrap:wrap;" class="pres-topbar-row">
 
-            <div style="flex:2;min-width:140px;">
+            <div style="flex:2;min-width:180px;"
+                 x-data="clienteCombo(@js($clientes), @js($clienteId))"
+                 @click.outside="close()">
                 <label class="sel-lbl">Cliente</label>
-                <select wire:model.live="clienteId" class="pres-sel">
-                    @foreach($clientes as $c)
-                        <option value="{{ $c->custnr }}">{{ $c->custname }}</option>
-                    @endforeach
-                </select>
+                <div class="cliente-combo">
+                    <input
+                        type="text"
+                        class="cliente-combo-input"
+                        x-ref="clienteInput"
+                        :placeholder="selectedName || 'Buscar cliente...'"
+                        x-model="query"
+                        @focus="open = true"
+                        @input="open = true; hl = 0"
+                        @keydown.arrow-down.prevent="moveDown()"
+                        @keydown.arrow-up.prevent="moveUp()"
+                        @keydown.enter.prevent="pickHighlighted()"
+                        @keydown.escape.prevent="close()"
+                        autocomplete="off"
+                    />
+                    <span class="cliente-combo-icon">
+                        <svg style="width:.85rem;height:.85rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                    <div class="cliente-dropdown" x-show="open && filtered.length > 0" style="display:none;">
+                        <template x-for="(c, i) in filtered" :key="c.custnr">
+                            <div class="cliente-option" :class="i === hl ? 'hl' : ''"
+                                :data-ci="i"
+                                @mouseenter="hl = i"
+                                @click="pick(c)">
+                                <span style="font-size:.8rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
+                                <span style="font-size:.68rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             <div style="flex:1;min-width:100px;">
@@ -362,6 +423,66 @@ function presupApp() {
                     last.select();
                 }
             });
+        },
+    };
+}
+
+function clienteCombo(clientes, initialId) {
+    return {
+        clientes,
+        query: '',
+        open: false,
+        hl: 0,
+        selectedName: '',
+        selectedId: initialId,
+
+        init() {
+            const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
+            if (found) this.selectedName = found.custname;
+        },
+
+        get filtered() {
+            const q = this.query.toLowerCase().trim();
+            if (!q) return this.clientes.slice(0, 60);
+            return this.clientes.filter(c =>
+                (c.custname || '').toLowerCase().includes(q) ||
+                String(c.custnr || '').includes(q)
+            ).slice(0, 60);
+        },
+
+        pick(c) {
+            this.selectedName = c.custname;
+            this.selectedId   = c.custnr;
+            this.query = '';
+            this.open  = false;
+            this.$wire.set('clienteId', c.custnr);
+        },
+
+        pickHighlighted() {
+            const item = this.filtered[this.hl];
+            if (item) this.pick(item);
+        },
+
+        moveDown() {
+            if (!this.open) { this.open = true; return; }
+            this.hl = Math.min(this.hl + 1, this.filtered.length - 1);
+            this.scrollHl();
+        },
+
+        moveUp() {
+            this.hl = Math.max(this.hl - 1, 0);
+            this.scrollHl();
+        },
+
+        scrollHl() {
+            this.$nextTick(() => {
+                this.$el.querySelector(`[data-ci="${this.hl}"]`)?.scrollIntoView({ block: 'nearest' });
+            });
+        },
+
+        close() {
+            this.open  = false;
+            this.query = '';
         },
     };
 }
