@@ -26,9 +26,18 @@ class PresupuestoCrearPage extends Page
 
     public function mount(): void
     {
+        // Solo custnr + custname para el combobox — evita caracteres inválidos de otros campos
         $this->clientes = DB::connection('delphi')
-            ->table('cliente')->select('custnr', 'custname', 'celular1')
-            ->orderBy('custname')->limit(500)->get()->toArray();
+            ->table('cliente')
+            ->select('custnr', 'custname')
+            ->orderBy('custnr')
+            ->limit(1000)
+            ->get()
+            ->map(fn ($c) => (object)[
+                'custnr'   => $c->custnr,
+                'custname' => mb_convert_encoding((string) ($c->custname ?? ''), 'UTF-8', 'UTF-8'),
+            ])
+            ->toArray();
 
         $this->depositos = DB::connection('delphi')
             ->table('deposito')->select('deponr', 'depo_nombre')
@@ -36,15 +45,22 @@ class PresupuestoCrearPage extends Page
 
         if ($this->clientes) {
             $this->clienteId      = $this->clientes[0]->custnr;
-            $this->clienteCelular = (string) ($this->clientes[0]->celular1 ?? '');
+            $this->clienteCelular = $this->fetchCelular($this->clienteId);
         }
         if ($this->depositos) $this->depositoId = $this->depositos[0]->deponr;
     }
 
     public function updatedClienteId(): void
     {
-        $cliente = collect($this->clientes)->first(fn ($c) => $c->custnr == $this->clienteId);
-        $this->clienteCelular = (string) ($cliente?->celular1 ?? '');
+        $this->clienteCelular = $this->fetchCelular($this->clienteId);
+    }
+
+    private function fetchCelular(mixed $custnr): string
+    {
+        return (string) (DB::connection('delphi')
+            ->table('cliente')
+            ->where('custnr', $custnr)
+            ->value('celular1') ?? '');
     }
 
     public function updatedSearch(): void
