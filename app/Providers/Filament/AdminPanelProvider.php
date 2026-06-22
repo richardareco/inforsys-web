@@ -63,38 +63,41 @@ class AdminPanelProvider extends PanelProvider
 .fi-sidebar,
 .fi-sidebar nav,
 .fi-sidebar-nav {
-    background-color: #1e293b !important;
+    background-color: #253347 !important;
 }
 .fi-sidebar-header,
 .fi-sidebar > div:first-child {
-    background-color: #0f172a !important;
-    border-bottom-color: rgba(255,255,255,0.06) !important;
+    background-color: #1a2a3d !important;
+    border-bottom-color: rgba(255,255,255,0.08) !important;
 }
+/* nombre de empresa / brand */
 .fi-sidebar-header a,
 .fi-sidebar-header span,
-.fi-sidebar-header p {
-    color: #f1f5f9 !important;
+.fi-sidebar-header p,
+.fi-sidebar-header img + span,
+.fi-brand-name {
+    color: #ffffff !important;
 }
 /* items del menú */
 .fi-sidebar-item-button {
-    color: #94a3b8 !important;
+    color: #a8bdd4 !important;
 }
 .fi-sidebar-item-button span,
 .fi-sidebar-item-label {
-    color: #94a3b8 !important;
+    color: #a8bdd4 !important;
 }
 .fi-sidebar-item-icon,
 .fi-sidebar-item-button svg {
-    color: #64748b !important;
+    color: #7a99b8 !important;
 }
 .fi-sidebar-item-button:hover {
-    background-color: rgba(255,255,255,0.07) !important;
+    background-color: rgba(255,255,255,0.08) !important;
 }
 .fi-sidebar-item-button:hover span,
 .fi-sidebar-item-button:hover .fi-sidebar-item-label,
 .fi-sidebar-item-button:hover .fi-sidebar-item-icon,
 .fi-sidebar-item-button:hover svg {
-    color: #f1f5f9 !important;
+    color: #ffffff !important;
 }
 /* item activo */
 .fi-sidebar-item-active .fi-sidebar-item-button,
@@ -110,12 +113,12 @@ class AdminPanelProvider extends PanelProvider
 }
 /* grupo label */
 .fi-sidebar-group-label {
-    color: #475569 !important;
+    color: #6b8aaa !important;
 }
 /* colapsar sidebar */
 .fi-sidebar-close-overlay-btn,
 .fi-icon-btn[title="Collapse sidebar"] svg {
-    color: #64748b !important;
+    color: #7a99b8 !important;
 }
 
 /* ══ FONDO DEL CONTENIDO (modo claro) ══ */
