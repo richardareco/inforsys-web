@@ -13,12 +13,12 @@ class PresupuestoCrearPage extends Page
     protected static ?string $title          = 'Nuevo Presupuesto';
     protected static ?string $slug           = 'presupuesto/crear';
 
-    public string $search        = '';
-    public array  $searchResults = [];
-    public array  $cart          = [];
-    public mixed  $clienteId     = null;
-    public mixed  $depositoId    = null;
-    public string $obs           = '';
+    public string $search         = '';
+    public array  $searchResults  = [];
+    public array  $cart           = [];
+    public mixed  $clienteId      = null;
+    public mixed  $depositoId     = null;
+    public string $obs            = '';
     public string $clienteCelular = '';
 
     public array $clientes  = [];
@@ -35,7 +35,7 @@ class PresupuestoCrearPage extends Page
             ->orderBy('deponr')->get()->toArray();
 
         if ($this->clientes) {
-            $this->clienteId     = $this->clientes[0]->custnr;
+            $this->clienteId      = $this->clientes[0]->custnr;
             $this->clienteCelular = (string) ($this->clientes[0]->celular1 ?? '');
         }
         if ($this->depositos) $this->depositoId = $this->depositos[0]->deponr;
@@ -61,40 +61,41 @@ class PresupuestoCrearPage extends Page
                 ->orWhere('item',  'like', $like))
             ->orderBy('descr')->limit(12)->get()->toArray();
 
+        // Coincidencia exacta por código → seleccionar automáticamente
         $exact = collect($results)->first(fn ($r) =>
             strtolower((string)($r->item  ?? '')) === strtolower($term) ||
             strtolower((string)($r->scode ?? '')) === strtolower($term)
         );
 
-        if ($exact) { $this->addItem($exact); return; }
+        if ($exact) {
+            $this->search        = '';
+            $this->searchResults = [];
+            $this->dispatch('item-exacto', item: (array) $exact);
+            return;
+        }
 
         $this->searchResults = $results;
     }
 
-    public function addToCart(string $itemCode): void
+    // Agrega ítem al carrito con qty y precio ya definidos desde el formulario
+    public function addItemWithParams(string $itemCode, string $descr, float $qty, float $precio, float $costo): void
     {
-        $item = collect($this->searchResults)->first(fn ($r) => $r->item === $itemCode);
-        if ($item) $this->addItem($item);
-    }
-
-    private function addItem(object $item): void
-    {
-        $idx = collect($this->cart)->search(fn ($c) => $c['item'] === $item->item);
+        $idx = collect($this->cart)->search(fn ($c) => $c['item'] === $itemCode);
         if ($idx !== false) {
-            $this->cart[$idx]['qty']++;
+            $this->cart[$idx]['qty']    += max(1, $qty);
+            $this->cart[$idx]['precio'] = max(0, $precio);
         } else {
             $this->cart[] = [
-                'item'   => $item->item,
-                'descr'  => $item->descr,
-                'qty'    => 1,
-                'precio' => (float) $item->precio,
-                'costo'  => (float) $item->costo,
+                'item'   => $itemCode,
+                'descr'  => $descr,
+                'qty'    => max(1, $qty),
+                'precio' => max(0, $precio),
+                'costo'  => $costo,
             ];
         }
         $this->search        = '';
         $this->searchResults = [];
         $this->dispatch('focus-search');
-        $this->dispatch('focus-last-qty');
     }
 
     public function updateCartItem(int $index, float $qty, float $precio): void

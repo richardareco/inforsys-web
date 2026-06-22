@@ -253,14 +253,45 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         {{-- Fila 1: Selects --}}
         <div class="topbar-selects">
 
-            {{-- Cliente --}}
-            <div style="flex:2;min-width:100px;">
+            {{-- Cliente (combobox buscable) --}}
+            <div style="flex:2;min-width:120px;"
+                 x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+                 @click.outside="close()">
                 <label class="sel-label">Cliente</label>
-                <select wire:model.live="clienteId" class="pos-sel">
-                    @foreach($clientes as $c)
-                        <option value="{{ $c->custnr }}">{{ $c->custname }}</option>
-                    @endforeach
-                </select>
+                <div style="position:relative;">
+                    <input type="text"
+                        style="width:100%;padding:.38rem 1.8rem .38rem .65rem;border:1px solid #d1d5db;border-radius:.55rem;font-size:.8rem;background:#f9fafb;color:#111827;outline:none;transition:border-color .12s;"
+                        class="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        :placeholder="selectedName || 'Buscar cliente...'"
+                        x-model="query"
+                        @focus="open = true"
+                        @input="open = true; hl = 0"
+                        @keydown.arrow-down.prevent="moveDown()"
+                        @keydown.arrow-up.prevent="moveUp()"
+                        @keydown.enter.prevent="pickHighlighted()"
+                        @keydown.escape.prevent="close()"
+                        autocomplete="off"
+                        @focus.once="$el.style.borderColor='#6366f1'"
+                        @blur="$el.style.borderColor='#d1d5db'"
+                    />
+                    <span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
+                        <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                    <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
+                         class="dark:bg-gray-800">
+                        <template x-for="(c, i) in filtered" :key="c.custnr">
+                            <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
+                                :data-pci="i"
+                                style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
+                                @mouseenter="hl = i" @click="pick(c)">
+                                <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
+                                <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             {{-- Depósito --}}
@@ -658,6 +689,40 @@ function posApp() {
             }
             this.$refs.search?.focus();
         },
+    };
+}
+
+function posClienteCombo(clientes, initialId) {
+    return {
+        clientes, query: '', open: false, hl: 0, selectedName: '', selectedId: initialId,
+        init() {
+            const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
+            if (found) this.selectedName = found.custname;
+        },
+        get filtered() {
+            const q = this.query.toLowerCase().trim();
+            if (!q) return this.clientes.slice(0, 60);
+            return this.clientes.filter(c =>
+                (c.custname || '').toLowerCase().includes(q) ||
+                String(c.custnr || '').includes(q)
+            ).slice(0, 60);
+        },
+        pick(c) {
+            this.selectedName = c.custname; this.selectedId = c.custnr;
+            this.query = ''; this.open = false;
+            this.$wire.set('clienteId', c.custnr);
+        },
+        pickHighlighted() { const item = this.filtered[this.hl]; if (item) this.pick(item); },
+        moveDown() {
+            if (!this.open) { this.open = true; return; }
+            this.hl = Math.min(this.hl + 1, this.filtered.length - 1);
+            this.$nextTick(() => this.$el.querySelector(`[data-pci="${this.hl}"]`)?.scrollIntoView({ block: 'nearest' }));
+        },
+        moveUp() {
+            this.hl = Math.max(this.hl - 1, 0);
+            this.$nextTick(() => this.$el.querySelector(`[data-pci="${this.hl}"]`)?.scrollIntoView({ block: 'nearest' }));
+        },
+        close() { this.open = false; this.query = ''; },
     };
 }
 </script>
