@@ -122,13 +122,13 @@
 /* ─── Encabezado del carrito con total visible ─── */
 .cart-header {
     flex-shrink: 0; border-bottom: 2px solid #e5e7eb;
-    background: #1e293b;
+    background: #ffffff;
 }
-.dark .cart-header { background: #0f172a; border-color: #374151; }
+.dark .cart-header { background: #ffffff; border-color: #e5e7eb; }
 .cart-header-top {
     display: flex; align-items: center; gap: .4rem;
     padding: .45rem .85rem;
-    font-size: .7rem; font-weight: 700; color: rgba(255,255,255,.55);
+    font-size: .7rem; font-weight: 700; color: #94a3b8;
 }
 .cart-header-total {
     padding: .3rem .85rem .7rem;
@@ -136,10 +136,10 @@
 }
 .cart-header-total .total-label {
     font-size: .6rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .12em; color: rgba(255,255,255,.45); margin-bottom: .1rem;
+    letter-spacing: .12em; color: #0047AB; margin-bottom: .1rem;
 }
 .cart-header-total .total-amount {
-    font-size: 2.6rem; font-weight: 900; color: #ffffff;
+    font-size: 2.6rem; font-weight: 900; color: #0047AB;
     line-height: 1; letter-spacing: -.03em;
 }
 
@@ -432,7 +432,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                 </svg>
                 Carrito
                 @if(count($cart) > 0)
-                    <span style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.62rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">
+                    <span style="background:#eff6ff;color:#0047AB;font-size:.62rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">
                         {{ count($cart) }} ítem(s)
                     </span>
                 @endif
