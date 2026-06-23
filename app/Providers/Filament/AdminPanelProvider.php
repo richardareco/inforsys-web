@@ -124,7 +124,7 @@ class AdminPanelProvider extends PanelProvider
 html:not(.dark) .fi-main,
 html:not(.dark) .fi-body,
 html:not(.dark) .fi-main-ctn {
-    background-color: #f0f4f8 !important;
+    background-color: #ffffff !important;
 }
 html:not(.dark) .fi-topbar nav,
 html:not(.dark) .fi-header {
@@ -133,7 +133,7 @@ html:not(.dark) .fi-header {
 }
 /* Páginas: header title área */
 html:not(.dark) .fi-simple-main {
-    background-color: #f0f4f8 !important;
+    background-color: #ffffff !important;
 }
 /* Topbar toggle sidebar button */
 html:not(.dark) .fi-topbar .fi-icon-btn {
