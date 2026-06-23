@@ -14,6 +14,7 @@
 .ctx-group { display:flex; flex-direction:column; gap:.2rem; }
 .ctx-label { font-size:.65rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.7px; }
 .ctx-select {
+    appearance:none; -webkit-appearance:none;
     background:#f8fafc; color:#1e293b;
     border:1px solid #e2e8f0; border-radius:.4rem;
     padding:.35rem .65rem; font-size:.85rem; outline:none; cursor:pointer;
@@ -52,12 +53,12 @@
 /* ── Total box ── */
 #pos-total-box {
     display:flex; flex-direction:column; align-items:flex-end;
-    background:#0047AB; border-radius:.5rem; padding:.45rem 1rem;
+    background:#ffffff; border:2px solid #0047AB; border-radius:.5rem; padding:.45rem 1rem;
     min-width:13rem; line-height:1.15; flex-shrink:0;
 }
-#pos-total-label  { font-size:.62rem; font-weight:700; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.8px; }
-#pos-total-amount { font-size:1.9rem; font-weight:800; color:#fff; font-variant-numeric:tabular-nums; }
-#pos-total-meta   { font-size:.68rem; color:rgba(255,255,255,.55); }
+#pos-total-label  { font-size:.62rem; font-weight:700; color:#0047AB; text-transform:uppercase; letter-spacing:.8px; }
+#pos-total-amount { font-size:2.3rem; font-weight:800; color:#0047AB; font-variant-numeric:tabular-nums; }
+#pos-total-meta   { font-size:.68rem; color:#94a3b8; }
 
 /* ── Resultados búsqueda ── */
 #pos-search-results {
