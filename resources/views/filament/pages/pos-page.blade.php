@@ -119,14 +119,29 @@
 .dark .cliente-combo-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
 .cliente-combo-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
 
-/* ─── Encabezado del carrito ─── */
+/* ─── Encabezado del carrito con total visible ─── */
 .cart-header {
-    padding: .55rem .85rem; font-size: .75rem; font-weight: 700;
-    color: #374151; border-bottom: 1px solid #f3f4f6;
-    display: flex; align-items: center; gap: .4rem;
-    background: #fafafa; flex-shrink: 0;
+    flex-shrink: 0; border-bottom: 2px solid #e5e7eb;
+    background: #1e293b;
 }
-.dark .cart-header { background: #111827; color: #d1d5db; border-color: #374151; }
+.dark .cart-header { background: #0f172a; border-color: #374151; }
+.cart-header-top {
+    display: flex; align-items: center; gap: .4rem;
+    padding: .45rem .85rem;
+    font-size: .7rem; font-weight: 700; color: rgba(255,255,255,.55);
+}
+.cart-header-total {
+    padding: .3rem .85rem .7rem;
+    text-align: center;
+}
+.cart-header-total .total-label {
+    font-size: .6rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: rgba(255,255,255,.45); margin-bottom: .1rem;
+}
+.cart-header-total .total-amount {
+    font-size: 2.6rem; font-weight: 900; color: #ffffff;
+    line-height: 1; letter-spacing: -.03em;
+}
 
 /* ─── Cuerpo del carrito ─── */
 .cart-body { flex: 1; overflow-y: auto; }
@@ -409,15 +424,25 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     {{-- ══════ PANEL DERECHO: carrito ══════ --}}
     <div class="pos-cart">
 
-        {{-- Encabezado del carrito --}}
+        {{-- Encabezado del carrito con total visible para el cliente --}}
         <div class="cart-header">
-            <svg style="width:.9rem;height:.9rem;color:#6b7280" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.156a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
-            </svg>
-            Carrito
-            @if(count($cart) > 0)
-                <span style="margin-left:auto;background:#ede9fe;color:#6d28d9;font-size:.65rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">{{ count($cart) }}</span>
-            @endif
+            <div class="cart-header-top">
+                <svg style="width:.85rem;height:.85rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.156a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+                </svg>
+                Carrito
+                @if(count($cart) > 0)
+                    <span style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:.62rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">
+                        {{ count($cart) }} ítem(s)
+                    </span>
+                @endif
+            </div>
+            <div class="cart-header-total">
+                <div class="total-label">Total a cobrar</div>
+                <div class="total-amount">
+                    Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
+                </div>
+            </div>
         </div>
 
         {{-- Ítems del carrito --}}
@@ -459,18 +484,24 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             @endif
         </div>
 
-        {{-- Footer: total + botón cobrar --}}
-        <div class="cart-footer">
-            <div style="flex:1;">
-                <p style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:.1rem;">Total a cobrar</p>
-                <p style="font-size:1.85rem;font-weight:900;color:#4f46e5;line-height:1;letter-spacing:-.02em;">
-                    Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
-                </p>
-                @if(count($cart) > 0)
-                <p style="font-size:.65rem;color:#9ca3af;margin-top:.1rem;">{{ count($cart) }} ítem(s)</p>
-                @endif
-            </div>
-            <button wire:click="openPaymentModal" class="cobrar-btn" {{ empty($cart) ? 'disabled' : '' }}>
+        {{-- Footer: botones --}}
+        <div class="cart-footer" style="gap:.5rem;">
+            {{-- Guardar (sin acción por ahora) --}}
+            <button type="button" {{ empty($cart) ? 'disabled' : '' }}
+                style="display:flex;align-items:center;gap:.4rem;padding:.65rem 1rem;
+                    background:#f1f5f9;color:#475569;font-weight:700;font-size:.85rem;
+                    border:1.5px solid #cbd5e1;border-radius:.85rem;cursor:pointer;
+                    transition:all .15s;white-space:nowrap;flex-shrink:0;"
+                onmouseover="if(!this.disabled)this.style.background='#e2e8f0'"
+                onmouseout="this.style.background='#f1f5f9'">
+                <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
+                </svg>
+                Guardar
+            </button>
+
+            {{-- Cobrar --}}
+            <button wire:click="openPaymentModal" class="cobrar-btn" style="flex:1;" {{ empty($cart) ? 'disabled' : '' }}>
                 <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
                 </svg>
