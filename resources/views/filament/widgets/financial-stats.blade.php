@@ -66,7 +66,10 @@
         .stats-row {
             display: grid;
             gap: 0.75rem;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        @media (min-width: 640px) {
+            .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (min-width: 768px) {
             .stats-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
