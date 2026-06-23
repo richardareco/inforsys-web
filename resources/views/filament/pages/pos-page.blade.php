@@ -231,11 +231,11 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 
 /* ─── Responsive: móvil ─── */
 @media (max-width: 767px) {
-    .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; }
-    .pos-left { background: white; }
-    .pos-left-top { border-radius: .85rem .85rem 0 0; }
+    .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; overflow: visible; }
+    .pos-left { background: white; overflow: visible; }
+    .pos-left-top { border-radius: .85rem .85rem 0 0; overflow: visible; }
     .pos-products { display: none; }
-    .mobile-dropdown { display: block; }
+    .mobile-dropdown { display: block; z-index: 100; }
     .pos-cart { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; }
     .dark .pos-cart { border-color: #374151; }
     .cart-footer { position: sticky; bottom: 0; z-index: 10; }
