@@ -355,8 +355,8 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                             :class="activeIdx === {{ $i }} ? 'border-indigo-400 shadow-md' : ''"
                             data-result="{{ $i }}"
                             tabindex="0"
-                            wire:click="addToCart('{{ $product->item }}')"
-                            @keydown.enter.prevent="$wire.addToCart('{{ $product->item }}')"
+                            wire:click="addToCartKeepSearch('{{ $product->item }}')"
+                            @keydown.enter.prevent="$wire.addToCartKeepSearch('{{ $product->item }}')"
                             @keydown.arrow-down.prevent="focusResult(activeIdx + 1)"
                             @keydown.arrow-up.prevent="activeIdx > 0 ? focusResult(activeIdx - 1) : (activeIdx = -1, $refs.search.focus())"
                             @keydown.escape.prevent="activeIdx = -1; $refs.search.focus()"
@@ -369,7 +369,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                                 Stock:&nbsp;{{ $product->stock_depo }}
                             </span>
                             <p style="font-size:.9rem;font-weight:900;color:#4f46e5;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
-                            <button class="product-add-btn" @click.stop="$wire.addToCart('{{ $product->item }}')">
+                            <button class="product-add-btn" @click.stop="$wire.addToCartKeepSearch('{{ $product->item }}')">
                                 <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                                 </svg>
@@ -650,9 +650,16 @@ function posApp() {
         },
         enter() {
             const results = document.querySelectorAll('[data-result]');
-            if (this.activeIdx >= 0 && results[this.activeIdx]) results[this.activeIdx].click();
-            else if (results.length === 1) results[0].click();
-            else if (results.length > 1) this.focusResult(0);
+            if (this.activeIdx >= 0 && results[this.activeIdx]) {
+                // Usar addToCartKeepSearch para mantener el grid visible
+                const item = results[this.activeIdx].getAttribute('wire:click')?.match(/'([^']+)'/)?.[1];
+                if (item) this.$wire.addToCartKeepSearch(item);
+            } else if (results.length === 1) {
+                const item = results[0].getAttribute('wire:click')?.match(/'([^']+)'/)?.[1];
+                if (item) this.$wire.addToCartKeepSearch(item);
+            } else if (results.length > 1) {
+                this.focusResult(0);
+            }
         },
         focusResult(idx) {
             const results = document.querySelectorAll('[data-result]');

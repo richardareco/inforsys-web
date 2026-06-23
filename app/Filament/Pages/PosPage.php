@@ -183,8 +183,33 @@ class PosPage extends Page
             ];
         }
 
+        // Mobile: limpia búsqueda para el siguiente ítem
         $this->search        = '';
         $this->searchResults = [];
+        $this->dispatch('focus-search');
+    }
+
+    // Desktop/tablet: agrega al carrito sin limpiar el buscador
+    public function addToCartKeepSearch(string $itemCode): void
+    {
+        $item = collect($this->searchResults)->first(fn($r) => $r->item === $itemCode);
+        if (!$item) return;
+
+        $idx = collect($this->cart)->search(fn($c) => $c['item'] === $itemCode);
+
+        if ($idx !== false) {
+            $this->cart[$idx]['qty']++;
+        } else {
+            $this->cart[] = [
+                'item'       => $item->item,
+                'descr'      => $item->descr,
+                'qty'        => 1,
+                'precio'     => (float) $item->precio,
+                'costo'      => (float) $item->costo,
+                'stock_depo' => (int)   $item->stock_depo,
+            ];
+        }
+
         $this->dispatch('focus-search');
     }
 
