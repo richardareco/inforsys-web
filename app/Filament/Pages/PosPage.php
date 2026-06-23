@@ -58,6 +58,10 @@ class PosPage extends Page
             ->orderBy('custnr')
             ->limit(300)
             ->get()
+            ->map(fn ($c) => (object)[
+                'custnr'   => $c->custnr,
+                'custname' => mb_convert_encoding((string)($c->custname ?? ''), 'UTF-8', 'UTF-8'),
+            ])
             ->toArray();
 
         $this->depositos = DB::connection('delphi')
@@ -74,7 +78,13 @@ class PosPage extends Page
             ->get()
             ->toArray();
 
-        if ($this->clientes)  $this->clienteId  = $this->clientes[0]->custnr;
+        // Cliente por defecto: buscar "Ocasional" o "Consumidor", si no el primero
+        $ocasional = collect($this->clientes)->first(fn ($c) =>
+            str_contains(strtolower($c->custname ?? ''), 'ocasional') ||
+            str_contains(strtolower($c->custname ?? ''), 'consumidor')
+        );
+        $this->clienteId  = $ocasional ? $ocasional->custnr : ($this->clientes[0]->custnr ?? null);
+
         if ($this->depositos) $this->depositoId = $this->depositos[0]->deponr;
         if ($this->cajeros)   $this->cajeroId   = $this->cajeros[0]->pernr;
     }

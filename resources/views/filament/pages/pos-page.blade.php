@@ -2,36 +2,26 @@
 <style>
 /* ─── Contenedor principal ─── */
 .pos-wrap {
-    display: flex; flex-direction: column;
+    display: flex;
     height: calc(100vh - 185px); min-height: 500px;
-    gap: 0;
+    border: 1px solid #e5e7eb; border-radius: 1rem;
+    overflow: hidden;
 }
+.dark .pos-wrap { border-color: #374151; }
 
-/* ─── Barra superior: 2 filas (selects arriba, búsqueda abajo) ─── */
-.pos-topbar {
+/* ─── Panel izquierdo: depósito + búsqueda + productos ─── */
+.pos-left {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    background: #f9fafb;
+}
+.dark .pos-left { background: #111827; }
+
+.pos-left-top {
+    flex-shrink: 0; padding: .65rem .85rem;
+    background: white; border-bottom: 1px solid #e5e7eb;
     display: flex; flex-direction: column; gap: .5rem;
-    padding: .65rem .85rem; background: white;
-    border: 1px solid #e5e7eb; border-radius: 1rem 1rem 0 0;
-    border-bottom: none;
 }
-.dark .pos-topbar { background: #1f2937; border-color: #374151; }
-
-.topbar-selects { display: flex; align-items: flex-end; gap: .6rem; flex-wrap: wrap; }
-.topbar-search  { position: relative; }
-
-/* ─── Fix selects (sin flechas duplicadas) ─── */
-.pos-sel {
-    -webkit-appearance: none; -moz-appearance: none; appearance: none;
-    background-color: #f9fafb;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right .55rem center; background-size: 1rem;
-    padding: .38rem 1.9rem .38rem .65rem;
-    border: 1px solid #d1d5db; border-radius: .55rem;
-    font-size: .8rem; color: #111827; cursor: pointer; width: 100%;
-}
-.dark .pos-sel { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
-.pos-sel:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
-.sel-label { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; display: block; margin-bottom: .15rem; white-space: nowrap; }
+.dark .pos-left-top { background: #1f2937; border-color: #374151; }
 
 /* ─── Buscador ─── */
 .pos-search-wrap { position: relative; }
@@ -44,7 +34,7 @@
 .dark .pos-search { background: #1f2937; color: #f9fafb; }
 .pos-search-icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
 
-/* ─── Dropdown de resultados (solo móvil, posicionado bajo el buscador) ─── */
+/* ─── Dropdown resultados (móvil) ─── */
 .mobile-dropdown {
     display: none;
     position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 40;
@@ -56,69 +46,16 @@
 .dark .mobile-dropdown { background: #1f2937; border-color: #4f46e5; }
 .mob-item {
     display: flex; align-items: center; gap: .65rem;
-    padding: .7rem .9rem; border-bottom: 1px solid #f3f4f6; cursor: pointer;
-    transition: background .1s;
+    padding: .7rem .9rem; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background .1s;
 }
 .dark .mob-item { border-color: #374151; }
 .mob-item:last-child { border-bottom: none; }
 .mob-item:hover, .mob-item:active { background: #f5f3ff; }
-.dark .mob-item:hover { background: rgba(99,102,241,.1); }
 
-/* ─── Botón fullscreen ─── */
-.fs-btn {
-    display: flex; align-items: center; gap: .3rem; padding: .38rem .7rem;
-    border: 1px solid #d1d5db; border-radius: .55rem; background: transparent;
-    font-size: .75rem; font-weight: 600; color: #6b7280; cursor: pointer; white-space: nowrap;
-    transition: all .12s; flex-shrink: 0; align-self: flex-end;
-}
-.fs-btn:hover { background: #f3f4f6; color: #374151; }
-.dark .fs-btn { border-color: #4b5563; color: #9ca3af; }
-.dark .fs-btn:hover { background: #374151; }
-
-/* ─── Área central: carrito + productos ─── */
-.pos-body {
-    display: flex; flex: 1; overflow: hidden;
-    border: 1px solid #e5e7eb; border-top: none; border-bottom: none;
-}
-.dark .pos-body { border-color: #374151; }
-
-/* ─── Panel derecho: carrito ─── */
-.pos-cart {
-    width: 420px; flex-shrink: 0; display: flex; flex-direction: column;
-    border-left: 1px solid #e5e7eb; background: white;
-    order: 2;
-}
-.pos-products { order: 1; }
-.dark .pos-cart { background: #1f2937; border-color: #374151; }
-.cart-header {
-    padding: .65rem 1rem; font-size: .78rem; font-weight: 700;
-    color: #374151; border-bottom: 1px solid #f3f4f6;
-    display: flex; align-items: center; gap: .4rem; background: #fafafa; flex-shrink: 0;
-}
-.dark .cart-header { background: #111827; color: #d1d5db; border-color: #374151; }
-.cart-body { flex: 1; overflow-y: auto; }
-.cart-row {
-    display: flex; align-items: center; gap: .5rem; padding: .6rem .85rem;
-    border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background .1s;
-}
-.dark .cart-row { border-color: #374151; }
-.cart-row:hover { background: #f5f3ff; }
-.cart-row:focus { outline: none; background: #ede9fe; }
-.dark .cart-row:hover { background: rgba(99,102,241,.08); }
-.dark .cart-row:focus { background: rgba(99,102,241,.15); }
-.del-btn {
-    flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: .4rem;
-    border: 1px solid #fecaca; background: #fff5f5; color: #ef4444;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; padding: 0; transition: all .12s;
-}
-.del-btn:hover { background: #fee2e2; }
-
-/* ─── Panel derecho: productos ─── */
+/* ─── Grid de productos ─── */
 .pos-products {
-    flex: 1; overflow-y: auto; background: #f9fafb; padding: .75rem;
+    flex: 1; overflow-y: auto; padding: .75rem;
 }
-.dark .pos-products { background: #111827; }
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -142,16 +79,74 @@
 }
 .product-add-btn:hover { background: #4f46e5; }
 
-/* ─── Barra inferior ─── */
-.pos-footer {
-    display: flex; align-items: center; gap: 1rem;
-    padding: .75rem 1.25rem; background: white;
-    border: 1px solid #e5e7eb; border-radius: 0 0 1rem 1rem;
-    border-top: 2px solid #e5e7eb; flex-shrink: 0;
+/* ─── Panel derecho: carrito ─── */
+.pos-cart {
+    width: 400px; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    border-left: 1px solid #e5e7eb; background: white;
 }
-.dark .pos-footer { background: #1f2937; border-color: #374151; }
+.dark .pos-cart { background: #1f2937; border-color: #374151; }
+
+/* Meta: cliente + cajero */
+.cart-meta {
+    flex-shrink: 0; padding: .65rem .85rem;
+    border-bottom: 1px solid #e5e7eb; background: #fafafa;
+    display: flex; flex-direction: column; gap: .45rem;
+}
+.dark .cart-meta { background: #111827; border-color: #374151; }
+
+.sel-label { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; display: block; margin-bottom: .15rem; }
+
+/* Fix selects */
+.pos-sel {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    background-color: #f9fafb;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .55rem center; background-size: 1rem;
+    padding: .38rem 1.9rem .38rem .65rem;
+    border: 1px solid #d1d5db; border-radius: .55rem;
+    font-size: .8rem; color: #111827; cursor: pointer; width: 100%;
+}
+.dark .pos-sel { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
+.pos-sel:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
+
+/* ─── Combobox de cliente ─── */
+.cliente-combo-input {
+    width: 100%; padding: .38rem 1.8rem .38rem .65rem;
+    border: 1px solid #d1d5db; border-radius: .55rem;
+    font-size: .8rem; background: #f9fafb; color: #111827; outline: none; transition: border-color .12s;
+}
+.dark .cliente-combo-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
+.cliente-combo-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
+
+/* ─── Cuerpo del carrito ─── */
+.cart-body { flex: 1; overflow-y: auto; }
+.cart-row {
+    display: flex; align-items: center; gap: .5rem; padding: .6rem .85rem;
+    border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background .1s;
+}
+.dark .cart-row { border-color: #374151; }
+.cart-row:hover { background: #f5f3ff; }
+.cart-row:focus { outline: none; background: #ede9fe; }
+.dark .cart-row:hover { background: rgba(99,102,241,.08); }
+.dark .cart-row:focus { background: rgba(99,102,241,.15); }
+.del-btn {
+    flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: .4rem;
+    border: 1px solid #fecaca; background: #fff5f5; color: #ef4444;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; transition: all .12s;
+}
+.del-btn:hover { background: #fee2e2; }
+
+/* ─── Footer del carrito: total + cobrar ─── */
+.cart-footer {
+    flex-shrink: 0; padding: .75rem 1rem;
+    border-top: 2px solid #e5e7eb; background: white;
+    display: flex; align-items: center; gap: .75rem;
+}
+.dark .cart-footer { background: #1f2937; border-color: #374151; }
 .cobrar-btn {
-    display: flex; align-items: center; gap: .5rem; padding: .75rem 2rem;
+    display: flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem;
     background: #4f46e5; color: white; font-weight: 900; font-size: 1rem;
     border: none; border-radius: .85rem; cursor: pointer;
     box-shadow: 0 3px 12px rgba(79,70,229,.35); transition: all .15s; white-space: nowrap;
@@ -185,7 +180,6 @@
 .pay-method.sel-blue   { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 .pay-method.sel-purple { border-color: #a855f7; background: #faf5ff; color: #7e22ce; }
 
-/* ─── Controles de cantidad en modal de edición ─── */
 .qty-ctrl { display: flex; align-items: center; gap: .5rem; margin-bottom: .85rem; }
 .qty-btn {
     width: 2.4rem; height: 2.4rem; border-radius: .55rem;
@@ -197,8 +191,7 @@
 .qty-num {
     flex: 1; text-align: center; padding: .5rem;
     border: 1.5px solid #d1d5db; border-radius: .55rem;
-    font-size: 1.2rem; font-weight: 800; color: #111827; outline: none;
-    background: white;
+    font-size: 1.2rem; font-weight: 800; color: #111827; outline: none; background: white;
 }
 .qty-num:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.12); }
 .dark .qty-num { background: #374151; color: #f9fafb; border-color: #4b5563; }
@@ -211,32 +204,15 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 
 /* ─── Responsive: móvil ─── */
 @media (max-width: 767px) {
-    .pos-wrap { height: auto; min-height: 0; }
-    .pos-topbar { border-radius: .85rem .85rem 0 0; padding: .55rem .65rem; }
-
-    /* Selects: 3 columnas */
-    .topbar-selects > div { flex: 1; min-width: 0; }
-    .pos-sel { font-size: .75rem; }
-
-    /* Cuerpo: apilado */
-    .pos-body { flex-direction: column; overflow: visible; height: auto; border: none; }
-
-    /* Ocultar grid de productos — los resultados se muestran en el dropdown */
+    .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; }
+    .pos-left { background: white; }
+    .pos-left-top { border-radius: .85rem .85rem 0 0; }
     .pos-products { display: none; }
-
-    /* Mostrar dropdown de resultados */
     .mobile-dropdown { display: block; }
-
-    /* Carrito: ancho completo */
-    .pos-cart { width: 100%; border-right: none; border-top: 1px solid #e5e7eb; max-height: 280px; }
-    .dark .pos-cart { border-color: #374151; }
-
-    /* Footer pegado al fondo */
-    .pos-footer { position: sticky; bottom: 0; z-index: 10; border-radius: 0; border-left: none; border-right: none; }
+    .pos-cart { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; max-height: 300px; }
+    .cart-footer { position: sticky; bottom: 0; z-index: 10; }
     .cobrar-btn { padding: .7rem 1.25rem; }
 }
-
-/* Desktop: nunca mostrar dropdown */
 @media (min-width: 768px) {
     .mobile-dropdown { display: none !important; }
 }
@@ -247,56 +223,14 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 <div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())">
 <div class="pos-wrap">
 
-    {{-- ══════ BARRA SUPERIOR ══════ --}}
-    <div class="pos-topbar">
+    {{-- ══════ PANEL IZQUIERDO: depósito + búsqueda + productos ══════ --}}
+    <div class="pos-left">
 
-        {{-- Fila 1: Selects --}}
-        <div class="topbar-selects">
-
-            {{-- Cliente (combobox buscable) --}}
-            <div style="flex:2;min-width:120px;"
-                 x-data="posClienteCombo(@js($clientes), @js($clienteId))"
-                 @click.outside="close()"
-                 wire:ignore>
-                <label class="sel-label">Cliente</label>
-                <div style="position:relative;">
-                    <input type="text"
-                        style="width:100%;padding:.38rem 1.8rem .38rem .65rem;border:1px solid #d1d5db;border-radius:.55rem;font-size:.8rem;background:#f9fafb;color:#111827;outline:none;transition:border-color .12s;"
-                        class="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-                        :placeholder="selectedName || 'Buscar cliente...'"
-                        x-model="query"
-                        @focus="open = true"
-                        @input="open = true; hl = 0"
-                        @keydown.arrow-down.prevent="moveDown()"
-                        @keydown.arrow-up.prevent="moveUp()"
-                        @keydown.enter.prevent="pickHighlighted()"
-                        @keydown.escape.prevent="close()"
-                        autocomplete="off"
-                        @focus.once="$el.style.borderColor='#6366f1'"
-                        @blur="$el.style.borderColor='#d1d5db'"
-                    />
-                    <span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
-                        <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </span>
-                    <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
-                         class="dark:bg-gray-800">
-                        <template x-for="(c, i) in filtered" :key="c.custnr">
-                            <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
-                                :data-pci="i"
-                                style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
-                                @mouseenter="hl = i" @click="pick(c)">
-                                <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
-                                <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
+        {{-- Header izquierdo --}}
+        <div class="pos-left-top">
 
             {{-- Depósito --}}
-            <div style="flex:1;min-width:80px;">
+            <div>
                 <label class="sel-label">Depósito</label>
                 <select wire:model.live="depositoId" class="pos-sel">
                     @foreach($depositos as $d)
@@ -305,20 +239,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                 </select>
             </div>
 
-            {{-- Cajero --}}
-            <div style="flex:1;min-width:80px;">
-                <label class="sel-label">Cajero</label>
-                <select wire:model.live="cajeroId" class="pos-sel">
-                    @foreach($cajeros as $c)
-                        <option value="{{ $c->pernr }}">{{ $c->pername }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-        </div>
-
-        {{-- Fila 2: Buscador --}}
-        <div class="topbar-search">
+            {{-- Búsqueda --}}
             <div class="pos-search-wrap">
                 <div class="pos-search-icon">
                     <div wire:loading wire:target="search">
@@ -338,93 +259,37 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     wire:model.live.debounce.200ms="search"
                     x-ref="search"
                     autofocus
-                    placeholder="Buscar producto por descripción, referencia o código..."
+                    placeholder="Buscar producto por descripción, código o referencia..."
                     class="pos-search"
                     @keydown.arrow-down.prevent="arrowDown()"
                     @keydown.arrow-up.prevent="arrowUp()"
                     @keydown.enter.prevent="enter()"
                     @keydown.escape.prevent="clearSearch()"
                 />
-            </div>
 
-            {{-- Dropdown de resultados (solo móvil) --}}
-            @if(count($searchResults) > 0)
-            <div class="mobile-dropdown">
-                @foreach($searchResults as $i => $product)
-                <div class="mob-item" wire:click="addToCart('{{ $product->item }}')">
-                    <div style="flex:1;min-width:0;">
-                        <p style="font-size:.85rem;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-white">{{ $product->descr }}</p>
-                        <p style="font-size:.7rem;color:#9ca3af;">{{ $product->item }}@if($product->scode) · {{ $product->scode }}@endif
-                            &nbsp;·&nbsp;
-                            <span style="{{ $product->stock_depo > 5 ? 'color:#16a34a' : ($product->stock_depo > 0 ? 'color:#92400e' : 'color:#b91c1c') }};font-weight:700;">
-                                Stock: {{ $product->stock_depo }}
-                            </span>
-                        </p>
-                    </div>
-                    <p style="font-size:.9rem;font-weight:900;color:#4f46e5;white-space:nowrap;flex-shrink:0;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
-                </div>
-                @endforeach
-            </div>
-            @endif
-        </div>
-    </div>
-
-    {{-- ══════ CUERPO: carrito + productos ══════ --}}
-    <div class="pos-body">
-
-        {{-- ── CARRITO (izquierda / móvil abajo) ── --}}
-        <div class="pos-cart">
-            <div class="cart-header">
-                <svg style="width:1rem;height:1rem;color:#6b7280" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.156a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
-                </svg>
-                Carrito
-                @if(count($cart) > 0)
-                    <span style="margin-left:auto;background:#ede9fe;color:#6d28d9;font-size:.65rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">{{ count($cart) }}</span>
-                    <span style="font-size:.65rem;color:#9ca3af;font-weight:400;">· tocá para editar</span>
-                @endif
-            </div>
-
-            <div class="cart-body">
-                @if(empty($cart))
-                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:2rem;text-align:center;color:#d1d5db;">
-                        <svg style="width:3rem;height:3rem;margin-bottom:.75rem" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/>
-                        </svg>
-                        <p style="font-size:.85rem;color:#9ca3af;">Carrito vacío</p>
-                        <p style="font-size:.72rem;color:#d1d5db;margin-top:.25rem;">Buscá o seleccioná productos</p>
-                    </div>
-                @else
-                    @foreach($cart as $i => $item)
-                        <div class="cart-row"
-                            data-cart-idx="{{ $i }}"
-                            tabindex="0"
-                            @click="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
-                            @keydown.enter.prevent="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
-                            @keydown.delete.prevent="$wire.removeFromCart({{ $i }})"
-                            @keydown.arrow-down.prevent="focusCartItem({{ $i + 1 }})"
-                            @keydown.arrow-up.prevent="{{ $i === 0 ? '$refs.search.focus()' : 'focusCartItem(' . ($i - 1) . ')' }}"
-                        >
-                            <div style="flex:1;min-width:0;">
-                                <p style="font-size:.82rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100">{{ $item['descr'] }}</p>
-                                <p style="font-size:.68rem;color:#9ca3af;">{{ $item['item'] }} · x{{ $item['qty'] }}</p>
-                            </div>
-                            <div style="text-align:right;flex-shrink:0;">
-                                <p style="font-size:.82rem;font-weight:800;color:#4f46e5;">Gs.&nbsp;{{ number_format($item['precio'] * $item['qty'], 0, ',', '.') }}</p>
-                                <p style="font-size:.68rem;color:#9ca3af;">c/u&nbsp;{{ number_format($item['precio'], 0, ',', '.') }}</p>
-                            </div>
-                            <button class="del-btn" @click.stop="$wire.removeFromCart({{ $i }})" title="Eliminar">
-                                <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
+                {{-- Dropdown solo móvil --}}
+                @if(count($searchResults) > 0)
+                <div class="mobile-dropdown">
+                    @foreach($searchResults as $i => $product)
+                    <div class="mob-item" wire:click="addToCart('{{ $product->item }}')">
+                        <div style="flex:1;min-width:0;">
+                            <p style="font-size:.85rem;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-white">{{ $product->descr }}</p>
+                            <p style="font-size:.7rem;color:#9ca3af;">{{ $product->item }}@if($product->scode) · {{ $product->scode }}@endif
+                                &nbsp;·&nbsp;
+                                <span style="{{ $product->stock_depo > 5 ? 'color:#16a34a' : ($product->stock_depo > 0 ? 'color:#92400e' : 'color:#b91c1c') }};font-weight:700;">
+                                    Stock: {{ $product->stock_depo }}
+                                </span>
+                            </p>
                         </div>
+                        <p style="font-size:.9rem;font-weight:900;color:#4f46e5;white-space:nowrap;flex-shrink:0;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
+                    </div>
                     @endforeach
+                </div>
                 @endif
             </div>
         </div>
 
-        {{-- ── PRODUCTOS (derecha, solo desktop) ── --}}
+        {{-- Grid de productos (solo desktop) --}}
         <div class="pos-products">
             @if(count($searchResults) > 0)
                 <div class="products-grid">
@@ -474,23 +339,122 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         </div>
     </div>
 
-    {{-- ══════ BARRA INFERIOR ══════ --}}
-    <div class="pos-footer" style="z-index:5;position:relative;">
-        {{-- Total --}}
-        <div style="flex:1;">
-            <p style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:.1rem;">Total a cobrar</p>
-            <p style="font-size:2rem;font-weight:900;color:#4f46e5;line-height:1;letter-spacing:-.02em;">
-                Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
-            </p>
+    {{-- ══════ PANEL DERECHO: carrito ══════ --}}
+    <div class="pos-cart">
+
+        {{-- Meta: cliente + cajero --}}
+        <div class="cart-meta">
+
+            {{-- Cliente (combobox buscable) --}}
+            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+                 @click.outside="close()"
+                 wire:ignore>
+                <label class="sel-label">Cliente</label>
+                <div style="position:relative;">
+                    <input type="text"
+                        class="cliente-combo-input"
+                        :placeholder="selectedName || 'Ocasional...'"
+                        x-model="query"
+                        @focus="open = true"
+                        @input="open = true; hl = 0"
+                        @keydown.arrow-down.prevent="moveDown()"
+                        @keydown.arrow-up.prevent="moveUp()"
+                        @keydown.enter.prevent="pickHighlighted()"
+                        @keydown.escape.prevent="close()"
+                        autocomplete="off"
+                    />
+                    <span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
+                        <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </span>
+                    <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
+                         class="dark:bg-gray-800">
+                        <template x-for="(c, i) in filtered" :key="c.custnr">
+                            <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
+                                :data-pci="i"
+                                style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
+                                @mouseenter="hl = i" @click="pick(c)">
+                                <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
+                                <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Cajero --}}
+            <div>
+                <label class="sel-label">Cajero / Vendedor</label>
+                <select wire:model.live="cajeroId" class="pos-sel">
+                    @foreach($cajeros as $c)
+                        <option value="{{ $c->pernr }}">{{ $c->pername }}</option>
+                    @endforeach
+                </select>
+            </div>
+
         </div>
-        <button wire:click="openPaymentModal" class="cobrar-btn" {{ empty($cart) ? 'disabled' : '' }}>
-            <svg style="width:1.2rem;height:1.2rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
-            </svg>
-            COBRAR
-            <span style="font-size:.72rem;font-weight:400;opacity:.65;">F10</span>
-        </button>
-    </div>
+
+        {{-- Ítems del carrito --}}
+        <div class="cart-body">
+            @if(empty($cart))
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:2rem;text-align:center;color:#d1d5db;">
+                    <svg style="width:3rem;height:3rem;margin-bottom:.75rem" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/>
+                    </svg>
+                    <p style="font-size:.85rem;color:#9ca3af;">Carrito vacío</p>
+                    <p style="font-size:.72rem;color:#d1d5db;margin-top:.25rem;">Buscá un producto a la izquierda</p>
+                </div>
+            @else
+                @foreach($cart as $i => $item)
+                    <div class="cart-row"
+                        data-cart-idx="{{ $i }}"
+                        tabindex="0"
+                        @click="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
+                        @keydown.enter.prevent="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
+                        @keydown.delete.prevent="$wire.removeFromCart({{ $i }})"
+                        @keydown.arrow-down.prevent="focusCartItem({{ $i + 1 }})"
+                        @keydown.arrow-up.prevent="{{ $i === 0 ? '$refs.search.focus()' : 'focusCartItem(' . ($i - 1) . ')' }}"
+                    >
+                        <div style="flex:1;min-width:0;">
+                            <p style="font-size:.82rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100">{{ $item['descr'] }}</p>
+                            <p style="font-size:.68rem;color:#9ca3af;">{{ $item['item'] }} · x{{ $item['qty'] }}</p>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <p style="font-size:.82rem;font-weight:800;color:#4f46e5;">Gs.&nbsp;{{ number_format($item['precio'] * $item['qty'], 0, ',', '.') }}</p>
+                            <p style="font-size:.68rem;color:#9ca3af;">c/u&nbsp;{{ number_format($item['precio'], 0, ',', '.') }}</p>
+                        </div>
+                        <button class="del-btn" @click.stop="$wire.removeFromCart({{ $i }})" title="Eliminar">
+                            <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                @endforeach
+            @endif
+        </div>
+
+        {{-- Footer: total + botón cobrar --}}
+        <div class="cart-footer">
+            <div style="flex:1;">
+                <p style="font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af;margin-bottom:.1rem;">Total a cobrar</p>
+                <p style="font-size:1.85rem;font-weight:900;color:#4f46e5;line-height:1;letter-spacing:-.02em;">
+                    Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
+                </p>
+                @if(count($cart) > 0)
+                <p style="font-size:.65rem;color:#9ca3af;margin-top:.1rem;">{{ count($cart) }} ítem(s)</p>
+                @endif
+            </div>
+            <button wire:click="openPaymentModal" class="cobrar-btn" {{ empty($cart) ? 'disabled' : '' }}>
+                <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
+                </svg>
+                COBRAR
+                <span style="font-size:.7rem;font-weight:400;opacity:.65;">F10</span>
+            </button>
+        </div>
+
+    </div>{{-- /pos-cart --}}
 
 </div>{{-- /pos-wrap --}}
 
@@ -499,7 +463,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     <div class="modal-box">
         <p style="font-size:.95rem;font-weight:800;color:#111827;margin-bottom:1rem;" class="dark:text-white" x-text="edit.descr"></p>
 
-        {{-- Cantidad --}}
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Cantidad</label>
         <div class="qty-ctrl">
             <button class="qty-btn" @click="if(edit.qty > 1) edit.qty--">−</button>
@@ -507,7 +470,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             <button class="qty-btn" @click="edit.qty++">+</button>
         </div>
 
-        {{-- Precio --}}
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Precio unitario (Gs.)</label>
         <input
             id="edit-precio"
@@ -518,7 +480,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             @keydown.enter.prevent="saveEdit()"
         />
 
-        {{-- Subtotal --}}
         <div style="background:#f5f3ff;border-radius:.7rem;padding:.6rem 1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
             <span style="font-size:.78rem;color:#7c3aed;font-weight:600;">Subtotal (x<span x-text="edit.qty"></span>):</span>
             <span style="font-size:1.05rem;font-weight:900;color:#4f46e5;" x-text="'Gs. ' + (edit.qty * edit.precio).toLocaleString('es-PY')"></span>
@@ -571,7 +532,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             @php $cartTotal = $this->getCartTotal(); @endphp
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
                 <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
-                <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
+                <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
                    :style="localAmount >= {{ $cartTotal }} ? 'font-size:1.35rem;font-weight:900;color:#16a34a;' : 'font-size:1.35rem;font-weight:900;color:#dc2626;'"></p>
             </div>
         </div>
@@ -612,8 +573,7 @@ function posApp() {
                 this.$nextTick(() => {
                     this.localAmount = this.$wire.amountReceived;
                     const el = document.getElementById('amount-input');
-                    el?.focus();
-                    el?.select();
+                    el?.focus(); el?.select();
                 });
             });
             window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
@@ -626,9 +586,7 @@ function posApp() {
                     this.activeIdx++;
                     this.$nextTick(() => results[this.activeIdx]?.scrollIntoView({ block: 'nearest' }));
                 }
-            } else {
-                this.focusCartItem(0);
-            }
+            } else { this.focusCartItem(0); }
         },
         arrowUp() {
             if (this.activeIdx > 0) this.activeIdx--;
@@ -636,33 +594,20 @@ function posApp() {
         },
         enter() {
             const results = document.querySelectorAll('[data-result]');
-            if (this.activeIdx >= 0 && results[this.activeIdx]) {
-                results[this.activeIdx].click();
-            } else if (results.length === 1) {
-                results[0].click();
-            } else if (results.length > 1) {
-                this.focusResult(0);
-            }
+            if (this.activeIdx >= 0 && results[this.activeIdx]) results[this.activeIdx].click();
+            else if (results.length === 1) results[0].click();
+            else if (results.length > 1) this.focusResult(0);
         },
         focusResult(idx) {
             const results = document.querySelectorAll('[data-result]');
-            if (results[idx]) {
-                this.activeIdx = idx;
-                results[idx].focus();
-                results[idx].scrollIntoView({ block: 'nearest' });
-            }
+            if (results[idx]) { this.activeIdx = idx; results[idx].focus(); results[idx].scrollIntoView({ block: 'nearest' }); }
         },
         focusCartItem(idx) {
             const items = document.querySelectorAll('[data-cart-idx]');
-            if (items[idx]) {
-                items[idx].focus();
-                items[idx].scrollIntoView({ block: 'nearest' });
-            }
+            if (items[idx]) { items[idx].focus(); items[idx].scrollIntoView({ block: 'nearest' }); }
         },
         clearSearch() {
-            this.$wire.set('search', '');
-            this.activeIdx = -1;
-            this.$refs.search?.focus();
+            this.$wire.set('search', ''); this.activeIdx = -1; this.$refs.search?.focus();
         },
 
         openEdit(idx, qty, precio, descr) {
