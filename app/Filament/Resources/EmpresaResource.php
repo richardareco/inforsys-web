@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\EmpresaResource\Pages;
 use App\Models\Empresa;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -55,6 +56,17 @@ class EmpresaResource extends Resource
                 ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'])
                 ->helperText('PNG, JPG, SVG o WebP. Máx 2 MB. Se mostrará en el encabezado del panel.')
                 ->columnSpan(2),
+
+            Select::make('tipo')
+                ->label('Tipo de negocio')
+                ->options([
+                    'general'      => 'General (POS estándar)',
+                    'supermercado' => 'Supermercado (POS lector de barras)',
+                ])
+                ->default('general')
+                ->required()
+                ->helperText('Define el modo del Punto de Venta. "Supermercado" activa el layout optimizado para lectores de código de barras.')
+                ->columnSpan(2),
         ])->columns(2);
     }
 
@@ -79,6 +91,12 @@ class EmpresaResource extends Resource
                     ->label('Base de datos')
                     ->badge()
                     ->color('info'),
+
+                TextColumn::make('tipo')
+                    ->label('Tipo POS')
+                    ->badge()
+                    ->color(fn (string $state) => $state === 'supermercado' ? 'warning' : 'gray')
+                    ->formatStateUsing(fn (string $state) => $state === 'supermercado' ? 'Supermercado' : 'General'),
 
                 TextColumn::make('users_count')
                     ->label('Usuarios')

@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\DB;
 class PosPage extends Page
 {
     protected static string  $view            = 'filament.pages.pos-page';
+
+    public function getView(): string
+    {
+        $tipo = auth()->user()?->empresa?->tipo ?? 'general';
+        return $tipo === 'supermercado'
+            ? 'filament.pages.pos-page-minimal'
+            : 'filament.pages.pos-page';
+    }
+
     protected static ?string $navigationIcon  = 'heroicon-o-shopping-cart';
     protected static ?string $navigationLabel = 'POS';
     protected static ?string $navigationGroup = 'Ventas';
@@ -32,6 +41,7 @@ class PosPage extends Page
     public bool   $showPaymentModal = false;
     public string $paymentMethod    = 'efectivo';
     public float  $amountReceived   = 0;
+    public float  $amountQr        = 0;
 
     // Combos para los selects
     public array $clientes  = [];
@@ -249,6 +259,7 @@ class PosPage extends Page
     {
         if (empty($this->cart)) return;
         $this->amountReceived   = $this->getCartTotal();
+        $this->amountQr         = 0;
         $this->showPaymentModal = true;
         $this->dispatch('focus-amount');
     }
@@ -256,6 +267,7 @@ class PosPage extends Page
     public function closePaymentModal(): void
     {
         $this->showPaymentModal = false;
+        $this->amountQr         = 0;
         $this->dispatch('focus-search');
     }
 
@@ -265,9 +277,9 @@ class PosPage extends Page
 
         $total      = $this->getCartTotal();
         $ctotal     = $this->getCartCosto();
-        $paygs      = $this->paymentMethod === 'efectivo'      ? $total : 0;
-        $paytr      = $this->paymentMethod === 'transferencia' ? $total : 0;
-        $paytj      = $this->paymentMethod === 'tarjeta'       ? $total : 0;
+        $paygs      = $this->paymentMethod === 'efectivo'                           ? $total : 0;
+        $paytr      = in_array($this->paymentMethod, ['transferencia', 'qr'])       ? $total : 0;
+        $paytj      = $this->paymentMethod === 'tarjeta'                            ? $total : 0;
         $cart       = $this->cart;
         $depositoId = $this->depositoId;
         $cajeroId   = $this->cajeroId;
