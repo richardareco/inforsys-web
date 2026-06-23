@@ -43,6 +43,7 @@ class AdminPanelProvider extends PanelProvider
                 : null)
             ->brandLogoHeight('6rem')
             ->darkMode(true)
+            ->sidebarCollapsibleOnDesktop()
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 fn (): HtmlString => new HtmlString(
@@ -61,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
                 fn (): HtmlString => new HtmlString('
 <style>
 /* ══ SIDEBAR SIEMPRE OSCURA ══ */
+:root { --sidebar-width: 16rem; }
 .fi-sidebar,
 .fi-sidebar nav,
 .fi-sidebar-nav {
@@ -77,17 +79,17 @@ class AdminPanelProvider extends PanelProvider
 .fi-brand-name {
     color: #ffffff !important;
 }
-/* items del menú */
+/* items del menú — texto blanco semitransparente para inactivos */
 .fi-sidebar-item-button {
-    color: #a8bdd4 !important;
+    color: rgba(255,255,255,0.75) !important;
 }
 .fi-sidebar-item-button span,
 .fi-sidebar-item-label {
-    color: #a8bdd4 !important;
+    color: rgba(255,255,255,0.75) !important;
 }
 .fi-sidebar-item-icon,
 .fi-sidebar-item-button svg {
-    color: #7a99b8 !important;
+    color: rgba(255,255,255,0.6) !important;
 }
 .fi-sidebar-item-button:hover {
     background-color: rgba(255,255,255,0.08) !important;
@@ -112,12 +114,13 @@ class AdminPanelProvider extends PanelProvider
 }
 /* grupo label */
 .fi-sidebar-group-label {
-    color: #6b8aaa !important;
+    color: rgba(255,255,255,0.4) !important;
 }
-/* colapsar sidebar */
-.fi-sidebar-close-overlay-btn,
-.fi-icon-btn[title="Collapse sidebar"] svg {
-    color: #7a99b8 !important;
+/* botón colapsar */
+.fi-sidebar-close-overlay-btn svg,
+.fi-icon-btn[title="Collapse sidebar"] svg,
+.fi-icon-btn[title="Expand sidebar"] svg {
+    color: rgba(255,255,255,0.6) !important;
 }
 
 /* ══ FONDO DEL CONTENIDO (modo claro) ══ */
