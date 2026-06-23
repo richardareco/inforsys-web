@@ -189,7 +189,7 @@ class PosPage extends Page
         $this->dispatch('focus-search');
     }
 
-    // Desktop/tablet: agrega al carrito sin limpiar el buscador
+    // Desktop/tablet: agrega al carrito, limpia el input pero mantiene la grilla visible
     public function addToCartKeepSearch(string $itemCode): void
     {
         $item = collect($this->searchResults)->first(fn($r) => $r->item === $itemCode);
@@ -210,6 +210,8 @@ class PosPage extends Page
             ];
         }
 
+        // Limpia el input (sin disparar updatedSearch, así la grilla queda visible)
+        $this->search = '';
         $this->dispatch('focus-search');
     }
 

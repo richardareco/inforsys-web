@@ -119,6 +119,15 @@
 .dark .cliente-combo-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
 .cliente-combo-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
 
+/* ─── Encabezado del carrito ─── */
+.cart-header {
+    padding: .55rem .85rem; font-size: .75rem; font-weight: 700;
+    color: #374151; border-bottom: 1px solid #f3f4f6;
+    display: flex; align-items: center; gap: .4rem;
+    background: #fafafa; flex-shrink: 0;
+}
+.dark .cart-header { background: #111827; color: #d1d5db; border-color: #374151; }
+
 /* ─── Cuerpo del carrito ─── */
 .cart-body { flex: 1; overflow-y: auto; }
 .cart-row {
@@ -202,8 +211,8 @@ body.pos-fullscreen nav.fi-sidebar,
 body.pos-fullscreen .fi-sidebar { display: none !important; }
 body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !important; }
 
-/* ─── Mobile meta: cliente+cajero en izquierda solo en móvil ─── */
-.pos-mobile-meta { display: none; }
+/* ─── Fila de selects (cliente, cajero, depósito) ─── */
+.pos-selects-row { display: flex; gap: .6rem; flex-wrap: wrap; }
 
 /* ─── Responsive: móvil ─── */
 @media (max-width: 767px) {
@@ -212,10 +221,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     .pos-left-top { border-radius: .85rem .85rem 0 0; }
     .pos-products { display: none; }
     .mobile-dropdown { display: block; }
-    /* Cliente+cajero en izquierda (móvil), ocultar en panel derecho */
-    .pos-mobile-meta { display: flex; flex-direction: column; gap: .45rem; }
-    .cart-meta { display: none !important; }
-    /* Carrito: ancho completo, sin límite de altura */
     .pos-cart { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; }
     .dark .pos-cart { border-color: #374151; }
     .cart-footer { position: sticky; bottom: 0; z-index: 10; }
@@ -237,9 +242,12 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         {{-- Header izquierdo --}}
         <div class="pos-left-top">
 
-            {{-- Cliente + Cajero (solo visible en móvil) --}}
-            <div class="pos-mobile-meta">
-                <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+            {{-- Fila: Cliente + Cajero + Depósito --}}
+            <div class="pos-selects-row">
+
+                {{-- Cliente (combobox buscable) --}}
+                <div style="flex:2;min-width:160px;"
+                     x-data="posClienteCombo(@js($clientes), @js($clienteId))"
                      @click.outside="close()"
                      wire:ignore>
                     <label class="sel-label">Cliente</label>
@@ -264,18 +272,20 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                         <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
                              class="dark:bg-gray-800">
                             <template x-for="(c, i) in filtered" :key="c.custnr">
-                                <div :class="i === hl ? 'bg-violet-50' : ''"
+                                <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
                                     :data-pci="i"
-                                    style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;"
+                                    style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
                                     @mouseenter="hl = i" @click="pick(c)">
-                                    <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" x-text="c.custname"></span>
+                                    <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
                                     <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
                                 </div>
                             </template>
                         </div>
                     </div>
                 </div>
-                <div>
+
+                {{-- Cajero --}}
+                <div style="flex:1;min-width:110px;">
                     <label class="sel-label">Cajero / Vendedor</label>
                     <select wire:model.live="cajeroId" class="pos-sel">
                         @foreach($cajeros as $c)
@@ -283,16 +293,17 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                         @endforeach
                     </select>
                 </div>
-            </div>
 
-            {{-- Depósito --}}
-            <div>
-                <label class="sel-label">Depósito</label>
-                <select wire:model.live="depositoId" class="pos-sel">
-                    @foreach($depositos as $d)
-                        <option value="{{ $d->deponr }}">{{ $d->depo_nombre }}</option>
-                    @endforeach
-                </select>
+                {{-- Depósito --}}
+                <div style="flex:1;min-width:90px;">
+                    <label class="sel-label">Depósito</label>
+                    <select wire:model.live="depositoId" class="pos-sel">
+                        @foreach($depositos as $d)
+                            <option value="{{ $d->deponr }}">{{ $d->depo_nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
             </div>
 
             {{-- Búsqueda --}}
@@ -398,57 +409,15 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     {{-- ══════ PANEL DERECHO: carrito ══════ --}}
     <div class="pos-cart">
 
-        {{-- Meta: cliente + cajero --}}
-        <div class="cart-meta">
-
-            {{-- Cliente (combobox buscable) --}}
-            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
-                 @click.outside="close()"
-                 wire:ignore>
-                <label class="sel-label">Cliente</label>
-                <div style="position:relative;">
-                    <input type="text"
-                        class="cliente-combo-input"
-                        :placeholder="selectedName || 'Ocasional...'"
-                        x-model="query"
-                        @focus="open = true"
-                        @input="open = true; hl = 0"
-                        @keydown.arrow-down.prevent="moveDown()"
-                        @keydown.arrow-up.prevent="moveUp()"
-                        @keydown.enter.prevent="pickHighlighted()"
-                        @keydown.escape.prevent="close()"
-                        autocomplete="off"
-                    />
-                    <span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
-                        <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </span>
-                    <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
-                         class="dark:bg-gray-800">
-                        <template x-for="(c, i) in filtered" :key="c.custnr">
-                            <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
-                                :data-pci="i"
-                                style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
-                                @mouseenter="hl = i" @click="pick(c)">
-                                <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
-                                <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Cajero --}}
-            <div>
-                <label class="sel-label">Cajero / Vendedor</label>
-                <select wire:model.live="cajeroId" class="pos-sel">
-                    @foreach($cajeros as $c)
-                        <option value="{{ $c->pernr }}">{{ $c->pername }}</option>
-                    @endforeach
-                </select>
-            </div>
-
+        {{-- Encabezado del carrito --}}
+        <div class="cart-header">
+            <svg style="width:.9rem;height:.9rem;color:#6b7280" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.156a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
+            </svg>
+            Carrito
+            @if(count($cart) > 0)
+                <span style="margin-left:auto;background:#ede9fe;color:#6d28d9;font-size:.65rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">{{ count($cart) }}</span>
+            @endif
         </div>
 
         {{-- Ítems del carrito --}}
