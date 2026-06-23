@@ -14,7 +14,8 @@
 .ctx-group { display:flex; flex-direction:column; gap:.2rem; }
 .ctx-label { font-size:.65rem; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.7px; }
 .ctx-select {
-    appearance:none; -webkit-appearance:none;
+    appearance:none !important; -webkit-appearance:none !important;
+    background-image:none !important;
     background:#f8fafc; color:#1e293b;
     border:1px solid #e2e8f0; border-radius:.4rem;
     padding:.35rem .65rem; font-size:.85rem; outline:none; cursor:pointer;
