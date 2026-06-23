@@ -198,19 +198,8 @@
                 </div>
             </div>
 
-            {{-- Depósito --}}
-            <div style="flex:1;min-width:100px;">
-                <label class="sel-lbl">Depósito</label>
-                <select wire:model.live="depositoId"
-                    style="-webkit-appearance:none;appearance:none;background-color:#f9fafb;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right .55rem center;background-size:1rem;padding:.38rem 1.9rem .38rem .65rem;border:1px solid #d1d5db;border-radius:.55rem;font-size:.8rem;color:#111827;cursor:pointer;width:100%;outline:none;"
-                    class="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
-                    @foreach($depositos as $d)
-                        <option value="{{ $d->deponr }}">{{ $d->depo_nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
 
-            {{-- Observaciones --}}
+{{-- Observaciones --}}
             <div style="flex:2;min-width:160px;">
                 <label class="sel-lbl">Observaciones</label>
                 <input type="text" wire:model.lazy="obs" placeholder="Opcional..."

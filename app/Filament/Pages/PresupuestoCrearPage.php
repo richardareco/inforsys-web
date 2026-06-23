@@ -17,12 +17,10 @@ class PresupuestoCrearPage extends Page
     public array  $searchResults  = [];
     public array  $cart           = [];
     public mixed  $clienteId      = null;
-    public mixed  $depositoId     = null;
     public string $obs            = '';
     public string $clienteCelular = '';
 
     public array $clientes  = [];
-    public array $depositos = [];
 
     public function mount(): void
     {
@@ -39,15 +37,10 @@ class PresupuestoCrearPage extends Page
             ])
             ->toArray();
 
-        $this->depositos = DB::connection('delphi')
-            ->table('deposito')->select('deponr', 'depo_nombre')
-            ->orderBy('deponr')->get()->toArray();
-
         if ($this->clientes) {
             $this->clienteId      = $this->clientes[0]->custnr;
             $this->clienteCelular = $this->fetchCelular($this->clienteId);
         }
-        if ($this->depositos) $this->depositoId = $this->depositos[0]->deponr;
     }
 
     public function updatedClienteId(): void
@@ -179,7 +172,6 @@ class PresupuestoCrearPage extends Page
 
             DB::connection('delphi')->table('presupuesto1')->insert([
                 'custnr'      => $this->clienteId,
-                'depo'        => $this->depositoId,
                 'obs'         => $this->obs ?: null,
                 'total'       => $total,
                 'totalv'      => $total,
