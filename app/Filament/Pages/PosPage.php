@@ -117,12 +117,10 @@ class PosPage extends Page
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
             )
-            ->where(function ($q) use ($like) {
-                $q->where('items.descr',  'like', $like)
-                  ->orWhere('items.scode',  'like', $like)
-                  ->orWhere('items.scode1', 'like', $like)
-                  ->orWhere('items.item',   'like', $like);
-            })
+            ->whereRaw(
+                "CONCAT_WS(' ', items.item, items.scode, items.scode1, items.descr) LIKE ?",
+                [$like]
+            )
             ->where('items.stock', '>', 0)
             ->orderBy('items.descr')
             ->limit(12)
