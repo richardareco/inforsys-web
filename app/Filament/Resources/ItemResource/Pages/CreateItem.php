@@ -8,6 +8,7 @@ use App\Models\ItemImage;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CreateItem extends CreateRecord
 {
@@ -15,11 +16,6 @@ class CreateItem extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Guardar ruta de imagen temporalmente
-        if (!empty($data['image'])) {
-            session(['pending_item_image' => $data['image']]);
-        }
-
         // Generar siguiente item (último ID + 1)
         $lastItem = DB::connection('delphi')
             ->table('items')
@@ -30,7 +26,13 @@ class CreateItem extends CreateRecord
         $nextId = $lastItem ? ((int)$lastItem->item) + 1 : 1;
         $data['item'] = str_pad($nextId, 7, '0', STR_PAD_LEFT);
 
-        // Remover image del data para que no intente guardarse en items table
+        // Guardar la imagen en sesión antes de removerla
+        if (!empty($data['image'])) {
+            session(['pending_image_file' => $data['image']]);
+            Log::info("📸 Imagen guardada en sesión: {$data['image']}");
+        }
+
+        // Remover image del data (no pertenece a items table)
         unset($data['image']);
 
         return $data;
@@ -38,18 +40,37 @@ class CreateItem extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $imagePath = session('pending_item_image');
+        // Obtener la imagen de la sesión
+        $imageFile = session('pending_image_file');
 
-        if (!empty($imagePath)) {
-            if (Storage::disk('local')->exists($imagePath)) {
-                $imageContent = Storage::disk('local')->get($imagePath);
+        Log::info("⏳ afterCreate - Buscando imagen: " . ($imageFile ?? 'null'));
 
-                ItemImage::updateOrCreate(
-                    ['item' => $this->record->item],
-                    ['image' => $imageContent]
-                );
+        if (!empty($imageFile)) {
+            try {
+                $fullPath = 'products/' . basename($imageFile);
+
+                Log::info("📁 Intentando leer: {$fullPath}");
+
+                if (Storage::disk('local')->exists($fullPath)) {
+                    $content = Storage::disk('local')->get($fullPath);
+                    $size = strlen($content);
+
+                    Log::info("✅ Archivo leído: {$size} bytes");
+
+                    ItemImage::create([
+                        'item' => $this->record->item,
+                        'image' => $content,
+                    ]);
+
+                    Log::info("🎉 Foto guardada en itemsimage para item: {$this->record->item}");
+                } else {
+                    Log::error("❌ Archivo no encontrado en: {$fullPath}");
+                }
+            } catch (\Exception $e) {
+                Log::error("💥 Error al guardar foto: " . $e->getMessage());
             }
-            session()->forget('pending_item_image');
+
+            session()->forget('pending_image_file');
         }
     }
 }

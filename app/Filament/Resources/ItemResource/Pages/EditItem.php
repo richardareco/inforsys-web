@@ -7,6 +7,7 @@ use App\Models\ItemImage;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class EditItem extends EditRecord
 {
@@ -21,12 +22,13 @@ class EditItem extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Guardar ruta de imagen temporalmente
+        // Guardar la imagen en sesión antes de removerla
         if (!empty($data['image'])) {
-            session(['pending_item_image' => $data['image']]);
+            session(['pending_image_file' => $data['image']]);
+            Log::info("📸 Imagen guardada en sesión para edición: {$data['image']}");
         }
 
-        // Remover image del data para que no intente guardarse en items table
+        // Remover image del data (no pertenece a items table)
         unset($data['image']);
 
         return $data;
@@ -34,18 +36,37 @@ class EditItem extends EditRecord
 
     protected function afterSave(): void
     {
-        $imagePath = session('pending_item_image');
+        // Obtener la imagen de la sesión
+        $imageFile = session('pending_image_file');
 
-        if (!empty($imagePath)) {
-            if (Storage::disk('local')->exists($imagePath)) {
-                $imageContent = Storage::disk('local')->get($imagePath);
+        Log::info("⏳ afterSave - Buscando imagen: " . ($imageFile ?? 'null'));
 
-                ItemImage::updateOrCreate(
-                    ['item' => $this->record->item],
-                    ['image' => $imageContent]
-                );
+        if (!empty($imageFile)) {
+            try {
+                $fullPath = 'products/' . basename($imageFile);
+
+                Log::info("📁 Intentando leer: {$fullPath}");
+
+                if (Storage::disk('local')->exists($fullPath)) {
+                    $content = Storage::disk('local')->get($fullPath);
+                    $size = strlen($content);
+
+                    Log::info("✅ Archivo leído: {$size} bytes");
+
+                    ItemImage::updateOrCreate(
+                        ['item' => $this->record->item],
+                        ['image' => $content]
+                    );
+
+                    Log::info("🎉 Foto actualizada en itemsimage para item: {$this->record->item}");
+                } else {
+                    Log::error("❌ Archivo no encontrado en: {$fullPath}");
+                }
+            } catch (\Exception $e) {
+                Log::error("💥 Error al guardar foto: " . $e->getMessage());
             }
-            session()->forget('pending_item_image');
+
+            session()->forget('pending_image_file');
         }
     }
 
