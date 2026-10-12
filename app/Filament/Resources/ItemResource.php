@@ -96,7 +96,6 @@ class ItemResource extends Resource
                             ->imageEditorAspectRatios(['16:9', '4:3', '1:1'])
                             ->directory('products')
                             ->maxSize(5120)
-                            ->dehydrated(false)
                             ->hiddenOn('index'),
                     ])->columns(1),
             ]);

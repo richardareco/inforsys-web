@@ -19,11 +19,24 @@ class EditItem extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Guardar ruta de imagen temporalmente
+        if (!empty($data['image'])) {
+            session(['pending_item_image' => $data['image']]);
+        }
+
+        // Remover image del data para que no intente guardarse en items table
+        unset($data['image']);
+
+        return $data;
+    }
+
     protected function afterSave(): void
     {
-        if (!empty($this->form->getRawState()['image'])) {
-            $imagePath = $this->form->getRawState()['image'];
+        $imagePath = session('pending_item_image');
 
+        if (!empty($imagePath)) {
             if (Storage::disk('local')->exists($imagePath)) {
                 $imageContent = Storage::disk('local')->get($imagePath);
 
@@ -32,6 +45,7 @@ class EditItem extends EditRecord
                     ['image' => $imageContent]
                 );
             }
+            session()->forget('pending_item_image');
         }
     }
 
