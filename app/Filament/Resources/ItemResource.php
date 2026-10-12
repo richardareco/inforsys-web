@@ -4,21 +4,102 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
+use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables\Actions\Action;
+use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class ItemResource extends Resource
 {
-    protected static ?string $model           = Item::class;
-    protected static ?string $navigationIcon  = 'heroicon-o-cube';
+    protected static ?string $model = Item::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-cube';
+
     protected static ?string $navigationLabel = 'Productos';
-    protected static ?string $modelLabel      = 'Producto';
+
+    protected static ?string $modelLabel = 'Producto';
+
     protected static ?string $pluralModelLabel = 'Productos';
-    protected static ?int    $navigationSort  = 2;
+
+    protected static ?int $navigationSort = 2;
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                \Filament\Forms\Components\Section::make('Información Básica')
+                    ->schema([
+                        \Filament\Forms\Components\TextInput::make('item')
+                            ->label('Código Producto')
+                            ->disabled()
+                            ->helperText('Se genera automáticamente'),
+
+                        \Filament\Forms\Components\TextInput::make('scode')
+                            ->label('Referencia')
+                            ->maxLength(20),
+
+                        \Filament\Forms\Components\TextInput::make('scode1')
+                            ->label('Código de Barra')
+                            ->maxLength(20),
+
+                        \Filament\Forms\Components\TextInput::make('descr')
+                            ->label('Descripción')
+                            ->required()
+                            ->maxLength(100),
+
+                        \Filament\Forms\Components\Select::make('grupnr')
+                            ->label('Categoría')
+                            ->options(
+                                Grupo::all()->pluck('descr', 'grupnr')->toArray()
+                            )
+                            ->searchable()
+                            ->nullable(),
+                    ])->columns(2),
+
+                \Filament\Forms\Components\Section::make('Costos y Precios')
+                    ->schema([
+                        \Filament\Forms\Components\TextInput::make('costo')
+                            ->label('Costo')
+                            ->numeric()
+                            ->step(0.0001),
+
+                        \Filament\Forms\Components\TextInput::make('acosto')
+                            ->label('Costo Actual')
+                            ->numeric()
+                            ->step(0.0001),
+
+                        \Filament\Forms\Components\TextInput::make('precio1')
+                            ->label('Precio 1')
+                            ->numeric()
+                            ->step(0.0001),
+
+                        \Filament\Forms\Components\TextInput::make('precio2')
+                            ->label('Precio 2')
+                            ->numeric()
+                            ->step(0.0001),
+
+                        \Filament\Forms\Components\TextInput::make('precio3')
+                            ->label('Precio 3')
+                            ->numeric()
+                            ->step(0.0001),
+                    ])->columns(3),
+
+                \Filament\Forms\Components\Section::make('Foto del Producto')
+                    ->schema([
+                        \Filament\Forms\Components\FileUpload::make('image')
+                            ->label('Subir Foto')
+                            ->image()
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['16:9', '4:3', '1:1'])
+                            ->directory('products')
+                            ->maxSize(5120)
+                            ->dehydrated(false)
+                            ->hiddenOn('index'),
+                    ])->columns(1),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
@@ -26,102 +107,31 @@ class ItemResource extends Resource
             ->columns([
                 TextColumn::make('item')
                     ->label('Código')
-                    ->searchable()
                     ->sortable()
-                    ->weight('bold')
-                    ->copyable(),
-
-                TextColumn::make('scode')
-                    ->label('Referencia')
-                    ->searchable()
-                    ->sortable()
-                    ->color('gray'),
+                    ->url(fn (Item $record): string => route('filament.admin.resources.items.edit', $record))
+                    ->color('info'),
 
                 TextColumn::make('descr')
                     ->label('Descripción')
                     ->searchable()
-                    ->limit(45)
-                    ->tooltip(fn ($record) => $record->descr),
-
-                TextColumn::make('stock_total')
-                    ->label('Stock')
-                    ->sortable()
-                    ->alignCenter()
-                    ->badge()
-                    ->color(fn ($state) => match(true) {
-                        $state <= 0 => 'danger',
-                        $state <= 5 => 'warning',
-                        default     => 'success',
-                    })
-                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.')),
+                    ->sortable(),
 
                 TextColumn::make('precio1')
-                    ->label('Precio 1')
-                    ->alignRight()
-                    ->formatStateUsing(fn ($state) => 'Gs. ' . number_format($state, 0, ',', '.')),
+                    ->label('Precio 1'),
 
                 TextColumn::make('precio2')
-                    ->label('Precio 2')
-                    ->alignRight()
-                    ->color('gray')
-                    ->formatStateUsing(fn ($state) => 'Gs. ' . number_format($state, 0, ',', '.')),
-
-                TextColumn::make('precio3')
-                    ->label('Precio 3')
-                    ->alignRight()
-                    ->color('gray')
-                    ->formatStateUsing(fn ($state) => 'Gs. ' . number_format($state, 0, ',', '.'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('obs')
-                    ->label('Observación')
-                    ->limit(50)
-                    ->tooltip(fn ($record) => $record->obs)
-                    ->color('gray')
-                    ->placeholder('—'),
+                    ->label('Precio 2'),
             ])
-            ->defaultSort('descr')
-            ->searchPlaceholder('Buscar por descripción o referencia...')
-            ->striped()
-            ->actions([
-                Action::make('ver_detalle')
-                    ->label('')
-                    ->icon('heroicon-o-eye')
-                    ->color('gray')
-                    ->modalHeading(fn (Item $record) => $record->descr)
-                    ->modalDescription(fn (Item $record) => 'Código: ' . $record->item . '  ·  Ref: ' . ($record->scode ?: '—'))
-                    ->modalContent(fn (Item $record) => view(
-                        'filament.resources.item.detail-modal',
-                        [
-                            'item'      => $record,
-                            'depositos' => DB::connection('delphi')
-                                ->table('itemsdepo')
-                                ->join('deposito', 'itemsdepo.depo', '=', 'deposito.deponr')
-                                ->where('itemsdepo.item', $record->item)
-                                ->where('itemsdepo.qty', '>', 0)
-                                ->select('deposito.depo_nombre', 'itemsdepo.depo', 'itemsdepo.qty')
-                                ->orderByDesc('itemsdepo.qty')
-                                ->get(),
-                            'proveedor' => DB::connection('delphi')
-                                ->table('proveedor')
-                                ->where('suppnr', $record->suppnr)
-                                ->select('suppname', 'telef1', 'celular1', 'email')
-                                ->first(),
-                        ]
-                    ))
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Cerrar')
-                    ->modalWidth('lg'),
-            ])
-            ->recordAction('ver_detalle')
-            ->paginated([25, 50, 100]);
+            ->filters([
+                //
+            ]);
     }
 
-    public static function getEloquentQuery(): Builder
+    public static function getRelations(): array
     {
-        return parent::getEloquentQuery()
-            ->select('items.*')
-            ->selectRaw('COALESCE((SELECT SUM(qty) FROM itemsdepo WHERE itemsdepo.item = items.item), 0) AS stock_total');
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array
@@ -130,4 +140,7 @@ class ItemResource extends Resource
             'index' => Pages\ListItems::route('/'),
         ];
     }
+
+    // Routes registrados como fallback directo en ListItems para evitar conflicto con table()
+    // Agregar manualmente en ListItems si es necesario
 }

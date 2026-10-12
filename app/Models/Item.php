@@ -12,4 +12,22 @@ class Item extends Model
     public    $incrementing = false;
     protected $keyType    = 'string';
     public    $timestamps  = false;
+
+    protected $fillable = [
+        'item',
+        'scode',
+        'scode1',
+        'descr',
+        'costo',
+        'acosto',
+        'precio1',
+        'precio2',
+        'precio3',
+        'grupnr',
+    ];
+
+    public function images()
+    {
+        return $this->hasMany(ItemImage::class, 'item', 'item');
+    }
 }

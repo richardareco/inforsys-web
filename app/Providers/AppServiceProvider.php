@@ -23,5 +23,7 @@ class AppServiceProvider extends ServiceProvider
         if (str_contains(config('app.url'), 'ngrok')) {
             URL::forceScheme('https');
         }
+
+        \App\Models\Item::observe(\App\Observers\ItemObserver::class);
     }
 }
