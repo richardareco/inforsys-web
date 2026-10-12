@@ -108,19 +108,23 @@ class PosPage extends Page
             return;
         }
 
-        $like = '%' . $term . '%';
-
-        $results = DB::connection('delphi')
+        $words = preg_split('/\s+/', $term);
+        $query = DB::connection('delphi')
             ->table('items')
             ->select('items.item', 'items.scode', 'items.scode1', 'items.descr', 'items.precio3 as precio', 'items.costo')
             ->selectRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
-            )
-            ->whereRaw(
+            );
+
+        foreach ($words as $word) {
+            $query->whereRaw(
                 "CONCAT_WS(' ', items.item, items.scode, items.scode1, items.descr) LIKE ?",
-                [$like]
-            )
+                ['%' . $word . '%']
+            );
+        }
+
+        $results = $query
             ->where('items.stock', '>', 0)
             ->orderBy('items.descr')
             ->limit(12)
