@@ -109,8 +109,7 @@ class ItemResource extends Resource
                 TextColumn::make('item')
                     ->label('Código')
                     ->sortable()
-                    ->url(fn (Item $record): string => route('filament.admin.resources.items.edit', $record))
-                    ->color('info'),
+                    ->searchable(),
 
                 TextColumn::make('descr')
                     ->label('Descripción')
@@ -118,14 +117,25 @@ class ItemResource extends Resource
                     ->sortable(),
 
                 TextColumn::make('precio1')
-                    ->label('Precio 1'),
+                    ->label('Precio 1')
+                    ->sortable(),
 
                 TextColumn::make('precio2')
-                    ->label('Precio 2'),
+                    ->label('Precio 2')
+                    ->sortable(),
             ])
             ->filters([
                 //
-            ]);
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->paginated([25, 50, 100]);
     }
 
     public static function getRelations(): array
@@ -139,8 +149,9 @@ class ItemResource extends Resource
     {
         return [
             'index' => Pages\ListItems::route('/'),
-            'create' => Pages\CreateItem::route('/create'),
-            'edit' => Pages\EditItem::route('/{record}/edit'),
         ];
     }
+
+    // Nota: create y edit se manejan manualmente en ListItems sin registrar aquí
+    // para evitar conflicto de compilación de rutas dinámicas en Filament v3
 }

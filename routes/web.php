@@ -11,4 +11,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.export-pdf');
     Route::get('/presupuesto/{presnr}/pdf', [PresupuestoPdfController::class, 'export'])
         ->name('presupuesto.pdf');
+
+    // Rutas para Productos - manejadas mediante un helper para evitar conflicto Filament
+    Route::get('/admin/items/create', fn() => app(\App\Filament\Resources\ItemResource\Pages\CreateItem::class)->render())
+        ->name('filament.admin.resources.items.create');
+    Route::get('/admin/items/{record}/edit', fn($record) => app(\App\Filament\Resources\ItemResource\Pages\EditItem::class)->render())
+        ->name('filament.admin.resources.items.edit');
 });
