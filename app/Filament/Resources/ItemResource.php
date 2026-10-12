@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ItemResource\Pages;
 use App\Models\Item;
+use App\Models\Grupo;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -138,9 +139,8 @@ class ItemResource extends Resource
     {
         return [
             'index' => Pages\ListItems::route('/'),
+            'create' => Pages\CreateItem::route('/create'),
+            'edit' => Pages\EditItem::route('/{record}/edit'),
         ];
     }
-
-    // Routes registrados como fallback directo en ListItems para evitar conflicto con table()
-    // Agregar manualmente en ListItems si es necesario
 }
