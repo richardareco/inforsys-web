@@ -22,10 +22,12 @@ class EditItem extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Guardar la imagen en sesión antes de removerla
-        if (!empty($data['image'])) {
+        // Guardar la imagen path en sesión SOLO SI es string (ya procesado por Filament)
+        if (!empty($data['image']) && is_string($data['image'])) {
             session(['pending_image_file' => $data['image']]);
-            Log::info("📸 Imagen guardada en sesión para edición: {$data['image']}");
+            Log::info("📸 Imagen path guardado en sesión para edición: {$data['image']}");
+        } else {
+            Log::warning("⚠️ Image no es string o está vacío: " . gettype($data['image'] ?? null));
         }
 
         // Remover image del data (no pertenece a items table)

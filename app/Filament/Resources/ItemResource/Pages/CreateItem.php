@@ -26,10 +26,12 @@ class CreateItem extends CreateRecord
         $nextId = $lastItem ? ((int)$lastItem->item) + 1 : 1;
         $data['item'] = str_pad($nextId, 7, '0', STR_PAD_LEFT);
 
-        // Guardar la imagen en sesión antes de removerla
-        if (!empty($data['image'])) {
+        // Guardar la imagen path en sesión SOLO SI es string (ya procesado por Filament)
+        if (!empty($data['image']) && is_string($data['image'])) {
             session(['pending_image_file' => $data['image']]);
-            Log::info("📸 Imagen guardada en sesión: {$data['image']}");
+            Log::info("📸 Imagen path guardado en sesión: {$data['image']}");
+        } else {
+            Log::warning("⚠️ Image no es string o está vacío: " . gettype($data['image'] ?? null));
         }
 
         // Remover image del data (no pertenece a items table)

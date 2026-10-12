@@ -96,12 +96,7 @@ class ItemResource extends Resource
                             ->imageEditorAspectRatios(['16:9', '4:3', '1:1'])
                             ->directory('products')
                             ->maxSize(5120)
-                            ->hiddenOn('index')
-                            ->afterStateUpdated(function($state) {
-                                if ($state) {
-                                    session(['pending_image_file' => $state]);
-                                }
-                            }),
+                            ->hiddenOn('index'),
                     ])->columns(1),
             ]);
     }
