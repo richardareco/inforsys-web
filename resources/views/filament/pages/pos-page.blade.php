@@ -10,12 +10,29 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 .fi-ac-btn-action:has(svg[wire\:target*="fullscreen"]) {
     width: 2.4rem !important;
     min-width: 2.4rem !important;
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .fi-ac-btn-action:has(svg[wire\:target*="fullscreen"]) {
+        position: absolute !important;
+        top: -2.8rem !important;
+        right: 0 !important;
+    }
+
+    /* Mostrar botones expand/collapse sidebar en móvil */
+    .fi-topbar-close-sidebar-btn,
+    .fi-topbar-open-sidebar-btn {
+        display: flex !important;
+    }
 }
 
 /* ─── Contenedor principal ─── */
 .pos-wrap {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: calc(100vh - 160px); min-height: 500px;
     border: 1px solid #e5e7eb; border-radius: 1rem;
     overflow: hidden;
@@ -27,9 +44,15 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 @media (max-width: 768px) {
     .pos-wrap {
         flex-direction: column;
-        height: calc(100vh - 120px);
+        height: 100vh;
+        height: 100dvh;
         border-radius: 0;
         border: none;
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        overflow: hidden;
     }
 }
 
@@ -48,51 +71,225 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
         margin-left: auto;
     }
 }
+
+/* Mostrar botón de sidebar toggle */
+[data-action="sidebar-toggle"],
+[aria-label*="Toggle sidebar"],
+button[aria-label*="toggle sidebar"],
+.fi-topbar button[aria-expanded] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Estilos del botón sidebar - Fuera del media query para mayor especificidad */
+.fi-topbar-open-sidebar-btn,
+.fi-topbar-close-sidebar-btn {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem !important;
+}
+
+.fi-topbar-open-sidebar-btn:hover,
+.fi-topbar-close-sidebar-btn:hover {
+    background-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+
+.fi-topbar-open-sidebar-btn svg path,
+.fi-topbar-close-sidebar-btn svg path {
+    stroke: #1f2937 !important;
+    fill: #1f2937 !important;
+}
+
+/* Remover línea blanca entre sidebar y página */
+.fi-sidebar {
+    border: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.fi-sidebar::after {
+    display: none !important;
+}
+
+.fi-page {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border-left: none !important;
+}
+
+.fi-main-ctn {
+    border: none !important;
+    box-shadow: none !important;
+    border-left: none !important;
+}
+
+/* Ocultar todo tipo de separadores entre sidebar y página */
+.fi-sidebar ~ * {
+    border-left: none !important;
+}
+
+/* Fondo gris de la página más oscuro para camuflar la línea */
+.fi-page {
+    background: #f3f4f6 !important;
+}
+
+/* Remover línea divisoria cuando sidebar está visible */
+.fi-sidebar:not(.hidden) {
+    margin-right: -1px;
+}
+
+.fi-sidebar:not(.hidden) ~ .fi-page {
+    margin-left: 0 !important;
+}
+
+/* Ocultar línea blanca del encabezado del carrito cuando sidebar está abierto */
+.fi-sidebar:not(.hidden) ~ .fi-page .cart-header {
+    border-bottom: none !important;
+    border-top: none !important;
+}
+
+.fi-sidebar:not(.hidden) ~ .fi-page .pos-left-top {
+    border-bottom: none !important;
+}
+
+/* Ocultar línea en el área de filtros cuando sidebar está visible */
+.fi-sidebar:not(.hidden) ~ .fi-page [style*="border-top"] {
+    border-top: none !important;
+}
+
+/* Poner el filtro de búsqueda atrás del sidebar cuando está abierto */
+.fi-sidebar:not(.hidden) ~ .fi-page .pos-search-wrap {
+    z-index: -10 !important;
+    position: relative;
+}
+
+.fi-sidebar:not(.hidden) ~ .fi-page .pos-search-wrap [style*="z-index"] {
+    z-index: -10 !important;
+}
+
+.fi-sidebar:not(.hidden) ~ .fi-page .pos-left-top {
+    z-index: -10 !important;
+    position: relative;
+}
+
+@media (max-width: 768px) {
+    .fi-sidebar:not(.hidden) ~ .fi-page .cart-header {
+        border-bottom: none !important;
+    }
+
+    .fi-sidebar:not(.hidden) ~ .fi-page .pos-wrap {
+        z-index: 0 !important;
+    }
+
+    .fi-sidebar:not(.hidden) ~ .fi-page .pos-left {
+        z-index: 0 !important;
+    }
+}
+
+/* Ocultar scrollbar pero permitir scroll */
+::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+html {
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+}
 .dark .pos-wrap { border-color: #374151; }
 
 /* ─── Panel izquierdo: depósito + búsqueda + productos ─── */
 .pos-left {
     flex: 1; display: flex; flex-direction: column; overflow: hidden;
     background: #f9fafb;
-    order: 2;
+    order: 1;
 }
 .dark .pos-left { background: #111827; }
 
 @media (max-width: 768px) {
     .pos-left {
-        flex: 0.7;
-        order: 2;
+        flex: 1;
+        order: 1;
         overflow-y: auto;
     }
 }
 
 .pos-left-top {
     flex-shrink: 0; padding: .35rem .6rem !important;
-    background: white; border-bottom: 1px solid #e5e7eb;
+    background: white; border-bottom: none;
     display: flex; flex-direction: column; gap: .3rem !important;
 }
 .dark .pos-left-top { background: #1f2937; border-color: #374151; }
 
-/* ─── Buscador ─── */
-.pos-search-wrap { position: relative; }
-.pos-search {
-    width: 100%; padding: .4rem 2.2rem .4rem 2.2rem !important;
-    border: 2px solid #6366f1; border-radius: .6rem !important;
-    font-size: .8rem !important; font-weight: 500; background: white; color: #111827;
-    outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+@media (max-width: 768px) {
+    .pos-left-top {
+        padding: .3rem .4rem !important;
+        gap: .2rem !important;
+    }
 }
-.dark .pos-search { background: #1f2937; color: #f9fafb; }
-.pos-search-icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
 
-/* Ícono micrófono a la derecha */
-.pos-search-wrap::after {
-    content: "🎤";
-    position: absolute;
-    right: 0.8rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.2rem;
+/* ─── Buscador ─── */
+.pos-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #6366f1;
+    border-radius: .6rem;
+    overflow: hidden;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+.dark .pos-search-wrap { background: #1f2937; border-color: #4f46e5; }
+
+.pos-search-icon {
+    flex-shrink: 0;
+    padding: .4rem .6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
     pointer-events: none;
+}
+.dark .pos-search-icon { color: #d1d5db; }
+
+.pos-search {
+    flex: 1;
+    padding: .4rem .3rem !important;
+    border: none !important;
+    font-size: .8rem !important;
+    font-weight: 500;
+    background: transparent;
+    color: #111827;
+    outline: none;
+    box-shadow: none !important;
+}
+.dark .pos-search { background: transparent; color: #f9fafb; }
+
+.pos-search::placeholder { color: #9ca3af; }
+.dark .pos-search::placeholder { color: #d1d5db; }
+
+@media (max-width: 768px) {
+    .pos-search {
+        padding: .32rem .3rem !important;
+        font-size: .75rem !important;
+    }
+    .pos-search-wrap {
+        border-width: 1.5px !important;
+    }
 }
 
 /* ─── Dropdown resultados (móvil) ─── */
@@ -110,43 +307,66 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 /* Grid móvil de productos */
 .mobile-products-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-    padding: 0.75rem;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
 }
 
 .mob-item {
-    display: flex; flex-direction: column; gap: 0.5rem;
-    padding: 0.75rem; border-radius: 0.75rem;
-    background: white; border: 1.5px solid #e5e7eb;
+    display: flex; flex-direction: row; gap: 0.5rem;
+    padding: 0.5rem; border-radius: 0.5rem;
+    background: white; border: 1px solid #e5e7eb;
     cursor: pointer; transition: all 0.15s; user-select: none;
+    align-items: center;
 }
 .dark .mob-item { background: #1f2937; border-color: #374151; }
 .mob-item:hover { border-color: #6366f1; box-shadow: 0 2px 8px rgba(99,102,241,.15); transform: translateY(-1px); }
 .mob-item:active { transform: scale(0.97); }
 
 .mob-item-image {
-    width: 100%; height: 100px; object-fit: contain;
-    background: #f3f4f6; border-radius: 0.5rem;
+    width: 80px; height: 80px; object-fit: contain;
+    background: #f3f4f6; border-radius: 0.4rem;
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 }
 .dark .mob-item-image { background: #374151; }
 
+.mob-item-info {
+    display: flex; flex-direction: column; gap: 0.25rem;
+    flex: 1; min-width: 0;
+}
+
 .mob-item-name {
-    font-size: 0.85rem; font-weight: 700;
-    color: #111827; line-height: 1.2;
+    font-size: 0.75rem; font-weight: 700;
+    color: #111827; line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 .dark .mob-item-name { color: #f9fafb; }
 
+.mob-item-specs {
+    font-size: 0.6rem; color: #9ca3af; font-weight: 500;
+    display: none;
+}
+.dark .mob-item-specs { color: #d1d5db; }
+
 .mob-item-price {
-    font-size: 1.1rem; font-weight: 900;
+    font-size: 0.8rem; font-weight: 900;
     color: #4f46e5;
 }
 
+.mob-item-footer {
+    display: flex; gap: 0.4rem; align-items: center;
+}
+
 .mob-item-stock {
-    font-size: 0.7rem; font-weight: 700;
-    padding: 0.2rem 0.4rem; border-radius: 999px;
+    font-size: 0.55rem; font-weight: 700;
+    padding: 0.08rem 0.25rem; border-radius: 999px;
     display: inline-block;
+    width: fit-content;
+    flex-shrink: 0;
 }
 
 .mob-item-stock.high { background: #dcfce7; color: #16a34a; }
@@ -154,16 +374,18 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 .mob-item-stock.low { background: #fee2e2; color: #b91c1c; }
 
 .mob-item-add-btn {
-    width: 100%; padding: 0.5rem;
+    width: 2.2rem; height: 2.2rem; padding: 0;
     background: #6366f1; color: white;
-    border: none; border-radius: 0.5rem;
-    font-size: 0.8rem; font-weight: 700;
+    border: none; border-radius: 0.4rem;
+    font-size: 0.75rem; font-weight: 700;
     cursor: pointer; display: flex;
     align-items: center; justify-content: center;
-    gap: 0.3rem; transition: background 0.12s;
+    gap: 0; transition: background 0.12s;
+    flex-shrink: 0;
 }
 .mob-item-add-btn:hover { background: #4f46e5; }
 .dark .mob-item-add-btn { background: #6366f1; }
+.mob-item-add-btn svg { width: 0.8rem; height: 0.8rem; }
 
 /* ─── Grid de productos ─── */
 .pos-products {
@@ -221,17 +443,19 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     width: 400px; flex-shrink: 0;
     display: flex; flex-direction: column;
     border-left: 1px solid #e5e7eb; background: white;
-    order: 1;
+    order: 2;
 }
 .dark .pos-cart { background: #1f2937; border-color: #374151; }
 
 @media (max-width: 768px) {
     .pos-cart {
         width: 100%;
-        flex: 0.35;
+        flex: 0.4;
         border-left: none;
-        border-bottom: 1px solid #e5e7eb;
-        order: 1;
+        border-top: 1px solid #e5e7eb;
+        order: 2;
+        overflow: hidden;
+        display: flex;
     }
 }
 
@@ -245,8 +469,10 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 
 @media (max-width: 768px) {
     .cart-meta {
-        padding: .3rem .5rem;
-        gap: .25rem;
+        padding: .2rem .35rem !important;
+        gap: .15rem !important;
+        background: transparent;
+        border: none !important;
     }
 }
 
@@ -254,16 +480,7 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 
 @media (max-width: 768px) {
     .sel-label {
-        display: inline !important;
-        margin: 0 !important;
-        margin-right: 0.5rem !important;
-        text-transform: none !important;
-        font-size: 0.85rem !important;
-        letter-spacing: 0 !important;
-        font-weight: 600 !important;
-    }
-    .sel-label::before {
-        content: "👤 ";
+        display: none !important;
     }
     .pos-selects-row {
         padding: 0 !important;
@@ -274,18 +491,22 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     }
     .pos-selects-row > div {
         min-width: auto !important;
-        flex: 0 !important;
+        flex: 1 !important;
     }
     .pos-sel {
         appearance: none !important;
-        border: none !important;
-        background: none !important;
-        background-image: none !important;
-        padding: 0 !important;
-        font-size: 0.85rem !important;
+        border: 1px solid #d1d5db !important;
+        background: #f9fafb !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right .3rem center !important;
+        background-size: 0.8rem !important;
+        padding: .25rem .3rem !important;
+        font-size: 0.7rem !important;
         font-weight: 600 !important;
         color: #111827 !important;
         cursor: pointer !important;
+        border-radius: .35rem !important;
     }
 }
 
@@ -311,6 +532,14 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 .dark .cliente-combo-input { background: #374151; border-color: #4b5563; color: #f9fafb; }
 .cliente-combo-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.2); }
 
+@media (max-width: 768px) {
+    .cliente-combo-input {
+        padding: .25rem .4rem !important;
+        font-size: .7rem !important;
+        border-width: 1px !important;
+    }
+}
+
 /* ─── Encabezado del carrito con total visible ─── */
 .cart-header {
     flex-shrink: 0; border-bottom: 2px solid #e5e7eb;
@@ -325,11 +554,11 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 
 @media (max-width: 768px) {
     .cart-header {
-        padding: .2rem .5rem;
+        padding: .15rem .35rem !important;
     }
     .cart-header-top {
-        padding: .2rem .5rem;
-        font-size: .7rem;
+        padding: .1rem .3rem;
+        font-size: .6rem;
     }
 }
 .cart-header-total {
@@ -345,8 +574,22 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     line-height: 1; letter-spacing: -.03em;
 }
 
+@media (max-width: 768px) {
+    .cart-header-total {
+        padding: .15rem .35rem !important;
+    }
+    .cart-header-total .total-label {
+        font-size: .5rem !important;
+        margin-bottom: 0 !important;
+    }
+    .cart-header-total .total-amount {
+        font-size: 1.3rem !important;
+        line-height: 1 !important;
+    }
+}
+
 /* ─── Cuerpo del carrito ─── */
-.cart-body { flex: 1; overflow-y: auto; }
+.cart-body { flex: 1; overflow-y: auto; min-height: 0; }
 .cart-row {
     display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem;
     border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background .1s;
@@ -365,6 +608,46 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 }
 .del-btn:hover { background: #fee2e2; }
 
+@media (max-width: 768px) {
+    .cart-row {
+        padding: .25rem .35rem !important;
+        gap: .3rem !important;
+        font-size: .7rem !important;
+    }
+    .cart-row p {
+        font-size: .7rem !important;
+        line-height: 1.2 !important;
+    }
+    .del-btn {
+        width: 1.3rem !important;
+        height: 1.3rem !important;
+    }
+    #cart-footer-full {
+        display: none !important;
+    }
+    #cart-footer-compact {
+        display: flex !important;
+    }
+    .dark #cart-footer-compact {
+        background: #1f2937 !important;
+        border-color: #374151 !important;
+    }
+    #cart-footer-compact button svg {
+        width: .7rem !important;
+        height: .7rem !important;
+    }
+}
+
+/* Desktop: mostrar footer completo, ocultar compacto */
+@media (min-width: 769px) {
+    #cart-footer-full {
+        display: flex !important;
+    }
+    #cart-footer-compact {
+        display: none !important;
+    }
+}
+
 /* ─── Footer del carrito: total + cobrar ─── */
 .cart-footer {
     flex-shrink: 0; padding: .75rem 1rem;
@@ -382,6 +665,31 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 .cobrar-btn:hover { background: #4338ca; transform: translateY(-1px); }
 .cobrar-btn:active { transform: scale(.97); }
 .cobrar-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
+
+@media (max-width: 768px) {
+    .cart-footer {
+        padding: .3rem .35rem !important;
+        gap: .25rem !important;
+        flex-direction: row !important;
+    }
+    .cart-footer button {
+        flex: 1 !important;
+        padding: .35rem !important;
+        font-size: .65rem !important;
+        gap: 0 !important;
+    }
+    .cart-footer button svg {
+        width: .65rem !important;
+        height: .65rem !important;
+    }
+    .cart-footer button span {
+        display: none !important;
+    }
+    .cobrar-btn svg {
+        width: .7rem !important;
+        height: .7rem !important;
+    }
+}
 
 /* ─── Modales ─── */
 .modal-back {
@@ -445,6 +753,24 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 /* ─── Fila de selects (cliente, cajero, depósito) ─── */
 .pos-selects-row { display: flex; gap: .6rem; flex-wrap: wrap; }
 
+@media (max-width: 768px) {
+    .pos-selects-row {
+        gap: .3rem !important;
+        align-items: center;
+    }
+    .pos-selects-row > div {
+        min-width: auto;
+    }
+    .pos-selects-row label {
+        display: none !important;
+    }
+    .pos-selects-row select {
+        padding: .25rem .4rem !important;
+        font-size: .7rem !important;
+        border-width: 1px !important;
+    }
+}
+
 /* ─── Responsive: móvil ─── */
 @media (max-width: 767px) {
     .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; overflow: visible; }
@@ -466,9 +792,83 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Adaptación para teclado visible (viewport comprimido) ─── */
+@media (max-height: 600px) and (max-width: 768px) {
+    .pos-left {
+        overflow-y: auto;
+        max-height: 40vh;
+    }
+    .pos-cart {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+    .cart-body {
+        max-height: 15vh;
+    }
+    .pos-search {
+        font-size: .65rem !important;
+    }
+}
+
+@media (max-height: 500px) and (max-width: 768px) {
+    .pos-left-top {
+        padding: .15rem .25rem !important;
+        gap: .1rem !important;
+    }
+    .mobile-dropdown {
+        max-height: 30vh !important;
+    }
+    .cart-header {
+        padding: .1rem .25rem !important;
+    }
+    .cart-body {
+        min-height: 10vh;
+    }
+}
+
+
+/* ─── Clase activada cuando teclado está visible ─── */
+body.pos-keyboard-visible .pos-left-top {
+    min-height: auto;
+}
+
+body.pos-keyboard-visible .pos-left-top > div:first-child,
+body.pos-keyboard-visible .sel-label {
+    display: none !important;
+}
+
+body.pos-keyboard-visible .mobile-dropdown {
+    max-height: 50vh !important;
+}
+
+body.pos-keyboard-visible .pos-cart {
+    display: none;
+}
+
+body.pos-keyboard-visible .pos-wrap {
+    flex-wrap: wrap;
+}
+
+/* Mostrar resumen compacto cuando hay teclado */
+body.pos-keyboard-visible .pos-left::after {
+    content: '';
+    display: flex;
+    flex-shrink: 0;
+    height: auto;
+    padding: .2rem .35rem;
+    background: #f3f4f6;
+    border-top: 1px solid #e5e7eb;
+    font-size: .65rem;
+    font-weight: 700;
+    color: #6b7280;
+    gap: .3rem;
+    order: 100;
+}
 </style>
 
 <div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())">
+
 <div class="pos-wrap">
 
     {{-- ══════ PANEL IZQUIERDO: depósito + búsqueda + productos ══════ --}}
@@ -478,15 +878,13 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         <div class="pos-left-top">
 
             {{-- Fila: Cajero --}}
-            <div class="pos-selects-row">
-                <div style="flex:1;min-width:110px;">
-                    <label class="sel-label">Cajero / Vendedor</label>
-                    <select wire:model.live="cajeroId" class="pos-sel">
-                        @foreach($cajeros as $c)
-                            <option value="{{ $c->pernr }}">{{ $c->pername }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="pos-selects-row" style="align-items: center;">
+                <span style="display: none;" class="sel-label">Vendedor:</span>
+                <select wire:model.live="cajeroId" class="pos-sel" style="flex: 1;">
+                    @foreach($cajeros as $c)
+                        <option value="{{ $c->pernr }}">{{ $c->pername }}</option>
+                    @endforeach
+                </select>
             </div>
 
             {{-- Búsqueda --}}
@@ -509,19 +907,20 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     wire:model.live.debounce.200ms="search"
                     x-ref="search"
                     autofocus
-                    placeholder="Buscar producto por descripción, código o referencia..."
+                    placeholder="Buscar producto..."
                     class="pos-search"
                     @keydown.arrow-down.prevent="arrowDown()"
                     @keydown.arrow-up.prevent="arrowUp()"
                     @keydown.enter.prevent="enter()"
                     @keydown.escape.prevent="clearSearch()"
                 />
+            </div>
 
                 {{-- Categorías (primeras 5) --}}
-                <div style="display:flex;gap:.25rem;flex-wrap:wrap;padding:.2rem 0 .15rem !important;margin-top:.1rem !important;">
+                <div style="display:flex;gap:.2rem;overflow-x:auto;padding:.15rem 0 .1rem !important;margin-top:.08rem !important;flex-wrap:wrap;">
                     <button
                         wire:click="$set('categoriaId', null)"
-                        style="padding:.2rem .5rem !important;border-radius:.4rem;border:1px solid;font-size:.65rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                        style="padding:.15rem .35rem !important;border-radius:.3rem;border:1px solid;font-size:.55rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink: 0;
                         {{ $categoriaId === null ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
                         onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
                         onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
@@ -530,7 +929,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     @foreach(array_slice($categorias, 0, 5) as $cat)
                         <button
                             wire:click="$set('categoriaId', '{{ $cat->grupnr }}')"
-                            style="padding:.2rem .5rem !important;border-radius:.4rem;border:1px solid;font-size:.65rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                            style="padding:.15rem .35rem !important;border-radius:.3rem;border:1px solid;font-size:.55rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink: 0;
                             {{ $categoriaId === $cat->grupnr ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
                             onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
                             onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
@@ -551,11 +950,16 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                                 class="mob-item-image"
                                 onerror="this.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%229ca3af%22 stroke-width=%221.5%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z%22/%3E</svg>';"
                             />
-                            <p class="mob-item-name">{{ $product->descr }}</p>
-                            <p class="mob-item-price">Gs. {{ number_format($product->precio, 0, ',', '.') }}</p>
-                            <span class="mob-item-stock {{ $product->stock_depo > 5 ? 'high' : ($product->stock_depo > 0 ? 'medium' : 'low') }}">
-                                En stock: {{ $product->stock_depo }}
-                            </span>
+                            <div class="mob-item-info">
+                                <p class="mob-item-name">{{ $product->descr }}</p>
+                                <p class="mob-item-specs">{{ $product->item }}@if($product->scode) · {{ $product->scode }}@endif</p>
+                                <div class="mob-item-footer">
+                                    <span class="mob-item-stock {{ $product->stock_depo > 5 ? 'high' : ($product->stock_depo > 0 ? 'medium' : 'low') }}">
+                                        {{ $product->stock_depo }}
+                                    </span>
+                                    <p class="mob-item-price">Gs. {{ number_format($product->precio, 0, ',', '.') }}</p>
+                                </div>
+                            </div>
                             <button class="mob-item-add-btn" @click.stop="$wire.addToCart('{{ $product->item }}')">
                                 <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -565,7 +969,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                         @endforeach
                     </div>
                 </div>
-            </div>
         </div>
 
         {{-- Grid de productos (solo desktop) --}}
@@ -633,7 +1036,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
             {{-- Selector de Cliente con búsqueda --}}
             <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
                  @click.outside="close()" style="position:relative;">
-                <div style="display:flex;gap:.3rem;align-items:center;">
+                <div style="display:flex;gap:.2rem;align-items:center;">
                     <input type="text"
                         class="cliente-combo-input"
                         :placeholder="selectedName || 'Cliente...'"
@@ -647,7 +1050,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                         autocomplete="off"
                         style="flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.75rem;background:white;color:#111827;"
                     />
-                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.3rem .4rem;background:#6366f1;color:white;border:none;border-radius:.4rem;cursor:pointer;font-size:.65rem;font-weight:700;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.25rem .3rem;background:#6366f1;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
                         +
                     </button>
                 </div>
@@ -709,7 +1112,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         </div>
 
         {{-- Footer: botones --}}
-        <div class="cart-footer" style="gap:.5rem;">
+        <div class="cart-footer" style="gap:.5rem;" id="cart-footer-full">
             {{-- Guardar (sin acción por ahora) --}}
             <button type="button" {{ empty($cart) ? 'disabled' : '' }}
                 style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.25rem;padding:.5rem .7rem;
@@ -734,6 +1137,39 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     <span style="font-size:.65rem;font-weight:600;opacity:.85;">F10</span>
                 </div>
             </button>
+        </div>
+
+        {{-- Footer compacto: resumen + botones en dos filas --}}
+        <div class="cart-footer-compact" style="display:none;flex-direction:column;padding:.4rem .5rem;background:white;border-top:1px solid #e5e7eb;gap:.3rem;flex-shrink:0;" id="cart-footer-compact">
+            {{-- Fila 1: Cantidad y Total --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                <span style="font-size:.7rem;color:#6b7280;font-weight:600;white-space:nowrap;">{{ count($cart) }} producto{{ count($cart) !== 1 ? 's' : '' }}</span>
+                <div style="display:flex;align-items:baseline;gap:.3rem;">
+                    <span style="font-size:.65rem;color:#6b7280;font-weight:600;">Total</span>
+                    <span style="font-size:1.2rem;font-weight:900;color:#0047AB;">Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}</span>
+                </div>
+            </div>
+            {{-- Fila 2: Botones --}}
+            <div style="display:flex;gap:.3rem;width:100%;">
+                <button type="button" {{ empty($cart) ? 'disabled' : '' }}
+                    style="display:flex;align-items:center;justify-content:center;padding:.4rem;flex:1;
+                        background:#f3f4f6;color:#4b5563;font-weight:700;font-size:.65rem;
+                        border:1px solid #d1d5db;border-radius:.5rem;cursor:pointer;
+                        transition:all .15s;height:2.4rem;gap:.25rem;"
+                    onmouseover="if(!this.disabled)this.style.background='#e5e7eb'"
+                    onmouseout="this.style.background='#f3f4f6'">
+                    <svg style="width:.7rem;height:.7rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
+                    </svg>
+                    <span>Guardar</span>
+                </button>
+                <button wire:click="openPaymentModal" class="cobrar-btn" style="display:flex;align-items:center;justify-content:center;padding:.4rem;flex:1.2;font-size:.65rem;font-weight:700;gap:.25rem;height:2.4rem;" {{ empty($cart) ? 'disabled' : '' }}>
+                    <svg style="width:.7rem;height:.7rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
+                    </svg>
+                    <span>COBRAR</span>
+                </button>
+            </div>
         </div>
 
     </div>{{-- /pos-cart --}}
@@ -843,6 +1279,8 @@ function posApp() {
         isFullscreen: false,
         edit: { open: false, idx: null, qty: 1, precio: 0, descr: '' },
         localAmount: 0,
+        keyboardVisible: false,
+        lastViewportHeight: 0,
 
         init() {
             this.$watch('$wire.searchResults', () => { this.activeIdx = -1; });
@@ -859,7 +1297,32 @@ function posApp() {
                 });
             });
             window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
+
+            // Detectar teclado virtual en móviles usando visualViewport
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => this.handleViewportChange());
+                window.visualViewport.addEventListener('scroll', () => this.handleViewportChange());
+                this.lastViewportHeight = window.visualViewport.height;
+            }
+
+            // Fallback: detectar cambios en innerHeight
+            window.addEventListener('resize', () => this.handleViewportChange());
+
             setTimeout(() => this.toggleFullscreen(), 500);
+        },
+
+        handleViewportChange() {
+            const currentHeight = window.visualViewport?.height || window.innerHeight;
+            const heightRatio = currentHeight / (window.visualViewport?.scale || 1) / window.screen.height;
+
+            // Si la altura visible es menos del 70% de la altura de pantalla, probablemente el teclado está abierto
+            if (heightRatio < 0.7 && !this.keyboardVisible) {
+                this.keyboardVisible = true;
+                document.body.classList.add('pos-keyboard-visible');
+            } else if (heightRatio >= 0.7 && this.keyboardVisible) {
+                this.keyboardVisible = false;
+                document.body.classList.remove('pos-keyboard-visible');
+            }
         },
 
         arrowDown() {
@@ -1062,6 +1525,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('beforeunload', function() {
     document.body.classList.remove('sidebar-hidden');
 });
+
 </script>
 
 </x-filament-panels::page>

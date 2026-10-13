@@ -9,3 +9,31 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Botón sidebar visible en móvil - Global para todo el proyecto */
+.fi-topbar-open-sidebar-btn,
+.fi-topbar-close-sidebar-btn {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem !important;
+}
+
+.fi-topbar-open-sidebar-btn:hover,
+.fi-topbar-close-sidebar-btn:hover {
+    background-color: #e5e7eb !important;
+    color: #111827 !important;
+}
+
+.fi-topbar-open-sidebar-btn svg path,
+.fi-topbar-close-sidebar-btn svg path {
+    stroke: #1f2937 !important;
+    fill: #1f2937 !important;
+}
+
+@media (max-width: 768px) {
+    .fi-topbar-open-sidebar-btn,
+    .fi-topbar-close-sidebar-btn {
+        display: flex !important;
+    }
+}
