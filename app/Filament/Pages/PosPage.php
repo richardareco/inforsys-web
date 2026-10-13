@@ -78,6 +78,9 @@ class PosPage extends Page
     {
         $this->showNewClienteModal = false;
 
+        // Ocultar la barra lateral automáticamente en POS
+        $this->dispatch('sidebar-collapsed');
+
         $this->categorias = DB::connection('delphi')
             ->table('grupo')
             ->select('grupnr', 'descr')

@@ -6,6 +6,24 @@
     height: calc(100vh - 185px); min-height: 500px;
     border: 1px solid #e5e7eb; border-radius: 1rem;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Adaptación cuando la sidebar está abierta en desktop */
+@media (min-width: 1024px) {
+    .pos-wrap {
+        width: 100%;
+        transition: width 0.3s ease;
+    }
+}
+
+/* Cuando hay sidebar visible en desktop */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .fi-sidebar:not(.hidden) ~ .fi-page .pos-wrap {
+        width: calc(100% - 300px);
+        margin-left: auto;
+    }
 }
 .dark .pos-wrap { border-color: #374151; }
 
@@ -884,5 +902,36 @@ function posClienteCombo(clientes, initialId) {
     </div>
 </div>
 @endif
+
+<script>
+// Ocultar la barra lateral automáticamente en POS
+document.addEventListener('DOMContentLoaded', function() {
+    // Buscar el botón toggle de la sidebar
+    const sidebarToggle = document.querySelector('[data-action="sidebar-toggle"]') ||
+                          document.querySelector('[aria-label*="Toggle sidebar"]') ||
+                          document.querySelector('button[aria-expanded]');
+
+    if (sidebarToggle) {
+        // Si la sidebar está abierta, hacerla clic para cerrarla
+        const sidebarElement = document.querySelector('[data-sidebar]') ||
+                               document.querySelector('.fi-sidebar');
+
+        if (sidebarElement && !sidebarElement.classList.contains('hidden')) {
+            sidebarToggle.click();
+        }
+    }
+
+    // Aplicar clase al contenedor
+    const posWrap = document.querySelector('.pos-wrap');
+    if (posWrap) {
+        document.body.classList.add('sidebar-hidden');
+    }
+});
+
+// Limpiar cuando se sale del POS
+window.addEventListener('beforeunload', function() {
+    document.body.classList.remove('sidebar-hidden');
+});
+</script>
 
 </x-filament-panels::page>
