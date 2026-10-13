@@ -20,9 +20,9 @@ class PosPage extends Page
     }
 
     protected static ?string $navigationIcon  = 'heroicon-o-shopping-cart';
-    protected static ?string $navigationLabel = 'POS';
+    protected static ?string $navigationLabel = 'Ventas';
     protected static ?string $navigationGroup = 'Ventas';
-    protected static ?string $title           = 'Punto de Venta';
+    protected static ?string $title           = 'Ventas';
     protected static ?int    $navigationSort  = 1;
 
     // Búsqueda
