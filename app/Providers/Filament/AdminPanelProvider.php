@@ -72,6 +72,8 @@ class AdminPanelProvider extends PanelProvider
 .fi-sidebar > div:first-child {
     background-color: #253347 !important;
     border-bottom-color: transparent !important;
+    min-height: auto !important;
+    padding: 1rem !important;
 }
 /* nombre de empresa / brand */
 .fi-sidebar-header *,
@@ -79,13 +81,21 @@ class AdminPanelProvider extends PanelProvider
 .fi-brand-name {
     color: #ffffff !important;
 }
+.fi-brand {
+    width: 100% !important;
+    max-width: 100% !important;
+}
 .fi-brand-name {
     white-space: normal !important;
     word-wrap: break-word !important;
+    word-break: break-word !important;
     max-width: 100% !important;
     padding: 0.5rem 0 !important;
-    line-height: 1.2 !important;
-    font-size: 0.875rem !important;
+    line-height: 1.4 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
 }
 /* items del menú — texto blanco semitransparente para inactivos */
 .fi-sidebar-item-button {
