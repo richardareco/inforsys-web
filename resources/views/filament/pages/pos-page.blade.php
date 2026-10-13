@@ -165,11 +165,11 @@ button[aria-label*="toggle sidebar"],
 /* Ocultar completamente el filtro de búsqueda cuando el sidebar está abierto */
 .fi-sidebar:not(.hidden) ~ .fi-page .pos-search-wrap {
     pointer-events: none !important;
-    opacity: 0 !important;
+    visibility: hidden !important;
 }
 
 .fi-sidebar:not(.hidden) ~ .fi-page .pos-left-top {
-    opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none !important;
 }
 
