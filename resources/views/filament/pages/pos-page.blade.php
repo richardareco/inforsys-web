@@ -1,5 +1,17 @@
 <x-filament-panels::page>
 <style>
+/* ─── Ocultar texto de botón Pantalla completa ─── */
+[wire\:target="mountAction('fullscreen')"] ~ span,
+button[wire\:click*="fullscreen"] .fi-btn-label,
+.fi-ac-btn-action:has(svg[wire\:target*="fullscreen"]) .fi-btn-label,
+.fi-ac-btn-action:has(svg[wire\:target*="fullscreen"]) span {
+    display: none !important;
+}
+.fi-ac-btn-action:has(svg[wire\:target*="fullscreen"]) {
+    width: 2.4rem !important;
+    min-width: 2.4rem !important;
+}
+
 /* ─── Contenedor principal ─── */
 .pos-wrap {
     display: flex;
