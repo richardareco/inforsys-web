@@ -12,7 +12,8 @@ class ListItems extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\CreateAction::make(),
+            \Filament\Actions\CreateAction::make()
+                ->label('Crear Producto'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardPdfController;
 use App\Http\Controllers\PresupuestoPdfController;
+use App\Http\Controllers\ItemImageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect('/admin'));
@@ -11,6 +12,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.export-pdf');
     Route::get('/presupuesto/{presnr}/pdf', [PresupuestoPdfController::class, 'export'])
         ->name('presupuesto.pdf');
+
+    // Ruta para servir imágenes de productos
+    Route::get('/api/item-image/{item}', [ItemImageController::class, 'show'])
+        ->name('item-image.show');
 
     // Rutas para Productos - manejadas mediante un helper para evitar conflicto Filament
     Route::get('/admin/items/create', fn() => app(\App\Filament\Resources\ItemResource\Pages\CreateItem::class)->render())

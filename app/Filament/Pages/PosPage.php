@@ -26,8 +26,12 @@ class PosPage extends Page
     protected static ?int    $navigationSort  = 1;
 
     // Búsqueda
-    public string $search        = '';
-    public array  $searchResults = [];
+    public string $search           = '';
+    public array  $searchResults    = [];
+    public mixed  $categoriaId      = null;
+
+    // Categorías
+    public array  $categorias       = [];
 
     // Selección de contexto
     public mixed  $clienteId  = null;
@@ -43,10 +47,20 @@ class PosPage extends Page
     public float  $amountReceived   = 0;
     public float  $amountQr        = 0;
 
+    // Modal de nuevo cliente
+    public bool   $showNewClienteModal = false;
+    public string $newClienteName      = '';
+    public string $newClienteNacionalidad = '';
+    public string $newClienteDireccion = '';
+    public string $newClienteTelefono  = '';
+    public string $newClienteRuc       = '';
+    public string $newClienteIdentidad = '';
+
     // Combos para los selects
-    public array $clientes  = [];
-    public array $depositos = [];
-    public array $cajeros   = [];
+    public array  $clientes  = [];
+    public array  $depositos = [];
+    public array  $cajeros   = [];
+    public string $clienteName = 'Ocasional';
 
     protected function getHeaderActions(): array
     {
@@ -62,6 +76,19 @@ class PosPage extends Page
 
     public function mount(): void
     {
+        $this->showNewClienteModal = false;
+
+        $this->categorias = DB::connection('delphi')
+            ->table('grupo')
+            ->select('grupnr', 'descr')
+            ->orderBy('descr')
+            ->get()
+            ->map(fn ($g) => (object)[
+                'grupnr' => $g->grupnr,
+                'descr'  => mb_convert_encoding((string)($g->descr ?? ''), 'UTF-8', 'UTF-8'),
+            ])
+            ->toArray();
+
         $this->clientes = DB::connection('delphi')
             ->table('cliente')
             ->select('custnr', 'custname')
@@ -94,8 +121,10 @@ class PosPage extends Page
             str_contains(strtolower($c->custname ?? ''), 'consumidor')
         );
         $this->clienteId  = $ocasional ? $ocasional->custnr : ($this->clientes[0]->custnr ?? null);
+        $this->clienteName = $ocasional ? $ocasional->custname : ($this->clientes[0]->custname ?? 'Ocasional');
 
-        if ($this->depositos) $this->depositoId = $this->depositos[0]->deponr;
+        // Depósito por defecto: D01
+        $this->depositoId = 'D01';
         if ($this->cajeros)   $this->cajeroId   = $this->cajeros[0]->pernr;
     }
 
@@ -116,6 +145,11 @@ class PosPage extends Page
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
             );
+
+        // Filtrar por categoría si está seleccionada
+        if ($this->categoriaId !== null) {
+            $query->where('items.grupnr', $this->categoriaId);
+        }
 
         foreach ($words as $word) {
             $query->whereRaw(
@@ -144,6 +178,42 @@ class PosPage extends Page
         }
 
         $this->searchResults = $results;
+    }
+
+    public function updatedCategoriaId(): void
+    {
+        $this->search = '';
+        $this->loadCategoryProducts();
+    }
+
+    public function updatedClienteId(): void
+    {
+        $cliente = collect($this->clientes)->firstWhere('custnr', $this->clienteId);
+        $this->clienteName = $cliente ? $cliente->custname : 'Ocasional';
+    }
+
+    private function loadCategoryProducts(): void
+    {
+        if ($this->categoriaId === null) {
+            $this->searchResults = [];
+            return;
+        }
+
+        $query = DB::connection('delphi')
+            ->table('items')
+            ->select('items.item', 'items.scode', 'items.scode1', 'items.descr', 'items.precio3 as precio', 'items.costo')
+            ->selectRaw(
+                'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
+                [$this->depositoId]
+            )
+            ->where('items.grupnr', $this->categoriaId)
+            ->where('items.stock', '>', 0)
+            ->orderBy('items.descr')
+            ->limit(12)
+            ->get()
+            ->toArray();
+
+        $this->searchResults = $query;
     }
 
     private function addToCartItem(object $item): void
@@ -271,6 +341,85 @@ class PosPage extends Page
         $this->showPaymentModal = false;
         $this->amountQr         = 0;
         $this->dispatch('focus-search');
+    }
+
+    public function openNewClienteModal(): void
+    {
+        $this->showNewClienteModal = true;
+        $this->newClienteName = '';
+        $this->newClienteNacionalidad = '';
+        $this->newClienteDireccion = '';
+        $this->newClienteTelefono = '';
+        $this->newClienteRuc = '';
+        $this->newClienteIdentidad = '';
+    }
+
+    public function closeNewClienteModal(): void
+    {
+        $this->showNewClienteModal = false;
+    }
+
+    public function saveNewCliente(): void
+    {
+        if (empty(trim($this->newClienteName))) {
+            Notification::make()->title('Nombre requerido')->danger()->send();
+            return;
+        }
+
+        try {
+            // Obtener el máximo código actual y asignar uno nuevo
+            $maxCode = DB::connection('delphi')->table('cliente')->max('custnr');
+            $nextCode = ($maxCode ? (int)$maxCode : 0) + 1;
+
+            // Insertar nuevo cliente
+            \Log::info("Intentando insertar cliente: " . $this->newClienteName . " con código: " . $nextCode);
+
+            DB::connection('delphi')->table('cliente')->insert([
+                'custname' => $this->newClienteName,
+                'custnr'   => $nextCode,
+            ]);
+
+            \Log::info("Cliente insertado exitosamente");
+            $newClienteCode = $nextCode;
+
+            // Recargar la lista de clientes
+            $this->clientes = DB::connection('delphi')
+                ->table('cliente')
+                ->select('custnr', 'custname')
+                ->orderBy('custnr')
+                ->limit(300)
+                ->get()
+                ->map(fn ($c) => (object)[
+                    'custnr'   => (string)$c->custnr,
+                    'custname' => mb_convert_encoding((string)($c->custname ?? ''), 'UTF-8', 'UTF-8'),
+                ])
+                ->toArray();
+
+            // Buscar y seleccionar el nuevo cliente
+            $newCliente = collect($this->clientes)->first(fn ($c) =>
+                (string)$c->custnr === (string)$newClienteCode
+            );
+
+            if ($newCliente) {
+                $this->clienteId = $newCliente->custnr;
+                $this->clienteName = $newCliente->custname;
+            }
+
+            $this->showNewClienteModal = false;
+            $this->newClienteName = '';
+            $this->newClienteNacionalidad = '';
+            $this->newClienteDireccion = '';
+            $this->newClienteTelefono = '';
+            $this->newClienteRuc = '';
+            $this->newClienteIdentidad = '';
+
+            // Disparar evento para que Alpine.js refresque la lista de clientes
+            $this->dispatch('cliente-agregado', clienteId: $newClienteCode, clienteName: $newCliente?->custname ?? $this->newClienteName);
+
+            Notification::make()->title('Cliente registrado correctamente')->success()->send();
+        } catch (\Exception $e) {
+            Notification::make()->title('Error al registrar cliente')->body($e->getMessage())->danger()->send();
+        }
     }
 
     public function confirmSale(): void

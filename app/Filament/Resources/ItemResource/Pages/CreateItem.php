@@ -16,6 +16,8 @@ class CreateItem extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        Log::info("🔵 mutateFormDataBeforeCreate - Data recibida:", $data);
+
         // Generar siguiente item (último ID + 1)
         $lastItem = DB::connection('delphi')
             ->table('items')
@@ -25,39 +27,37 @@ class CreateItem extends CreateRecord
 
         $nextId = $lastItem ? ((int)$lastItem->item) + 1 : 1;
         $data['item'] = str_pad($nextId, 7, '0', STR_PAD_LEFT);
+        Log::info("🔵 Item ID generado: {$data['item']}");
 
-        // Guardar la imagen path en sesión SOLO SI es string (ya procesado por Filament)
-        if (!empty($data['image']) && is_string($data['image'])) {
-            session(['pending_image_file' => $data['image']]);
-            Log::info("📸 Imagen path guardado en sesión: {$data['image']}");
-        } else {
-            Log::warning("⚠️ Image no es string o está vacío: " . gettype($data['image'] ?? null));
+        // Manejar cache key para imagen si existe
+        $cacheKey = session('pending_image_key');
+        if (!empty($cacheKey)) {
+            Log::info("🔵 Cache key encontrada: {$cacheKey}");
+            session(['pending_image_key' => $cacheKey]);
         }
 
-        // Remover image del data (no pertenece a items table)
+        // Remover image del data (no pertenece a items table, se maneja en callback)
         unset($data['image']);
 
+        Log::info("🔵 Data antes de crear:", $data);
         return $data;
     }
 
     protected function afterCreate(): void
     {
-        // Obtener la imagen de la sesión
-        $imageFile = session('pending_image_file');
+        $cacheKey = session('pending_image_key');
 
-        Log::info("⏳ afterCreate - Buscando imagen: " . ($imageFile ?? 'null'));
+        Log::info("⏳ afterCreate - Buscando imagen en cache: {$cacheKey}");
 
-        if (!empty($imageFile)) {
+        if (!empty($cacheKey)) {
             try {
-                $fullPath = 'products/' . basename($imageFile);
+                $imageData = \Illuminate\Support\Facades\Cache::get($cacheKey);
 
-                Log::info("📁 Intentando leer: {$fullPath}");
-
-                if (Storage::disk('local')->exists($fullPath)) {
-                    $content = Storage::disk('local')->get($fullPath);
+                if ($imageData && isset($imageData['content'])) {
+                    $content = $imageData['content'];
                     $size = strlen($content);
 
-                    Log::info("✅ Archivo leído: {$size} bytes");
+                    Log::info("✅ Imagen encontrada: {$size} bytes");
 
                     ItemImage::create([
                         'item' => $this->record->item,
@@ -66,13 +66,15 @@ class CreateItem extends CreateRecord
 
                     Log::info("🎉 Foto guardada en itemsimage para item: {$this->record->item}");
                 } else {
-                    Log::error("❌ Archivo no encontrado en: {$fullPath}");
+                    Log::error("❌ Datos no encontrados en cache: {$cacheKey}");
                 }
             } catch (\Exception $e) {
                 Log::error("💥 Error al guardar foto: " . $e->getMessage());
             }
 
-            session()->forget('pending_image_file');
+            // Limpiar cache y sesión
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+            session()->forget('pending_image_key');
         }
     }
 }

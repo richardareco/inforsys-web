@@ -22,53 +22,19 @@ class EditItem extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Guardar la imagen path en sesión SOLO SI es string (ya procesado por Filament)
-        if (!empty($data['image']) && is_string($data['image'])) {
-            session(['pending_image_file' => $data['image']]);
-            Log::info("📸 Imagen path guardado en sesión para edición: {$data['image']}");
-        } else {
-            Log::warning("⚠️ Image no es string o está vacío: " . gettype($data['image'] ?? null));
-        }
-
-        // Remover image del data (no pertenece a items table)
+        // Remover image del data (no pertenece a items table, se maneja en callback)
         unset($data['image']);
-
         return $data;
     }
 
     protected function afterSave(): void
     {
-        // Obtener la imagen de la sesión
-        $imageFile = session('pending_image_file');
+        $cacheKey = session('pending_image_key');
 
-        Log::info("⏳ afterSave - Buscando imagen: " . ($imageFile ?? 'null'));
-
-        if (!empty($imageFile)) {
-            try {
-                $fullPath = 'products/' . basename($imageFile);
-
-                Log::info("📁 Intentando leer: {$fullPath}");
-
-                if (Storage::disk('local')->exists($fullPath)) {
-                    $content = Storage::disk('local')->get($fullPath);
-                    $size = strlen($content);
-
-                    Log::info("✅ Archivo leído: {$size} bytes");
-
-                    ItemImage::updateOrCreate(
-                        ['item' => $this->record->item],
-                        ['image' => $content]
-                    );
-
-                    Log::info("🎉 Foto actualizada en itemsimage para item: {$this->record->item}");
-                } else {
-                    Log::error("❌ Archivo no encontrado en: {$fullPath}");
-                }
-            } catch (\Exception $e) {
-                Log::error("💥 Error al guardar foto: " . $e->getMessage());
-            }
-
-            session()->forget('pending_image_file');
+        if (!empty($cacheKey)) {
+            Log::info("⏳ afterSave - Limpiando cache de imagen: {$cacheKey}");
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+            session()->forget('pending_image_key');
         }
     }
 

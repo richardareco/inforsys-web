@@ -96,7 +96,74 @@ class ItemResource extends Resource
                             ->imageEditorAspectRatios(['16:9', '4:3', '1:1'])
                             ->directory('products')
                             ->maxSize(5120)
-                            ->hiddenOn('index'),
+                            ->hiddenOn('index')
+                            ->dehydrated(false)
+                            ->saveUploadedFileUsing(function($file, $record) {
+                                $path = $file->store('products', 'local');
+                                $fullPath = \Illuminate\Support\Facades\Storage::disk('local')->path($path);
+
+                                // Comprimir y redimensionar imagen con GD
+                                $content = \Illuminate\Support\Facades\Storage::disk('local')->get($path);
+                                $originalSize = strlen($content);
+
+                                try {
+                                    $image = imagecreatefromstring($content);
+                                    if ($image) {
+                                        $width = imagesx($image);
+                                        $height = imagesy($image);
+
+                                        // Redimensionar a 600x600 píxeles (estandarizar tamaño)
+                                        $standardSize = 600;
+                                        $resized = imagecreatetruecolor($standardSize, $standardSize);
+
+                                        // Crear fondo blanco para mantener proporción
+                                        $white = imagecolorallocate($resized, 255, 255, 255);
+                                        imagefill($resized, 0, 0, $white);
+
+                                        // Calcular dimensiones para centrar imagen manteniendo proporción
+                                        $ratio = min($standardSize / $width, $standardSize / $height);
+                                        $newWidth = (int)($width * $ratio);
+                                        $newHeight = (int)($height * $ratio);
+                                        $offsetX = (int)(($standardSize - $newWidth) / 2);
+                                        $offsetY = (int)(($standardSize - $newHeight) / 2);
+
+                                        imagecopyresampled($resized, $image, $offsetX, $offsetY, 0, 0, $newWidth, $newHeight, $width, $height);
+
+                                        ob_start();
+                                        imagejpeg($resized, null, 75);
+                                        $content = ob_get_clean();
+                                        imagedestroy($resized);
+                                        imagedestroy($image);
+
+                                        $newSize = strlen($content);
+                                        $reduction = round((1 - $newSize / $originalSize) * 100);
+                                        \Illuminate\Support\Facades\Log::info("🖼️ Imagen comprimida: $originalSize bytes -> $newSize bytes (reducción: $reduction%)");
+                                    }
+                                } catch (\Exception $e) {
+                                    \Illuminate\Support\Facades\Log::warning("⚠️ Error comprimiendo: " . $e->getMessage());
+                                }
+
+                                if ($record) {
+                                    // En EDIT: eliminar imagen anterior y crear nueva (fuerza actualización)
+                                    \App\Models\ItemImage::where('item', $record->item)->delete();
+                                    \App\Models\ItemImage::create([
+                                        'item' => $record->item,
+                                        'image' => $content
+                                    ]);
+                                    \Illuminate\Support\Facades\Log::info("✅ EDIT: Foto actualizada para item {$record->item}");
+                                } else {
+                                    // En CREATE: guardar temporalmente en cache
+                                    $tempKey = 'pending_image_' . uniqid();
+                                    \Illuminate\Support\Facades\Cache::put($tempKey, [
+                                        'path' => $path,
+                                        'content' => $content
+                                    ], now()->addMinutes(30));
+                                    session(['pending_image_key' => $tempKey]);
+                                    \Illuminate\Support\Facades\Log::info("📤 CREATE: Foto en cache con key {$tempKey}");
+                                }
+
+                                return $path;
+                            }),
                     ])->columns(1),
             ]);
     }
@@ -115,6 +182,11 @@ class ItemResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('total_stock')
+                    ->label('Stock')
+                    ->getStateUsing(fn($record) => $record->depos()->sum('xqty') ?? 0)
+                    ->sortable(),
+
                 TextColumn::make('precio1')
                     ->label('Precio 1')
                     ->sortable(),
@@ -127,7 +199,23 @@ class ItemResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('view')
+                    ->label('Ver')
+                    ->icon('heroicon-m-eye')
+                    ->action(function ($record) {
+                        // La acción se maneja en el modal
+                    })
+                    ->modalContent(function ($record) {
+                        return view('filament.resources.item-view-modal', ['record' => $record]);
+                    })
+                    ->modalHeading(fn($record) => $record->descr)
+                    ->modalSubheading(fn($record) => "Código: {$record->item}")
+                    ->modalWidth('2xl')
+                    ->modalSubmitActionLabel('Guardar')
+                    ->modalCancelActionLabel('Cancelar'),
+
+                Tables\Actions\EditAction::make()
+                    ->label('Editar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -149,6 +237,16 @@ class ItemResource extends Resource
         return [
             'index' => Pages\ListItems::route('/'),
         ];
+    }
+
+    public static function getCreateLabel(): string
+    {
+        return 'Crear Producto';
+    }
+
+    public static function getDeleteBulkActionLabel(): string
+    {
+        return 'Eliminar seleccionados';
     }
 
     // Nota: create y edit se manejan manualmente en ListItems sin registrar aquí

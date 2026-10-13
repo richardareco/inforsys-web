@@ -30,4 +30,14 @@ class Item extends Model
     {
         return $this->hasMany(ItemImage::class, 'item', 'item');
     }
+
+    public function depos()
+    {
+        return $this->hasMany(ItemDepo::class, 'item', 'item');
+    }
+
+    public function getTotalStockAttribute()
+    {
+        return $this->depos()->sum('xqty') ?? 0;
+    }
 }

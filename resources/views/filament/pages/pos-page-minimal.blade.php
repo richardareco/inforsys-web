@@ -202,13 +202,34 @@
 
     {{-- ══ FILA 1: Cliente / Cajero / Depósito ══ --}}
     <div id="pos-header">
-        <div class="ctx-group">
+        <div class="ctx-group" style="flex:0 1 20rem;">
             <span class="ctx-label">Cliente</span>
-            <select wire:model.live="clienteId" class="ctx-select" style="min-width:14rem;">
-                @foreach($clientes as $c)
-                    <option value="{{ $c->custnr }}">{{ $c->custname }}</option>
-                @endforeach
-            </select>
+            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))" @click.outside="close()" style="position:relative;display:flex;gap:.3rem;align-items:center;">
+                <input type="text"
+                    class="ctx-select"
+                    :placeholder="selectedName || 'Cliente...'"
+                    x-model="query"
+                    @focus="open = true"
+                    @input="open = true; hl = 0"
+                    @keydown.arrow-down.prevent="moveDown()"
+                    @keydown.arrow-up.prevent="moveUp()"
+                    @keydown.enter.prevent="pickHighlighted()"
+                    @keydown.escape.prevent="close()"
+                    autocomplete="off"
+                    style="flex:1;padding:.35rem .65rem;border:1px solid #e2e8f0;border-radius:.4rem;font-size:.85rem;background:white;color:#1e293b;"
+                />
+                <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.35rem .5rem;background:#0047AB;color:white;border:none;border-radius:.4rem;cursor:pointer;font-size:.7rem;font-weight:700;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#003d99'" onmouseout="this.style.background='#0047AB'">
+                    +
+                </button>
+                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1px solid #0047AB;border-radius:.4rem;max-height:150px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+                    <template x-for="(c, i) in filtered" :key="c.custnr">
+                        <div :class="i === hl ? 'bg-blue-100' : ''" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.3rem .6rem;border-bottom:1px solid #f1f5f9;cursor:pointer;font-size:.75rem;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
+                            <span style="font-weight:600;color:#1e293b;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="c.custname"></span>
+                            <span style="color:#94a3b8;flex-shrink:0;" x-text="c.custnr"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
         <div class="ctx-group">
             <span class="ctx-label">Cajero</span>
@@ -412,5 +433,105 @@ document.addEventListener('livewire:navigated', () => {
     const el = document.getElementById('pos-search-input');
     if(el) el.focus();
 });
+
+function posClienteCombo(clientes, initialId) {
+    return {
+        clientes, query: '', open: false, hl: 0, selectedName: '', selectedId: initialId,
+        init() {
+            const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
+            if (found) this.selectedName = found.custname;
+        },
+        get filtered() {
+            const q = this.query.toLowerCase().trim();
+            if (!q) return this.clientes.slice(0, 60);
+            return this.clientes.filter(c =>
+                (c.custname || '').toLowerCase().includes(q) ||
+                String(c.custnr || '').includes(q)
+            ).slice(0, 60);
+        },
+        pick(c) {
+            this.selectedName = c.custname; this.selectedId = c.custnr;
+            this.query = ''; this.open = false;
+            this.$wire.set('clienteId', c.custnr);
+        },
+        pickHighlighted() { const item = this.filtered[this.hl]; if (item) this.pick(item); },
+        moveDown() {
+            if (!this.open) { this.open = true; return; }
+            this.hl = Math.min(this.hl + 1, this.filtered.length - 1);
+        },
+        moveUp() {
+            this.hl = Math.max(this.hl - 1, 0);
+        },
+        close() { this.open = false; this.query = ''; },
+    };
+}
 </script>
+
+{{-- ══════════════ MODAL: NUEVO CLIENTE ══════════════ --}}
+@if($showNewClienteModal)
+<div style="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;" @keydown.escape.window="$wire.call('closeNewClienteModal')" @click.self="$wire.call('closeNewClienteModal')">
+    <div style="background:white;width:100%;max-width:400px;border-radius:1.25rem 1.25rem 0 0;padding:1.4rem;box-shadow:0 -8px 30px rgba(0,0,0,.2);" @click.stop>
+        <div style="background:linear-gradient(135deg,#0047AB,#1e3a8a);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
+            <p style="font-size:1rem;font-weight:900;color:white;">Nuevo Cliente</p>
+            <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Registro rápido</p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:.6rem;max-height:60vh;overflow-y:auto;">
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nombre *</label>
+                <input wire:model="newClienteName" type="text" placeholder="Nombre completo" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nacionalidad</label>
+                <select wire:model="newClienteNacionalidad" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;background:white;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'">
+                    <option value="">Seleccionar país...</option>
+                    <option value="PY">Paraguay</option>
+                    <option value="AR">Argentina</option>
+                    <option value="BR">Brasil</option>
+                    <option value="CL">Chile</option>
+                    <option value="UY">Uruguay</option>
+                    <option value="BO">Bolivia</option>
+                    <option value="CO">Colombia</option>
+                    <option value="PE">Perú</option>
+                    <option value="EC">Ecuador</option>
+                    <option value="VE">Venezuela</option>
+                    <option value="GY">Guyana</option>
+                    <option value="SR">Surinam</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Dirección</label>
+                <input wire:model="newClienteDireccion" type="text" placeholder="Dirección..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Teléfono</label>
+                <input wire:model="newClienteTelefono" type="tel" placeholder="Teléfono..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">RUC</label>
+                <input wire:model="newClienteRuc" type="text" placeholder="RUC..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Identidad/Cédula</label>
+                <input wire:model="newClienteIdentidad" type="text" placeholder="Identidad..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#0047AB'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:.65rem;margin-top:1.2rem;">
+            <button wire:click="closeNewClienteModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.9rem;transition:all .2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                Cancelar
+            </button>
+            <button wire:click="saveNewCliente" style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#0047AB;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;box-shadow:0 3px 10px rgba(0,71,171,.3);transition:all .2s;" onmouseover="this.style.background='#003d99'" onmouseout="this.style.background='#0047AB'">
+                Registrar
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 </x-filament-panels::page>

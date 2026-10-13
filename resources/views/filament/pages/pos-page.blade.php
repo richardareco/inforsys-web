@@ -37,39 +37,105 @@
 /* ─── Dropdown resultados (móvil) ─── */
 .mobile-dropdown {
     display: none;
-    position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 40;
-    background: white; border: 1.5px solid #6366f1; border-top: none;
-    border-radius: 0 0 .85rem .85rem;
-    max-height: 55vh; overflow-y: auto;
-    box-shadow: 0 8px 30px rgba(0,0,0,.18);
+    background: white;
+    overflow-y: auto;
+    max-height: 60vh;
 }
-.dark .mobile-dropdown { background: #1f2937; border-color: #4f46e5; }
+.dark .mobile-dropdown { background: #111827; }
+.mobile-dropdown.show {
+    display: block;
+}
+
+/* Grid móvil de productos */
+.mobile-products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
 .mob-item {
-    display: flex; align-items: center; gap: .65rem;
-    padding: .7rem .9rem; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background .1s;
+    display: flex; flex-direction: column; gap: 0.5rem;
+    padding: 0.75rem; border-radius: 0.75rem;
+    background: white; border: 1.5px solid #e5e7eb;
+    cursor: pointer; transition: all 0.15s; user-select: none;
 }
-.dark .mob-item { border-color: #374151; }
-.mob-item:last-child { border-bottom: none; }
-.mob-item:hover, .mob-item:active { background: #f5f3ff; }
+.dark .mob-item { background: #1f2937; border-color: #374151; }
+.mob-item:hover { border-color: #6366f1; box-shadow: 0 2px 8px rgba(99,102,241,.15); transform: translateY(-1px); }
+.mob-item:active { transform: scale(0.97); }
+
+.mob-item-image {
+    width: 100%; height: 100px; object-fit: contain;
+    background: #f3f4f6; border-radius: 0.5rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.dark .mob-item-image { background: #374151; }
+
+.mob-item-name {
+    font-size: 0.85rem; font-weight: 700;
+    color: #111827; line-height: 1.2;
+}
+.dark .mob-item-name { color: #f9fafb; }
+
+.mob-item-price {
+    font-size: 1.1rem; font-weight: 900;
+    color: #4f46e5;
+}
+
+.mob-item-stock {
+    font-size: 0.7rem; font-weight: 700;
+    padding: 0.2rem 0.4rem; border-radius: 999px;
+    display: inline-block;
+}
+
+.mob-item-stock.high { background: #dcfce7; color: #16a34a; }
+.mob-item-stock.medium { background: #fef9c3; color: #92400e; }
+.mob-item-stock.low { background: #fee2e2; color: #b91c1c; }
+
+.mob-item-add-btn {
+    width: 100%; padding: 0.5rem;
+    background: #6366f1; color: white;
+    border: none; border-radius: 0.5rem;
+    font-size: 0.8rem; font-weight: 700;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    gap: 0.3rem; transition: background 0.12s;
+}
+.mob-item-add-btn:hover { background: #4f46e5; }
+.dark .mob-item-add-btn { background: #6366f1; }
 
 /* ─── Grid de productos ─── */
 .pos-products {
-    flex: 1; overflow-y: auto; padding: .75rem;
+    flex: 1; overflow-y: auto; padding: .4rem .75rem .75rem .75rem;
 }
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: .6rem;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: .4rem;
 }
 .product-card {
-    background: white; border-radius: .85rem; border: 1.5px solid #e5e7eb;
-    padding: .75rem; display: flex; flex-direction: column; gap: .35rem;
+    background: white; border-radius: .75rem; border: 1.5px solid #e5e7eb;
+    padding: .5rem; display: flex; flex-direction: column; gap: .25rem;
     cursor: pointer; transition: all .15s; user-select: none;
+    aspect-ratio: 1;
 }
 .dark .product-card { background: #1f2937; border-color: #374151; }
 .product-card:hover { border-color: #6366f1; box-shadow: 0 2px 12px rgba(99,102,241,.15); transform: translateY(-1px); }
 .product-card:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(99,102,241,.25); }
 .product-card:active { transform: scale(.97); }
+
+.product-image {
+    width: 100%; height: 70px; object-fit: contain;
+    background: #f3f4f6; border-radius: .4rem;
+    margin: -0.5rem -0.5rem 0.2rem -0.5rem; padding: 0.3rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.dark .product-image { background: #374151; }
+.product-image.no-image {
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 0.65rem;
+}
+
 .product-add-btn {
     margin-top: auto; width: 100%; padding: .4rem;
     background: #6366f1; color: white; border: none; border-radius: .55rem;
@@ -127,16 +193,16 @@
 .dark .cart-header { background: #ffffff; border-color: #e5e7eb; }
 .cart-header-top {
     display: flex; align-items: center; gap: .4rem;
-    padding: .45rem .85rem;
-    font-size: .7rem; font-weight: 700; color: #94a3b8;
+    padding: .4rem .75rem;
+    font-size: .8rem; font-weight: 700; color: #94a3b8;
 }
 .cart-header-total {
-    padding: .3rem .85rem .7rem;
+    padding: .25rem .75rem .6rem;
     text-align: center;
 }
 .cart-header-total .total-label {
-    font-size: .6rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .12em; color: #0047AB; margin-bottom: .1rem;
+    font-size: .65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .12em; color: #0047AB; margin-bottom: .05rem;
 }
 .cart-header-total .total-amount {
     font-size: 2.6rem; font-weight: 900; color: #0047AB;
@@ -146,8 +212,9 @@
 /* ─── Cuerpo del carrito ─── */
 .cart-body { flex: 1; overflow-y: auto; }
 .cart-row {
-    display: flex; align-items: center; gap: .5rem; padding: .6rem .85rem;
+    display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem;
     border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background .1s;
+    font-size: .8rem;
 }
 .dark .cart-row { border-color: #374151; }
 .cart-row:hover { background: #f5f3ff; }
@@ -167,12 +234,13 @@
     flex-shrink: 0; padding: .75rem 1rem;
     border-top: 2px solid #e5e7eb; background: white;
     display: flex; align-items: center; gap: .75rem;
+    flex-direction: row;
 }
 .dark .cart-footer { background: #1f2937; border-color: #374151; }
 .cobrar-btn {
-    display: flex; align-items: center; gap: .5rem; padding: .75rem 1.5rem;
-    background: #4f46e5; color: white; font-weight: 900; font-size: 1rem;
-    border: none; border-radius: .85rem; cursor: pointer;
+    display: flex; align-items: center; gap: .3rem; padding: .5rem .7rem;
+    background: #4f46e5; color: white; font-weight: 900; font-size: .75rem;
+    border: none; border-radius: .75rem; cursor: pointer;
     box-shadow: 0 3px 12px rgba(79,70,229,.35); transition: all .15s; white-space: nowrap;
 }
 .cobrar-btn:hover { background: #4338ca; transform: translateY(-1px); }
@@ -238,8 +306,12 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     .mobile-dropdown { display: block; z-index: 100; }
     .pos-cart { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; }
     .dark .pos-cart { border-color: #374151; }
-    .cart-footer { position: sticky; bottom: 0; z-index: 10; }
-    .cobrar-btn { padding: .7rem 1.25rem; }
+    .cart-footer { position: sticky; bottom: 0; z-index: 10; flex-direction: column !important; gap: 0.5rem !important; padding: 0.5rem 0.5rem !important; }
+    .cart-footer button { width: 100% !important; flex-direction: column !important; justify-content: center !important; padding: 0.6rem 0.8rem !important; font-size: 0.8rem !important; }
+    .cobrar-btn { padding: 0.6rem 0.8rem !important; }
+    .cobrar-btn svg { width: 1.2rem !important; height: 1.2rem !important; }
+    .cart-footer button svg { width: 1rem !important; height: 1rem !important; }
+    .cart-footer button span { font-size: 0.65rem !important; }
 }
 @media (min-width: 768px) {
     .mobile-dropdown { display: none !important; }
@@ -257,49 +329,8 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         {{-- Header izquierdo --}}
         <div class="pos-left-top">
 
-            {{-- Fila: Cliente + Cajero + Depósito --}}
+            {{-- Fila: Cajero --}}
             <div class="pos-selects-row">
-
-                {{-- Cliente (combobox buscable) --}}
-                <div style="flex:2;min-width:160px;"
-                     x-data="posClienteCombo(@js($clientes), @js($clienteId))"
-                     @click.outside="close()"
-                     wire:ignore>
-                    <label class="sel-label">Cliente</label>
-                    <div style="position:relative;">
-                        <input type="text"
-                            class="cliente-combo-input"
-                            :placeholder="selectedName || 'Ocasional...'"
-                            x-model="query"
-                            @focus="open = true"
-                            @input="open = true; hl = 0"
-                            @keydown.arrow-down.prevent="moveDown()"
-                            @keydown.arrow-up.prevent="moveUp()"
-                            @keydown.enter.prevent="pickHighlighted()"
-                            @keydown.escape.prevent="close()"
-                            autocomplete="off"
-                        />
-                        <span style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);color:#9ca3af;pointer-events:none;">
-                            <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </span>
-                        <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.65rem;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);"
-                             class="dark:bg-gray-800">
-                            <template x-for="(c, i) in filtered" :key="c.custnr">
-                                <div :class="i === hl ? 'bg-violet-50 dark:bg-violet-900/20' : ''"
-                                    :data-pci="i"
-                                    style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.45rem .8rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;"
-                                    @mouseenter="hl = i" @click="pick(c)">
-                                    <span style="font-size:.78rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80%;" class="dark:text-gray-100" x-text="c.custname"></span>
-                                    <span style="font-size:.65rem;color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Cajero --}}
                 <div style="flex:1;min-width:110px;">
                     <label class="sel-label">Cajero / Vendedor</label>
                     <select wire:model.live="cajeroId" class="pos-sel">
@@ -308,17 +339,6 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                         @endforeach
                     </select>
                 </div>
-
-                {{-- Depósito --}}
-                <div style="flex:1;min-width:90px;">
-                    <label class="sel-label">Depósito</label>
-                    <select wire:model.live="depositoId" class="pos-sel">
-                        @foreach($depositos as $d)
-                            <option value="{{ $d->deponr }}">{{ $d->depo_nombre }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
             </div>
 
             {{-- Búsqueda --}}
@@ -349,25 +369,54 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     @keydown.escape.prevent="clearSearch()"
                 />
 
-                {{-- Dropdown solo móvil --}}
-                @if(count($searchResults) > 0)
-                <div class="mobile-dropdown">
-                    @foreach($searchResults as $i => $product)
-                    <div class="mob-item" wire:click="addToCart('{{ $product->item }}')">
-                        <div style="flex:1;min-width:0;">
-                            <p style="font-size:.85rem;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-white">{{ $product->descr }}</p>
-                            <p style="font-size:.7rem;color:#9ca3af;">{{ $product->item }}@if($product->scode) · {{ $product->scode }}@endif
-                                &nbsp;·&nbsp;
-                                <span style="{{ $product->stock_depo > 5 ? 'color:#16a34a' : ($product->stock_depo > 0 ? 'color:#92400e' : 'color:#b91c1c') }};font-weight:700;">
-                                    Stock: {{ $product->stock_depo }}
-                                </span>
-                            </p>
-                        </div>
-                        <p style="font-size:.9rem;font-weight:900;color:#4f46e5;white-space:nowrap;flex-shrink:0;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
-                    </div>
+                {{-- Categorías (primeras 5) --}}
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem 0 .3rem;margin-top:.3rem;">
+                    <button
+                        wire:click="$set('categoriaId', null)"
+                        style="padding:.3rem .7rem;border-radius:.5rem;border:1.5px solid;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                        {{ $categoriaId === null ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
+                        onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
+                        onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
+                        Todos
+                    </button>
+                    @foreach(array_slice($categorias, 0, 5) as $cat)
+                        <button
+                            wire:click="$set('categoriaId', '{{ $cat->grupnr }}')"
+                            style="padding:.3rem .7rem;border-radius:.5rem;border:1.5px solid;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                            {{ $categoriaId === $cat->grupnr ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
+                            onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
+                            onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
+                            {{ $cat->descr }}
+                        </button>
                     @endforeach
                 </div>
-                @endif
+
+                {{-- Grid móvil de productos --}}
+                <div class="mobile-dropdown {{ count($searchResults) > 0 ? 'show' : '' }}">
+                    <div class="mobile-products-grid">
+                        @foreach($searchResults as $i => $product)
+                        <div class="mob-item" wire:click="addToCart('{{ $product->item }}')">
+                            <img
+                                src="{{ route('item-image.show', ['item' => $product->item]) }}"
+                                alt="{{ $product->descr }}"
+                                loading="lazy"
+                                class="mob-item-image"
+                                onerror="this.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%229ca3af%22 stroke-width=%221.5%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z%22/%3E</svg>';"
+                            />
+                            <p class="mob-item-name">{{ $product->descr }}</p>
+                            <p class="mob-item-price">Gs. {{ number_format($product->precio, 0, ',', '.') }}</p>
+                            <span class="mob-item-stock {{ $product->stock_depo > 5 ? 'high' : ($product->stock_depo > 0 ? 'medium' : 'low') }}">
+                                En stock: {{ $product->stock_depo }}
+                            </span>
+                            <button class="mob-item-add-btn" @click.stop="$wire.addToCart('{{ $product->item }}')">
+                                <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                                </svg>
+                            </button>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -388,13 +437,20 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                             @keydown.escape.prevent="activeIdx = -1; $refs.search.focus()"
                             @focus="activeIdx = {{ $i }}"
                         >
+                            <img
+                                src="{{ route('item-image.show', ['item' => $product->item]) }}"
+                                alt="{{ $product->descr }}"
+                                loading="lazy"
+                                class="product-image"
+                                onerror="this.classList.add('no-image'); this.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%229ca3af%22 stroke-width=%221.5%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z%22/%3E</svg>';"
+                            />
                             <p style="font-size:.65rem;color:#9ca3af;font-weight:600;">{{ $product->item }}@if($product->scode) · {{ $product->scode }}@endif</p>
-                            <p style="font-size:.82rem;font-weight:700;color:#111827;line-height:1.3;flex:1;" class="dark:text-gray-100">{{ $product->descr }}</p>
-                            <span style="font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;display:inline-block;width:fit-content;
+                            <p style="font-size:.75rem;font-weight:700;color:#111827;line-height:1.3;flex:1;" class="dark:text-gray-100">{{ $product->descr }}</p>
+                            <span style="font-size:.75rem;font-weight:700;padding:.2rem .5rem;border-radius:999px;display:inline-block;width:fit-content;
                                 {{ $product->stock_depo > 5 ? 'background:#dcfce7;color:#16a34a;' : ($product->stock_depo > 0 ? 'background:#fef9c3;color:#92400e;' : 'background:#fee2e2;color:#b91c1c;') }}">
                                 Stock:&nbsp;{{ $product->stock_depo }}
                             </span>
-                            <p style="font-size:.9rem;font-weight:900;color:#4f46e5;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
+                            <p style="font-size:1rem;font-weight:900;color:#4f46e5;">Gs.&nbsp;{{ number_format($product->precio, 0, ',', '.') }}</p>
                             <button class="product-add-btn" @click.stop="$wire.addToCartKeepSearch('{{ $product->item }}')">
                                 <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -424,22 +480,42 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
     {{-- ══════ PANEL DERECHO: carrito ══════ --}}
     <div class="pos-cart">
 
-        {{-- Encabezado del carrito con total visible para el cliente --}}
-        <div class="cart-header">
-            <div class="cart-header-top">
-                <svg style="width:.85rem;height:.85rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.847-7.156a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
-                </svg>
-                Carrito
-                @if(count($cart) > 0)
-                    <span style="background:#eff6ff;color:#0047AB;font-size:.62rem;font-weight:800;padding:.1rem .5rem;border-radius:999px;">
-                        {{ count($cart) }} ítem(s)
-                    </span>
-                @endif
+        {{-- Encabezado: Cliente + Total --}}
+        <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
+            {{-- Selector de Cliente con búsqueda --}}
+            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+                 @click.outside="close()" style="position:relative;">
+                <div style="display:flex;gap:.3rem;align-items:center;">
+                    <input type="text"
+                        class="cliente-combo-input"
+                        :placeholder="selectedName || 'Cliente...'"
+                        x-model="query"
+                        @focus="open = true"
+                        @input="open = true; hl = 0"
+                        @keydown.arrow-down.prevent="moveDown()"
+                        @keydown.arrow-up.prevent="moveUp()"
+                        @keydown.enter.prevent="pickHighlighted()"
+                        @keydown.escape.prevent="close()"
+                        autocomplete="off"
+                        style="flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.75rem;background:white;color:#111827;"
+                    />
+                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.3rem .4rem;background:#6366f1;color:white;border:none;border-radius:.4rem;cursor:pointer;font-size:.65rem;font-weight:700;white-space:nowrap;transition:background .15s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+                        +
+                    </button>
+                </div>
+                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:150px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
+                    <template x-for="(c, i) in filtered" :key="c.custnr">
+                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.3rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;font-size:.7rem;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
+                            <span style="font-weight:600;color:#111827;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100" x-text="c.custname"></span>
+                            <span style="color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
+                        </div>
+                    </template>
+                </div>
             </div>
-            <div class="cart-header-total">
-                <div class="total-label">Total a cobrar</div>
-                <div class="total-amount">
+            {{-- Total --}}
+            <div style="text-align:center;border-top:1.5px solid #e5e7eb;padding-top:.3rem;">
+                <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0047AB;margin-bottom:.05rem;">TOTAL</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#0047AB;line-height:1;">
                     Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
                 </div>
             </div>
@@ -488,25 +564,27 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
         <div class="cart-footer" style="gap:.5rem;">
             {{-- Guardar (sin acción por ahora) --}}
             <button type="button" {{ empty($cart) ? 'disabled' : '' }}
-                style="display:flex;align-items:center;gap:.4rem;padding:.65rem 1rem;
-                    background:#f1f5f9;color:#475569;font-weight:700;font-size:.85rem;
-                    border:1.5px solid #cbd5e1;border-radius:.85rem;cursor:pointer;
-                    transition:all .15s;white-space:nowrap;flex-shrink:0;"
-                onmouseover="if(!this.disabled)this.style.background='#e2e8f0'"
-                onmouseout="this.style.background='#f1f5f9'">
-                <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.25rem;padding:.5rem .7rem;
+                    background:#f3f4f6;color:#4b5563;font-weight:700;font-size:.75rem;
+                    border:1.5px solid #d1d5db;border-radius:.75rem;cursor:pointer;
+                    transition:all .15s;white-space:nowrap;flex:1;"
+                onmouseover="if(!this.disabled)this.style.background='#e5e7eb'"
+                onmouseout="this.style.background='#f3f4f6'">
+                <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
                 </svg>
                 Guardar
             </button>
 
             {{-- Cobrar --}}
-            <button wire:click="openPaymentModal" class="cobrar-btn" style="flex:1;" {{ empty($cart) ? 'disabled' : '' }}>
-                <svg style="width:1.1rem;height:1.1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <button wire:click="openPaymentModal" class="cobrar-btn" style="flex:1;flex-direction:column;justify-content:center;gap:.25rem;padding:.5rem .7rem;display:flex;align-items:center;font-size:.75rem;" {{ empty($cart) ? 'disabled' : '' }}>
+                <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
                 </svg>
-                COBRAR
-                <span style="font-size:.7rem;font-weight:400;opacity:.65;">F10</span>
+                <div style="display:flex;gap:.3rem;align-items:center;">
+                    <span style="font-size:.75rem;font-weight:900;">COBRAR</span>
+                    <span style="font-size:.65rem;font-weight:600;opacity:.85;">F10</span>
+                </div>
             </button>
         </div>
 
@@ -633,6 +711,7 @@ function posApp() {
                 });
             });
             window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
+            setTimeout(() => this.toggleFullscreen(), 500);
         },
 
         arrowDown() {
@@ -710,8 +789,10 @@ function posClienteCombo(clientes, initialId) {
         },
         get filtered() {
             const q = this.query.toLowerCase().trim();
-            if (!q) return this.clientes.slice(0, 60);
-            return this.clientes.filter(c =>
+            // Siempre acceder a $wire.clientes para obtener datos frescos de Livewire
+            const clientesList = this.$wire.clientes || this.clientes || [];
+            if (!q) return clientesList.slice(0, 60);
+            return clientesList.filter(c =>
                 (c.custname || '').toLowerCase().includes(q) ||
                 String(c.custnr || '').includes(q)
             ).slice(0, 60);
@@ -736,5 +817,72 @@ function posClienteCombo(clientes, initialId) {
     };
 }
 </script>
+
+{{-- ══════════════ MODAL: NUEVO CLIENTE ══════════════ --}}
+@if($showNewClienteModal)
+<div class="modal-back" @keydown.escape.window="$wire.call('closeNewClienteModal')" @click.self="$wire.call('closeNewClienteModal')">
+    <div class="modal-box" style="max-width:380px;" @click.stop>
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
+            <p style="font-size:1rem;font-weight:900;color:white;">Nuevo Cliente</p>
+            <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Registro rápido</p>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:.6rem;max-height:60vh;overflow-y:auto;">
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nombre *</label>
+                <input wire:model="newClienteName" type="text" placeholder="Nombre completo" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nacionalidad</label>
+                <select wire:model="newClienteNacionalidad" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;background:white;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'">
+                    <option value="">Seleccionar país...</option>
+                    <option value="PY">Paraguay</option>
+                    <option value="AR">Argentina</option>
+                    <option value="BR">Brasil</option>
+                    <option value="CL">Chile</option>
+                    <option value="UY">Uruguay</option>
+                    <option value="BO">Bolivia</option>
+                    <option value="CO">Colombia</option>
+                    <option value="PE">Perú</option>
+                    <option value="EC">Ecuador</option>
+                    <option value="VE">Venezuela</option>
+                    <option value="GY">Guyana</option>
+                    <option value="SR">Surinam</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Dirección</label>
+                <input wire:model="newClienteDireccion" type="text" placeholder="Dirección..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Teléfono</label>
+                <input wire:model="newClienteTelefono" type="tel" placeholder="Teléfono..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">RUC</label>
+                <input wire:model="newClienteRuc" type="text" placeholder="RUC..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Identidad/Cédula</label>
+                <input wire:model="newClienteIdentidad" type="text" placeholder="Identidad..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:.65rem;margin-top:1.2rem;">
+            <button wire:click="closeNewClienteModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.9rem;transition:all .2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                Cancelar
+            </button>
+            <button wire:click="saveNewCliente" style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;box-shadow:0 3px 10px rgba(79,70,229,.3);transition:all .2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+                Registrar
+            </button>
+        </div>
+    </div>
+</div>
+@endif
 
 </x-filament-panels::page>

@@ -12,4 +12,9 @@ class ItemImage extends Model
     public $timestamps = false;
 
     protected $fillable = ['item', 'image'];
+
+    public function product()
+    {
+        return $this->belongsTo(Item::class, 'item', 'item');
+    }
 }
