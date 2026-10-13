@@ -79,6 +79,14 @@ class AdminPanelProvider extends PanelProvider
 .fi-brand-name {
     color: #ffffff !important;
 }
+.fi-brand-name {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    max-width: 100% !important;
+    padding: 0.5rem 0 !important;
+    line-height: 1.2 !important;
+    font-size: 0.875rem !important;
+}
 /* items del menú — texto blanco semitransparente para inactivos */
 .fi-sidebar-item-button {
     color: rgba(255,255,255,0.75) !important;
