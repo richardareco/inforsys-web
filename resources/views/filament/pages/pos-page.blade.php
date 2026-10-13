@@ -273,11 +273,22 @@
 }
 @media(min-width:640px){ .modal-back { align-items: center; } }
 .modal-box {
-    background: white; width: 100%; max-width: 400px;
-    border-radius: 1.25rem 1.25rem 0 0; padding: 1.4rem;
+    background: white; width: 75% !important; max-width: 280px !important;
+    border-radius: 1.25rem 1.25rem 0 0; padding: 0.8rem 0.6rem !important;
     box-shadow: 0 -8px 30px rgba(0,0,0,.2);
+    font-size: 0.8rem !important;
+    max-height: 85vh;
+    overflow-y: auto;
 }
-@media(min-width:640px){ .modal-box { border-radius: 1.25rem; } }
+@media(min-width:640px){
+    .modal-box {
+        border-radius: 1.25rem;
+        width: 100%;
+        max-width: 400px;
+        padding: 1.4rem;
+        font-size: 1rem;
+    }
+}
 .dark .modal-box { background: #1f2937; }
 .pay-method {
     flex: 1; display: flex; flex-direction: column; align-items: center; gap: .4rem;
@@ -290,18 +301,19 @@
 .pay-method.sel-blue   { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 .pay-method.sel-purple { border-color: #a855f7; background: #faf5ff; color: #7e22ce; }
 
-.qty-ctrl { display: flex; align-items: center; gap: .5rem; margin-bottom: .85rem; }
+.qty-ctrl { display: flex; align-items: center; gap: .2rem; margin-bottom: .4rem; }
 .qty-btn {
-    width: 2.4rem; height: 2.4rem; border-radius: .55rem;
-    border: 1.5px solid #d1d5db; background: #f9fafb; color: #374151;
-    font-size: 1.2rem; font-weight: 700; cursor: pointer; flex-shrink: 0;
+    width: 1.5rem !important; height: 1.5rem !important; border-radius: .25rem;
+    border: 0.5px solid #d1d5db; background: #f9fafb; color: #374151;
+    font-size: 0.7rem !important; font-weight: 700; cursor: pointer; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; transition: all .12s;
+    padding: 0 !important;
 }
 .qty-btn:hover { background: #ede9fe; border-color: #6366f1; color: #6366f1; }
 .qty-num {
-    flex: 1; text-align: center; padding: .5rem;
-    border: 1.5px solid #d1d5db; border-radius: .55rem;
-    font-size: 1.2rem; font-weight: 800; color: #111827; outline: none; background: white;
+    flex: 1; text-align: center; padding: .25rem !important;
+    border: 0.5px solid #d1d5db; border-radius: .25rem;
+    font-size: 0.75rem !important; font-weight: 800; color: #111827; outline: none; background: white;
 }
 .qty-num:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,.12); }
 .dark .qty-num { background: #374151; color: #f9fafb; border-color: #4b5563; }

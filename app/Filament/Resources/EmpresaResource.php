@@ -49,10 +49,10 @@ class EmpresaResource extends Resource
 
             FileUpload::make('logo')
                 ->label('Logo')
-                ->image()
                 ->disk('public')
                 ->directory('logos')
                 ->maxSize(2048)
+                ->nullable()
                 ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'])
                 ->helperText('PNG, JPG, SVG o WebP. Máx 2 MB. Se mostrará en el encabezado del panel.')
                 ->columnSpan(2),
