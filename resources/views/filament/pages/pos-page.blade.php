@@ -162,19 +162,15 @@ button[aria-label*="toggle sidebar"],
     border-top: none !important;
 }
 
-/* Poner el filtro de búsqueda atrás del sidebar cuando está abierto */
+/* Ocultar completamente el filtro de búsqueda cuando el sidebar está abierto */
 .fi-sidebar:not(.hidden) ~ .fi-page .pos-search-wrap {
-    z-index: -10 !important;
-    position: relative;
-}
-
-.fi-sidebar:not(.hidden) ~ .fi-page .pos-search-wrap [style*="z-index"] {
-    z-index: -10 !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
 }
 
 .fi-sidebar:not(.hidden) ~ .fi-page .pos-left-top {
-    z-index: -10 !important;
-    position: relative;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 @media (max-width: 768px) {
