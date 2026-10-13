@@ -35,18 +35,18 @@
 .dark .pos-left { background: #111827; }
 
 .pos-left-top {
-    flex-shrink: 0; padding: .65rem .85rem;
+    flex-shrink: 0; padding: .35rem .6rem !important;
     background: white; border-bottom: 1px solid #e5e7eb;
-    display: flex; flex-direction: column; gap: .5rem;
+    display: flex; flex-direction: column; gap: .3rem !important;
 }
 .dark .pos-left-top { background: #1f2937; border-color: #374151; }
 
 /* ─── Buscador ─── */
 .pos-search-wrap { position: relative; }
 .pos-search {
-    width: 100%; padding: .5rem .75rem .5rem 2.4rem;
-    border: 2px solid #6366f1; border-radius: .7rem;
-    font-size: .88rem; font-weight: 500; background: white; color: #111827;
+    width: 100%; padding: .4rem .6rem .4rem 2.2rem !important;
+    border: 2px solid #6366f1; border-radius: .6rem !important;
+    font-size: .8rem !important; font-weight: 500; background: white; color: #111827;
     outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,.1);
 }
 .dark .pos-search { background: #1f2937; color: #f9fafb; }
@@ -400,10 +400,10 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                 />
 
                 {{-- Categorías (primeras 5) --}}
-                <div style="display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem 0 .3rem;margin-top:.3rem;">
+                <div style="display:flex;gap:.25rem;flex-wrap:wrap;padding:.2rem 0 .15rem !important;margin-top:.1rem !important;">
                     <button
                         wire:click="$set('categoriaId', null)"
-                        style="padding:.3rem .7rem;border-radius:.5rem;border:1.5px solid;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                        style="padding:.2rem .5rem !important;border-radius:.4rem;border:1px solid;font-size:.65rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
                         {{ $categoriaId === null ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
                         onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
                         onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
@@ -412,7 +412,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
                     @foreach(array_slice($categorias, 0, 5) as $cat)
                         <button
                             wire:click="$set('categoriaId', '{{ $cat->grupnr }}')"
-                            style="padding:.3rem .7rem;border-radius:.5rem;border:1.5px solid;font-size:.7rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
+                            style="padding:.2rem .5rem !important;border-radius:.4rem;border:1px solid;font-size:.65rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;
                             {{ $categoriaId === $cat->grupnr ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
                             onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
                             onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
