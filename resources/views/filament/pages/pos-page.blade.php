@@ -587,15 +587,22 @@ html {
 /* ─── Cuerpo del carrito ─── */
 .cart-body { flex: 1; overflow-y: auto; min-height: 0; }
 .cart-row {
-    display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem;
-    border-bottom: 1px solid #f9fafb; cursor: pointer; transition: background .1s;
+    display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem;
+    border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background .1s;
     font-size: .8rem;
 }
 .dark .cart-row { border-color: #374151; }
-.cart-row:hover { background: #f5f3ff; }
-.cart-row:focus { outline: none; background: #ede9fe; }
+.cart-row:hover { background: #fafafa; }
+.cart-row:focus { outline: none; background: #f5f5f5; }
 .dark .cart-row:hover { background: rgba(99,102,241,.08); }
 .dark .cart-row:focus { background: rgba(99,102,241,.15); }
+
+/* Imagen del producto en el carrito */
+.cart-item-image {
+    width: 3.5rem; height: 3.5rem;
+    flex-shrink: 0; border-radius: .5rem;
+    object-fit: cover; background: #f3f4f6;
+}
 .del-btn {
     flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: .4rem;
     border: 1px solid #fecaca; background: #fff5f5; color: #ef4444;
@@ -1089,14 +1096,28 @@ body.pos-keyboard-visible .pos-left::after {
                         @keydown.arrow-down.prevent="focusCartItem({{ $i + 1 }})"
                         @keydown.arrow-up.prevent="{{ $i === 0 ? '$refs.search.focus()' : 'focusCartItem(' . ($i - 1) . ')' }}"
                     >
+                        {{-- Imagen del producto --}}
+                        <img
+                            src="{{ route('item-image.show', ['item' => $item['item']]) }}"
+                            alt="{{ $item['descr'] }}"
+                            class="cart-item-image"
+                            loading="lazy"
+                            onerror="this.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%229ca3af%22 stroke-width=%221.5%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 d=%22M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z%22/%3E</svg>';"
+                        />
+
+                        {{-- Información del producto --}}
                         <div style="flex:1;min-width:0;">
                             <p style="font-size:.82rem;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100">{{ $item['descr'] }}</p>
                             <p style="font-size:.68rem;color:#9ca3af;">{{ $item['item'] }} · x{{ $item['qty'] }}</p>
                         </div>
+
+                        {{-- Precio --}}
                         <div style="text-align:right;flex-shrink:0;">
                             <p style="font-size:.82rem;font-weight:800;color:#4f46e5;">Gs.&nbsp;{{ number_format($item['precio'] * $item['qty'], 0, ',', '.') }}</p>
                             <p style="font-size:.68rem;color:#9ca3af;">c/u&nbsp;{{ number_format($item['precio'], 0, ',', '.') }}</p>
                         </div>
+
+                        {{-- Botón eliminar --}}
                         <button class="del-btn" @click.stop="$wire.removeFromCart({{ $i }})" title="Eliminar">
                             <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
