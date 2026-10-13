@@ -76,13 +76,24 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 /* ─── Buscador ─── */
 .pos-search-wrap { position: relative; }
 .pos-search {
-    width: 100%; padding: .4rem .6rem .4rem 2.2rem !important;
+    width: 100%; padding: .4rem 2.2rem .4rem 2.2rem !important;
     border: 2px solid #6366f1; border-radius: .6rem !important;
     font-size: .8rem !important; font-weight: 500; background: white; color: #111827;
     outline: none; box-shadow: 0 0 0 3px rgba(99,102,241,.1);
 }
 .dark .pos-search { background: #1f2937; color: #f9fafb; }
 .pos-search-icon { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+
+/* Ícono micrófono a la derecha */
+.pos-search-wrap::after {
+    content: "🎤";
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    pointer-events: none;
+}
 
 /* ─── Dropdown resultados (móvil) ─── */
 .mobile-dropdown {
@@ -240,6 +251,43 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 }
 
 .sel-label { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; display: block; margin-bottom: .15rem; }
+
+@media (max-width: 768px) {
+    .sel-label {
+        display: inline !important;
+        margin: 0 !important;
+        margin-right: 0.5rem !important;
+        text-transform: none !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 0 !important;
+        font-weight: 600 !important;
+    }
+    .sel-label::before {
+        content: "👤 ";
+    }
+    .pos-selects-row {
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+    }
+    .pos-selects-row > div {
+        min-width: auto !important;
+        flex: 0 !important;
+    }
+    .pos-sel {
+        appearance: none !important;
+        border: none !important;
+        background: none !important;
+        background-image: none !important;
+        padding: 0 !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        color: #111827 !important;
+        cursor: pointer !important;
+    }
+}
 
 /* Fix selects */
 .pos-sel {
