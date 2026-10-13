@@ -15,11 +15,22 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 /* ─── Contenedor principal ─── */
 .pos-wrap {
     display: flex;
-    height: calc(100vh - 185px); min-height: 500px;
+    flex-direction: column;
+    height: calc(100vh - 160px); min-height: 500px;
     border: 1px solid #e5e7eb; border-radius: 1rem;
     overflow: hidden;
     width: 100%;
     max-width: 100%;
+}
+
+/* Layout responsive para móviles */
+@media (max-width: 768px) {
+    .pos-wrap {
+        flex-direction: column;
+        height: calc(100vh - 120px);
+        border-radius: 0;
+        border: none;
+    }
 }
 
 /* Adaptación cuando la sidebar está abierta en desktop */
@@ -43,8 +54,17 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
 .pos-left {
     flex: 1; display: flex; flex-direction: column; overflow: hidden;
     background: #f9fafb;
+    order: 2;
 }
 .dark .pos-left { background: #111827; }
+
+@media (max-width: 768px) {
+    .pos-left {
+        flex: 0.7;
+        order: 2;
+        overflow-y: auto;
+    }
+}
 
 .pos-left-top {
     flex-shrink: 0; padding: .35rem .6rem !important;
@@ -143,6 +163,16 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: .4rem;
 }
+
+@media (max-width: 768px) {
+    .pos-products {
+        padding: .3rem .5rem .5rem .5rem;
+    }
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: .3rem;
+    }
+}
 .product-card {
     background: white; border-radius: .75rem; border: 1.5px solid #e5e7eb;
     padding: .5rem; display: flex; flex-direction: column; gap: .25rem;
@@ -180,8 +210,19 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     width: 400px; flex-shrink: 0;
     display: flex; flex-direction: column;
     border-left: 1px solid #e5e7eb; background: white;
+    order: 1;
 }
 .dark .pos-cart { background: #1f2937; border-color: #374151; }
+
+@media (max-width: 768px) {
+    .pos-cart {
+        width: 100%;
+        flex: 0.35;
+        border-left: none;
+        border-bottom: 1px solid #e5e7eb;
+        order: 1;
+    }
+}
 
 /* Meta: cliente + cajero */
 .cart-meta {
@@ -190,6 +231,13 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     display: flex; flex-direction: column; gap: .45rem;
 }
 .dark .cart-meta { background: #111827; border-color: #374151; }
+
+@media (max-width: 768px) {
+    .cart-meta {
+        padding: .3rem .5rem;
+        gap: .25rem;
+    }
+}
 
 .sel-label { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #9ca3af; display: block; margin-bottom: .15rem; }
 
@@ -225,6 +273,16 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     display: flex; align-items: center; gap: .4rem;
     padding: .4rem .75rem;
     font-size: .8rem; font-weight: 700; color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+    .cart-header {
+        padding: .2rem .5rem;
+    }
+    .cart-header-top {
+        padding: .2rem .5rem;
+        font-size: .7rem;
+    }
 }
 .cart-header-total {
     padding: .25rem .75rem .6rem;
