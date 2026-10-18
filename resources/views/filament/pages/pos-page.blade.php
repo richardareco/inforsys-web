@@ -1146,19 +1146,24 @@ body.pos-keyboard-visible .pos-left::after {
             <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
                  @click.outside="close()" style="position:relative;">
                 <div style="display:flex;gap:.2rem;align-items:center;">
-                    <input type="text"
-                        class="cliente-combo-input"
-                        :placeholder="selectedName || 'Cliente...'"
-                        x-model="query"
-                        @focus="open = true"
-                        @input="open = true; hl = 0"
-                        @keydown.arrow-down.prevent="moveDown()"
-                        @keydown.arrow-up.prevent="moveUp()"
-                        @keydown.enter.prevent="pickHighlighted()"
-                        @keydown.escape.prevent="close()"
-                        autocomplete="off"
-                        style="flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.75rem;background:white;color:#111827;"
-                    />
+                    <div style="display:flex;align-items:center;gap:.3rem;flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;background:white;">
+                        <svg style="width:1.2rem;height:1.2rem;color:#6b7280;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 1114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                        </svg>
+                        <input type="text"
+                            class="cliente-combo-input"
+                            :placeholder="selectedName || 'Cliente...'"
+                            x-model="query"
+                            @focus="open = true"
+                            @input="open = true; hl = 0"
+                            @keydown.arrow-down.prevent="moveDown()"
+                            @keydown.arrow-up.prevent="moveUp()"
+                            @keydown.enter.prevent="pickHighlighted()"
+                            @keydown.escape.prevent="close()"
+                            autocomplete="off"
+                            style="flex:1;border:none;font-size:.75rem;background:transparent;color:#111827;outline:none;padding:0;"
+                        />
+                    </div>
                     <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.25rem .3rem;background:#6366f1;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
                         +
                     </button>
@@ -1553,7 +1558,7 @@ function posClienteCombo(clientes, initialId) {
         clientes, query: '', open: false, hl: 0, selectedName: '', selectedId: initialId,
         init() {
             const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
-            if (found) this.selectedName = `${found.custname} (${found.custnr})`;
+            if (found) this.selectedName = `${found.custname} (${found.custnr})${found.ruc ? ' - RUC: ' + found.ruc : ''}`;
         },
         get filtered() {
             const q = this.query.toLowerCase().trim();
@@ -1568,7 +1573,7 @@ function posClienteCombo(clientes, initialId) {
             }).slice(0, 60);
         },
         pick(c) {
-            this.selectedName = `${c.custname} (${c.custnr})`;
+            this.selectedName = `${c.custname} (${c.custnr})${c.ruc ? ' - RUC: ' + c.ruc : ''}`;
             this.selectedId = c.custnr;
             this.query = ''; this.open = false;
             this.$wire.set('clienteId', c.custnr);
