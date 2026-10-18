@@ -123,7 +123,7 @@ class PosPage extends Page
 
         // Cliente por defecto: buscar "OCASIONAL", si no existe usar el primero
         $ocasional = collect($this->clientes)->first(fn ($c) =>
-            strtoupper(trim($c->custname ?? '')) === 'OCASIONAL'
+            stripos(trim($c->custname ?? ''), 'OCASIONAL') !== false
         );
         if ($ocasional) {
             $this->clienteId  = $ocasional->custnr;
