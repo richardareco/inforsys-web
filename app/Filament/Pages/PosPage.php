@@ -121,13 +121,11 @@ class PosPage extends Page
             ->get()
             ->toArray();
 
-        // Cliente por defecto: buscar "Ocasional" o "Consumidor", si no el primero
-        $ocasional = collect($this->clientes)->first(fn ($c) =>
-            str_contains(strtolower($c->custname ?? ''), 'ocasional') ||
-            str_contains(strtolower($c->custname ?? ''), 'consumidor')
-        );
-        $this->clienteId  = $ocasional ? $ocasional->custnr : ($this->clientes[0]->custnr ?? null);
-        $this->clienteName = $ocasional ? $ocasional->custname : ($this->clientes[0]->custname ?? 'Ocasional');
+        // Cliente por defecto: siempre el primero de la lista
+        if ($this->clientes) {
+            $this->clienteId  = $this->clientes[0]->custnr;
+            $this->clienteName = $this->clientes[0]->custname;
+        }
 
         // Depósito por defecto: D01
         $this->depositoId = 'D01';
