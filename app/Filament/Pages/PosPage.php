@@ -539,6 +539,7 @@ class PosPage extends Page
                 // 1. Cabecera de factura
                 DB::connection('delphi')->table('invo1')->insert([
                     'total'       => $total,
+                    'totalv'      => $total,
                     'ctotal'      => $ctotal,
                     'flag'        => '4',
                     'fecha'       => $hoy,
