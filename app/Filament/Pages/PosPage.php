@@ -148,13 +148,19 @@ class PosPage extends Page
         }
 
         $words = preg_split('/\s+/', $term);
+        $mostrarProductosSinStock = auth()->user()?->empresa?->mostrar_productos_sin_stock ?? true;
+
         $query = DB::connection('delphi')
             ->table('items')
             ->select('items.item', 'items.scode', 'items.scode1', 'items.descr', 'items.precio3 as precio', 'items.costo')
             ->selectRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
-            );
+            )
+            ->when(!$mostrarProductosSinStock, fn ($q) => $q->whereRaw(
+                'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) > 0',
+                [$this->depositoId]
+            ));
 
         // Filtrar por categoría si está seleccionada
         if ($this->categoriaId !== null) {
@@ -209,6 +215,8 @@ class PosPage extends Page
             return;
         }
 
+        $mostrarProductosSinStock = auth()->user()?->empresa?->mostrar_productos_sin_stock ?? true;
+
         $query = DB::connection('delphi')
             ->table('items')
             ->select('items.item', 'items.scode', 'items.scode1', 'items.descr', 'items.precio3 as precio', 'items.costo')
@@ -217,7 +225,10 @@ class PosPage extends Page
                 [$this->depositoId]
             )
             ->where('items.grupnr', $this->categoriaId)
-            ->where('items.stock', '>', 0)
+            ->when(!$mostrarProductosSinStock, fn ($q) => $q->whereRaw(
+                'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) > 0',
+                [$this->depositoId]
+            ))
             ->orderBy('items.descr')
             ->limit(12)
             ->get()
