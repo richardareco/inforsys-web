@@ -121,8 +121,14 @@ class PosPage extends Page
             ->get()
             ->toArray();
 
-        // Cliente por defecto: siempre el primero de la lista
-        if ($this->clientes) {
+        // Cliente por defecto: buscar "OCASIONAL", si no existe usar el primero
+        $ocasional = collect($this->clientes)->first(fn ($c) =>
+            strtoupper(trim($c->custname ?? '')) === 'OCASIONAL'
+        );
+        if ($ocasional) {
+            $this->clienteId  = $ocasional->custnr;
+            $this->clienteName = $ocasional->custname;
+        } elseif ($this->clientes) {
             $this->clienteId  = $this->clientes[0]->custnr;
             $this->clienteName = $this->clientes[0]->custname;
         }
