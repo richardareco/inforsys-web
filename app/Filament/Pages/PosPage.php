@@ -37,6 +37,7 @@ class PosPage extends Page
     public mixed  $clienteId  = null;
     public mixed  $depositoId = null;
     public mixed  $cajeroId   = null;
+    public bool   $cajeroLocked = false;
 
     // Carrito
     public array $cart = [];
@@ -136,17 +137,20 @@ class PosPage extends Page
         // Depósito por defecto: D01
         $this->depositoId = 'D01';
 
-        // Vendedor: si el usuario tiene uno asignado, usarlo; si no, el primero
+        // Vendedor: si el usuario tiene uno asignado, usarlo y bloquearlo
         $userPersonalId = auth()->user()?->personal_id;
         if ($userPersonalId) {
             $userVendedor = collect($this->cajeros)->first(fn ($c) => $c->pernr == $userPersonalId);
             if ($userVendedor) {
                 $this->cajeroId = $userVendedor->pernr;
+                $this->cajeroLocked = true;
             } elseif ($this->cajeros) {
                 $this->cajeroId = $this->cajeros[0]->pernr;
+                $this->cajeroLocked = false;
             }
         } elseif ($this->cajeros) {
             $this->cajeroId = $this->cajeros[0]->pernr;
+            $this->cajeroLocked = false;
         }
     }
 
