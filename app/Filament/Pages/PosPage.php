@@ -417,13 +417,15 @@ class PosPage extends Page
             // Recargar la lista de clientes
             $this->clientes = DB::connection('delphi')
                 ->table('cliente')
-                ->select('custnr', 'custname')
-                ->orderBy('custnr')
-                ->limit(300)
+                ->select('custnr', 'custname', 'ruc', 'email')
+                ->orderBy('custname')
+                ->limit(500)
                 ->get()
                 ->map(fn ($c) => (object)[
-                    'custnr'   => (string)$c->custnr,
+                    'custnr'   => $c->custnr,
                     'custname' => mb_convert_encoding((string)($c->custname ?? ''), 'UTF-8', 'UTF-8'),
+                    'ruc'      => (string)($c->ruc ?? ''),
+                    'email'    => (string)($c->email ?? ''),
                 ])
                 ->toArray();
 
