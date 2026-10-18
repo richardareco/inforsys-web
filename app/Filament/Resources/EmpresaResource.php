@@ -7,6 +7,7 @@ use App\Models\Empresa;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\DeleteAction;
@@ -66,6 +67,12 @@ class EmpresaResource extends Resource
                 ->default('general')
                 ->required()
                 ->helperText('Define el modo del Punto de Venta. "Supermercado" activa el layout optimizado para lectores de código de barras.')
+                ->columnSpan(2),
+
+            Toggle::make('modulo_caja_enabled')
+                ->label('Usar módulo de caja')
+                ->default(true)
+                ->helperText('Activa el POS con registro de caja e inmediato del pago. Desactívalo para permitir ventas sin pago (pendiente de cobro).')
                 ->columnSpan(2),
         ])->columns(2);
     }
