@@ -1720,32 +1720,28 @@ function posClienteCombo(clientes, initialId) {
 
 <script>
 // Ocultar la barra lateral automáticamente en POS
-document.addEventListener('DOMContentLoaded', function() {
-    // Buscar el botón toggle de la sidebar
-    const sidebarToggle = document.querySelector('[data-action="sidebar-toggle"]') ||
-                          document.querySelector('[aria-label*="Toggle sidebar"]') ||
-                          document.querySelector('button[aria-expanded]');
+function collapseSidebar() {
+    const sidebar = document.querySelector('.fi-sidebar');
+    if (!sidebar) return;
 
-    if (sidebarToggle) {
-        // Si la sidebar está abierta, hacerla clic para cerrarla
-        const sidebarElement = document.querySelector('[data-sidebar]') ||
-                               document.querySelector('.fi-sidebar');
+    // Simplemente añadir la clase 'hidden' para colapsar la sidebar
+    sidebar.classList.add('hidden');
+}
 
-        if (sidebarElement && !sidebarElement.classList.contains('hidden')) {
-            sidebarToggle.click();
-        }
-    }
+// Ejecutar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', collapseSidebar);
+} else {
+    collapseSidebar();
+}
 
-    // Aplicar clase al contenedor
-    const posWrap = document.querySelector('.pos-wrap');
-    if (posWrap) {
-        document.body.classList.add('sidebar-hidden');
-    }
-});
+// También ejecutar después de un pequeño delay para asegurar que todo esté cargado
+setTimeout(collapseSidebar, 300);
 
 // Limpiar cuando se sale del POS
 window.addEventListener('beforeunload', function() {
-    document.body.classList.remove('sidebar-hidden');
+    const sidebar = document.querySelector('.fi-sidebar');
+    if (sidebar) sidebar.classList.remove('hidden');
 });
 
 </script>
