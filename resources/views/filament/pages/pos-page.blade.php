@@ -757,7 +757,7 @@ body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !i
 .pos-fullscreen-exit {
     position: fixed;
     top: 8px;
-    right: 8px;
+    right: 60px;
     z-index: 999;
     width: 2rem;
     height: 2rem;
