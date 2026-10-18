@@ -28,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'db_name',
         'empresa_id',
         'role',
+        'precio_minimo_permitido',
     ];
 
     public function empresa(): BelongsTo

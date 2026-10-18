@@ -74,6 +74,17 @@ class UserResource extends Resource
                 ])
                 ->default('administrador')
                 ->helperText('Super Admin puede ver y configurar todo. Administrador solo ve los datos.'),
+
+            Select::make('precio_minimo_permitido')
+                ->label('Nivel de precio mínimo permitido')
+                ->options([
+                    1 => 'Precio 1 (más bajo)',
+                    2 => 'Precio 2 (intermedio)',
+                    3 => 'Precio 3 (estándar - sin descuento)',
+                ])
+                ->default(3)
+                ->required()
+                ->helperText('Define hasta qué precio puede bajar al cliente. Ej: si elige Precio 2, no podrá usar Precio 1.'),
         ]);
     }
 
