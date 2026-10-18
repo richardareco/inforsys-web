@@ -1213,8 +1213,8 @@ body.pos-keyboard-visible .pos-left::after {
                     <div class="cart-row"
                         data-cart-idx="{{ $i }}"
                         tabindex="0"
-                        @click="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
-                        @keydown.enter.prevent="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}')"
+                        @click="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}', {{ $item['stock_depo'] }})"
+                        @keydown.enter.prevent="openEdit({{ $i }}, {{ $item['qty'] }}, {{ $item['precio'] }}, '{{ addslashes($item['descr']) }}', {{ $item['stock_depo'] }})"
                         @keydown.delete.prevent="$wire.removeFromCart({{ $i }})"
                         @keydown.arrow-down.prevent="focusCartItem({{ $i + 1 }})"
                         @keydown.arrow-up.prevent="{{ $i === 0 ? '$refs.search.focus()' : 'focusCartItem(' . ($i - 1) . ')' }}"
@@ -1331,8 +1331,8 @@ body.pos-keyboard-visible .pos-left::after {
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Cantidad</label>
         <div class="qty-ctrl">
             <button class="qty-btn" @click="if(edit.qty > 1) edit.qty--">−</button>
-            <input class="qty-num" type="number" min="1" x-model.number="edit.qty" />
-            <button class="qty-btn" @click="edit.qty++">+</button>
+            <input class="qty-num" type="number" min="1" x-model.number="edit.qty" @change="if(edit.qty > edit.stock_depo && edit.stock_depo > 0) { edit.qty = edit.stock_depo }" />
+            <button class="qty-btn" @click="if(edit.qty < edit.stock_depo) { edit.qty++ } else if(edit.stock_depo > 0) { $dispatch('notify', {type: 'warning', title: 'Stock insuficiente', message: 'No hay suficiente stock disponible'}) }">+</button>
         </div>
 
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Precio unitario (Gs.)</label>
@@ -1424,7 +1424,7 @@ function posApp() {
     return {
         activeIdx: -1,
         isFullscreen: false,
-        edit: { open: false, idx: null, qty: 1, precio: 0, descr: '' },
+        edit: { open: false, idx: null, qty: 1, precio: 0, descr: '', stock_depo: 0 },
         localAmount: 0,
         keyboardVisible: false,
         lastViewportHeight: 0,
@@ -1525,8 +1525,8 @@ function posApp() {
             this.$wire.set('search', ''); this.activeIdx = -1; this.$refs.search?.focus();
         },
 
-        openEdit(idx, qty, precio, descr) {
-            this.edit = { open: true, idx, qty: parseInt(qty), precio: parseFloat(precio), descr };
+        openEdit(idx, qty, precio, descr, stock_depo) {
+            this.edit = { open: true, idx, qty: parseInt(qty), precio: parseFloat(precio), descr, stock_depo: parseInt(stock_depo) };
             this.$nextTick(() => document.getElementById('edit-precio')?.focus());
         },
         saveEdit() {
