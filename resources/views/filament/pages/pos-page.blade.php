@@ -748,10 +748,17 @@ html {
 .dark .qty-num { background: #374151; color: #f9fafb; border-color: #4b5563; }
 
 /* ─── Fullscreen ─── */
-body.pos-fullscreen aside,
-body.pos-fullscreen nav.fi-sidebar,
-body.pos-fullscreen .fi-sidebar { display: none !important; }
-body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !important; }
+/* En móvil: ocultar sidebar en fullscreen */
+@media (max-width: 1024px) {
+    body.pos-fullscreen aside,
+    body.pos-fullscreen nav.fi-sidebar,
+    body.pos-fullscreen .fi-sidebar { display: none !important; }
+    body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !important; }
+}
+/* En desktop: mantener sidebar visible en fullscreen */
+@media (min-width: 1025px) {
+    body.pos-fullscreen .fi-main-ctn { padding-left: 0 !important; }
+}
 
 /* Botón de salida de pantalla completa */
 .pos-fullscreen-exit {
