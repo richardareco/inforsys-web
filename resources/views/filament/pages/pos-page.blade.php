@@ -1370,7 +1370,9 @@ function posApp() {
             // Fallback: detectar cambios en innerHeight
             window.addEventListener('resize', () => this.handleViewportChange());
 
-            setTimeout(() => this.toggleFullscreen(), 500);
+            // Activar pantalla completa automáticamente después de cargar
+            const self = this;
+            setTimeout(() => { self.toggleFullscreen(); }, 500);
         },
 
         handleViewportChange() {
@@ -1443,12 +1445,21 @@ function posApp() {
             this.isFullscreen = !this.isFullscreen;
             if (this.isFullscreen) {
                 document.body.classList.add('pos-fullscreen');
-                document.documentElement.requestFullscreen?.().catch(() => {});
+                // Intentar la API de fullscreen si está disponible
+                try {
+                    document.documentElement.requestFullscreen?.();
+                } catch (e) {
+                    // Fallar silenciosamente si no está disponible
+                }
             } else {
                 document.body.classList.remove('pos-fullscreen');
-                document.exitFullscreen?.().catch(() => {});
+                try {
+                    document.exitFullscreen?.();
+                } catch (e) {
+                    // Fallar silenciosamente
+                }
             }
-            this.$refs.search?.focus();
+            this.$nextTick(() => this.$refs.search?.focus());
         },
     };
 }
