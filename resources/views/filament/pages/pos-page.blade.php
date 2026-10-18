@@ -1607,8 +1607,8 @@ function posClienteCombo(clientes, initialId) {
 {{-- ══════════════ MODAL: NUEVO CLIENTE ══════════════ --}}
 @if($showNewClienteModal)
 <div class="modal-back" @keydown.escape.window="$wire.call('closeNewClienteModal')" @click.self="$wire.call('closeNewClienteModal')">
-    <div class="modal-box" style="max-width:520px;" @click.stop>
-        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
+    <div class="modal-box" style="max-width:650px;" @click.stop>
+        <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;text-align:center;">
             <p style="font-size:1rem;font-weight:900;color:white;">@if($editingClienteId) Editar Cliente @else Nuevo Cliente @endif</p>
             <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">@if($editingClienteId) Modificar información @else Registro rápido @endif</p>
         </div>
