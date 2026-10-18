@@ -1352,7 +1352,7 @@ body.pos-keyboard-visible .pos-left::after {
         <span>Ventas</span>
     </a>
 
-    <a href="{{ route('filament.admin.resources.products.index') }}" class="mobile-nav-item" title="Productos">
+    <a href="{{ route('filament.admin.resources.items.index') }}" class="mobile-nav-item" title="Productos">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m0 0C5.106 7.055 5.25 7.863 5.25 8.25v11.25c0 2.278 3.694 4.125 8.25 4.125s8.25-1.847 8.25-4.125V8.25c0-.387-.144-1.195-.75-1.875"/>
         </svg>
