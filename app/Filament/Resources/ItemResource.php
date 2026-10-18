@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use App\Traits\CheckUserAcceso;
 
@@ -174,6 +175,23 @@ class ItemResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('item')
+                    ->label('Foto')
+                    ->getStateUsing(function ($record) {
+                        try {
+                            $itemImage = \App\Models\ItemImage::where('item', $record->item)->first();
+                            if ($itemImage && $itemImage->image) {
+                                return 'data:image/jpeg;base64,' . base64_encode($itemImage->image);
+                            }
+                        } catch (\Exception $e) {
+                            // Si hay error, retornar null
+                        }
+                        return null;
+                    })
+                    ->circular()
+                    ->size(50)
+                    ->fallbackIcon('heroicon-o-photo'),
+
                 TextColumn::make('item')
                     ->label('Código')
                     ->sortable()
@@ -186,15 +204,23 @@ class ItemResource extends Resource
 
                 TextColumn::make('total_stock')
                     ->label('Stock')
-                    ->getStateUsing(fn($record) => $record->depos()->sum('xqty') ?? 0)
+                    ->getStateUsing(fn($record) => (int)($record->depos()->sum('xqty') ?? 0))
+                    ->formatStateUsing(fn($state) => number_format($state, 0))
                     ->sortable(),
 
                 TextColumn::make('precio1')
                     ->label('Precio 1')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
                     ->sortable(),
 
                 TextColumn::make('precio2')
                     ->label('Precio 2')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
+                    ->sortable(),
+
+                TextColumn::make('precio3')
+                    ->label('Precio 3')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
                     ->sortable(),
             ])
             ->filters([
