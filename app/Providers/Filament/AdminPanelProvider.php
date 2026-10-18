@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use Filament\FontProviders\GoogleFontProvider;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\SetDelphiConnection;
+use App\Http\Middleware\RedirectVendorsToPos;
 use Illuminate\Support\Facades\Storage;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -56,6 +57,59 @@ class AdminPanelProvider extends PanelProvider
                     '<meta name="apple-mobile-web-app-title" content="InforsysPdv">' .
                     '<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js");}</script>'
                 )
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                function (): HtmlString {
+                    $user = auth()->user();
+                    if (!$user) {
+                        return new HtmlString('');
+                    }
+
+                    $accesos = json_encode($user->accesos ?? []);
+                    $isSuperAdmin = $user->isSuperAdmin() ? 'true' : 'false';
+
+                    return new HtmlString("
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const accesos = $accesos;
+    const isSuperAdmin = $isSuperAdmin;
+
+    if (isSuperAdmin) return; // Super admin ve todo
+
+    // Mapeo de módulos a palabras clave en el menú
+    const moduloTextos = {
+        'dashboard': 'Dashboard',
+        'historial_ventas': 'Historial de Ventas',
+        'cierre_caja': 'Cierre de Caja',
+        'cuentas_cobrar': 'Cuentas por Cobrar',
+        'proveedores': 'Proveedores',
+        'compras': 'Compras',
+        'gastos': 'Gastos',
+        'reportes': 'Reportes',
+        'configuraciones': 'Configuraciones',
+        'usuarios': 'Usuarios',
+        'presupuestos': 'Presupuestos',
+    };
+
+    // Buscar y ocultar items sin acceso
+    const navItems = document.querySelectorAll('[class*=\"sidebar\"] a, [class*=\"nav\"] a');
+    navItems.forEach(item => {
+        const texto = item.textContent.trim();
+
+        for (const [modulo, keywords] of Object.entries(moduloTextos)) {
+            if (texto.includes(keywords)) {
+                if (!accesos[modulo] && modulo !== 'ventas' && modulo !== 'clientes' && modulo !== 'productos') {
+                    item.parentElement.parentElement.style.display = 'none';
+                }
+                break;
+            }
+        }
+    });
+});
+</script>
+                    ");
+                }
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
@@ -210,6 +264,7 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                RedirectVendorsToPos::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

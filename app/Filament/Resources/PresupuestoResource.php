@@ -245,6 +245,17 @@ class PresupuestoResource extends Resource
             ->defaultSort('fecha', 'desc');
     }
 
+    public static function canAccess(): bool
+    {
+        // Presupuestos requiere acceso a ventas por ahora
+        return auth()->user()?->accesos['ventas'] ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
+
     public static function getPages(): array
     {
         return [

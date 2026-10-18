@@ -136,4 +136,14 @@ class ConfiguracionesVentasPage extends Page implements HasForms
             ->success()
             ->send();
     }
+
+    public static function canAccess(): bool
+    {
+        return in_array(Auth::user()?->role, ['superadmin', 'administrador']);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
 }

@@ -32,6 +32,11 @@ class MetaResource extends Resource
         return in_array(Auth::user()?->role, ['superadmin', 'administrador']);
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
+
     public static function form(Form $form): Form
     {
         $meses = [];

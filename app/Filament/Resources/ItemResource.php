@@ -256,6 +256,11 @@ class ItemResource extends Resource
         return self::userHasAcceso('productos');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
+
     // Nota: create y edit se manejan manualmente en ListItems sin registrar aquí
     // para evitar conflicto de compilación de rutas dinámicas en Filament v3
 }

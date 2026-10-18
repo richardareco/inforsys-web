@@ -255,6 +255,22 @@ class HistorialVentasResource extends Resource
 
     public static function canAccess(): bool
     {
-        return self::userHasAcceso('historial_ventas');
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        // Super admin tiene acceso
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        // Si tiene acceso a 'ventas' también tiene acceso a historial de ventas
+        return $user->accesos['ventas'] ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
     }
 }

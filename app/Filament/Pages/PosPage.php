@@ -759,4 +759,9 @@ class PosPage extends Page
     {
         return self::userHasAcceso('ventas');
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
 }

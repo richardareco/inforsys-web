@@ -86,4 +86,9 @@ class ClienteResource extends Resource
     {
         return self::userHasAcceso('clientes');
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return self::canAccess();
+    }
 }
