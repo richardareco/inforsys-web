@@ -449,10 +449,16 @@ html {
 
 /* ─── Panel derecho: carrito ─── */
 .pos-cart {
-    width: 400px; flex-shrink: 0;
+    width: 350px; flex-shrink: 0;
     display: flex; flex-direction: column;
     border-left: 1px solid #e5e7eb; background: white;
     order: 2;
+}
+
+@media (min-width: 1200px) {
+    .pos-cart {
+        width: 400px;
+    }
 }
 .dark .pos-cart { background: #1f2937; border-color: #374151; }
 
