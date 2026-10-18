@@ -175,21 +175,6 @@ class ItemResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('item')
-                    ->label('Foto')
-                    ->getStateUsing(function ($record) {
-                        try {
-                            $itemImage = \App\Models\ItemImage::where('item', $record->item)->first();
-                            if ($itemImage && $itemImage->image) {
-                                return 'data:image/jpeg;base64,' . base64_encode($itemImage->image);
-                            }
-                        } catch (\Exception $e) {
-                            // Si hay error, retornar null
-                        }
-                        return null;
-                    })
-                    ->size(50),
-
                 TextColumn::make('item')
                     ->label('Código')
                     ->sortable()
