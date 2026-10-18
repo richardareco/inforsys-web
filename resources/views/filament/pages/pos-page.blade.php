@@ -1176,6 +1176,7 @@ body.pos-keyboard-visible .pos-left::after {
                                 <span x-text="'ID: ' + c.custnr"></span>
                                 <span x-show="c.ruc" x-text="'RUC: ' + c.ruc"></span>
                             </div>
+                            <div x-show="c.email" style="font-size:.6rem;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="c.email"></div>
                         </div>
                     </template>
                 </div>
@@ -1569,7 +1570,8 @@ function posClienteCombo(clientes, initialId) {
                 const name = (c.custname || '').toLowerCase();
                 const id = String(c.custnr || '');
                 const ruc = (c.ruc || '').toLowerCase();
-                return name.includes(q) || id.includes(q) || ruc.includes(q);
+                const email = (c.email || '').toLowerCase();
+                return name.includes(q) || id.includes(q) || ruc.includes(q) || email.includes(q);
             }).slice(0, 60);
         },
         pick(c) {

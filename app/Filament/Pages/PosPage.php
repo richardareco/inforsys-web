@@ -94,7 +94,7 @@ class PosPage extends Page
 
         $this->clientes = DB::connection('delphi')
             ->table('cliente')
-            ->select('custnr', 'custname', 'ruc')
+            ->select('custnr', 'custname', 'ruc', 'email')
             ->orderBy('custname')
             ->limit(500)
             ->get()
@@ -102,6 +102,7 @@ class PosPage extends Page
                 'custnr'   => $c->custnr,
                 'custname' => mb_convert_encoding((string)($c->custname ?? ''), 'UTF-8', 'UTF-8'),
                 'ruc'      => (string)($c->ruc ?? ''),
+                'email'    => (string)($c->email ?? ''),
             ])
             ->toArray();
 
