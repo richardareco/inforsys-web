@@ -1143,7 +1143,7 @@ body.pos-keyboard-visible .pos-left::after {
         {{-- Encabezado: Cliente + Total --}}
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
-            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+            <div x-data="posClienteCombo(@js($clientes), $wire.clienteId)"
                  @click.outside="close()" style="position:relative;">
                 <div style="display:flex;gap:.2rem;align-items:center;">
                     <div style="display:flex;align-items:center;gap:.3rem;flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;background:white;">
