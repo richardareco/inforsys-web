@@ -260,6 +260,17 @@ class PosPage extends Page
         $item = collect($this->searchResults)->first(fn($r) => $r->item === $itemCode);
         if (!$item) return;
 
+        // Validar stock si la configuración lo requiere
+        $permitirVentaSinStock = auth()->user()?->empresa?->permitir_venta_sin_stock ?? false;
+        if (!$permitirVentaSinStock && $item->stock_depo <= 0) {
+            Notification::make()
+                ->title('Sin stock disponible')
+                ->body("El producto {$item->descr} no tiene stock disponible.")
+                ->warning()
+                ->send();
+            return;
+        }
+
         $idx = collect($this->cart)->search(fn($c) => $c['item'] === $itemCode);
 
         if ($idx !== false) {
@@ -286,6 +297,17 @@ class PosPage extends Page
     {
         $item = collect($this->searchResults)->first(fn($r) => $r->item === $itemCode);
         if (!$item) return;
+
+        // Validar stock si la configuración lo requiere
+        $permitirVentaSinStock = auth()->user()?->empresa?->permitir_venta_sin_stock ?? false;
+        if (!$permitirVentaSinStock && $item->stock_depo <= 0) {
+            Notification::make()
+                ->title('Sin stock disponible')
+                ->body("El producto {$item->descr} no tiene stock disponible.")
+                ->warning()
+                ->send();
+            return;
+        }
 
         $idx = collect($this->cart)->search(fn($c) => $c['item'] === $itemCode);
 
