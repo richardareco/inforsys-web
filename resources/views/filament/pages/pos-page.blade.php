@@ -1530,7 +1530,8 @@ function posApp() {
             this.$nextTick(() => document.getElementById('edit-precio')?.focus());
         },
         saveEdit() {
-            this.$wire.updateCartItem(this.edit.idx, this.edit.qty, this.edit.precio);
+            // Validar que el precio no esté por debajo del mínimo permitido
+            this.$wire.validateAndUpdateCartItem(this.edit.idx, this.edit.qty, this.edit.precio);
             this.edit.open = false;
             this.$nextTick(() => this.$refs.search?.focus());
         },

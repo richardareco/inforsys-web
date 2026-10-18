@@ -320,6 +320,49 @@ class PosPage extends Page
         $this->cart[$index]['precio'] = max(0, $precio);
     }
 
+    public function validateAndUpdateCartItem(int $index, int $qty, float $precio): void
+    {
+        if (!isset($this->cart[$index])) return;
+
+        // Obtener el item de la BD para verificar sus precios
+        $item = DB::connection('delphi')
+            ->table('items')
+            ->where('item', $this->cart[$index]['item'])
+            ->select('precio1', 'precio2', 'precio3')
+            ->first();
+
+        if (!$item) {
+            Notification::make()->title('Error')->body('Producto no encontrado')->danger()->send();
+            return;
+        }
+
+        // Obtener el nivel de precio mínimo permitido del usuario (default 3)
+        $precioMinimoPermitido = auth()->user()?->precio_minimo_permitido ?? 3;
+
+        // Mapear el nivel a los precios disponibles: 1->precio1, 2->precio2, 3->precio3
+        $preciosPermitidos = [
+            1 => $item->precio1,
+            2 => $item->precio2,
+            3 => $item->precio3,
+        ];
+
+        $precioMinimo = $preciosPermitidos[$precioMinimoPermitido];
+
+        // Validar que el precio ingresado no sea menor que el permitido
+        if ($precio < $precioMinimo) {
+            Notification::make()
+                ->title('Precio no permitido')
+                ->body("Este usuario solo puede vender a partir de Gs. " . number_format($precioMinimo, 0, ',', '.') . " (Precio $precioMinimoPermitido)")
+                ->warning()
+                ->send();
+            return;
+        }
+
+        // Si es válido, actualizar el carrito
+        $this->cart[$index]['qty']    = max(1, $qty);
+        $this->cart[$index]['precio'] = max($precioMinimo, $precio);
+    }
+
     public function removeFromCart(int $index): void
     {
         array_splice($this->cart, $index, 1);
