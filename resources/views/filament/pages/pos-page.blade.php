@@ -1570,14 +1570,14 @@ function posClienteCombo(clientes, initialId) {
             const q = this.query.toLowerCase().trim();
             // Siempre acceder a $wire.clientes para obtener datos frescos de Livewire
             const clientesList = this.$wire.clientes || this.clientes || [];
-            if (!q) return clientesList.slice(0, 60);
+            if (!q) return clientesList;
             return clientesList.filter(c => {
                 const name = (c.custname || '').toLowerCase();
                 const id = String(c.custnr || '');
                 const ruc = (c.ruc || '').toLowerCase();
                 const email = (c.email || '').toLowerCase();
                 return name.includes(q) || id.includes(q) || ruc.includes(q) || email.includes(q);
-            }).slice(0, 60);
+            });
         },
         pick(c) {
             this.selectedName = `${c.custname} (${c.custnr})${c.ruc ? ' - RUC: ' + c.ruc : ''}`;
