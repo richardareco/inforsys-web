@@ -49,6 +49,7 @@ class PosPage extends Page
 
     // Modal de nuevo cliente
     public bool   $showNewClienteModal = false;
+    public mixed  $editingClienteId    = null;
     public string $newClienteName      = '';
     public string $newClienteNacionalidad = '';
     public string $newClienteDireccion = '';
@@ -97,7 +98,6 @@ class PosPage extends Page
             ->table('cliente')
             ->select('custnr', 'custname', 'ruc', 'email')
             ->orderBy('custname')
-            ->limit(2000)
             ->get()
             ->map(fn ($c) => (object)[
                 'custnr'   => $c->custnr,
@@ -380,18 +380,27 @@ class PosPage extends Page
         if ($cliente) {
             $this->showNewClienteModal = true;
             $this->newClienteName = $cliente->custname ?? '';
-            $this->newClienteNacionalidad = $cliente->naci ?? '';
-            $this->newClienteDireccion = $cliente->direccion ?? '';
-            $this->newClienteTelefono = $cliente->telef ?? '';
+            $this->newClienteNacionalidad = $cliente->pais ?? '';
+            $this->newClienteDireccion = $cliente->addr ?? '';
+            $this->newClienteTelefono = $cliente->telef1 ?? '';
             $this->newClienteEmail = $cliente->email ?? '';
             $this->newClienteRuc = $cliente->ruc ?? '';
-            $this->newClienteIdentidad = $cliente->cedula ?? '';
+            $this->newClienteIdentidad = $cliente->identidad ?? '';
+            $this->editingClienteId = $this->clienteId;
         }
     }
 
     public function closeNewClienteModal(): void
     {
         $this->showNewClienteModal = false;
+        $this->editingClienteId = null;
+        $this->newClienteName = '';
+        $this->newClienteNacionalidad = '';
+        $this->newClienteDireccion = '';
+        $this->newClienteTelefono = '';
+        $this->newClienteEmail = '';
+        $this->newClienteRuc = '';
+        $this->newClienteIdentidad = '';
     }
 
     public function saveNewCliente(): void
@@ -402,28 +411,48 @@ class PosPage extends Page
         }
 
         try {
-            // Obtener el máximo código actual y asignar uno nuevo
-            $maxCode = DB::connection('delphi')->table('cliente')->max('custnr');
-            $nextCode = ($maxCode ? (int)$maxCode : 0) + 1;
+            if ($this->editingClienteId) {
+                // UPDATE cliente existente
+                $newClienteCode = $this->editingClienteId;
+                DB::connection('delphi')->table('cliente')
+                    ->where('custnr', $this->editingClienteId)
+                    ->update([
+                        'custname'  => $this->newClienteName,
+                        'email'     => $this->newClienteEmail ?: null,
+                        'pais'      => $this->newClienteNacionalidad ?: null,
+                        'addr'      => $this->newClienteDireccion ?: null,
+                        'telef1'    => $this->newClienteTelefono ?: null,
+                        'ruc'       => $this->newClienteRuc ?: null,
+                        'identidad' => $this->newClienteIdentidad ?: null,
+                    ]);
 
-            // Insertar nuevo cliente
-            \Log::info("Intentando insertar cliente: " . $this->newClienteName . " con código: " . $nextCode);
+                Notification::make()->title('Cliente actualizado correctamente')->success()->send();
+                $this->editingClienteId = null;
+            } else {
+                // INSERT nuevo cliente
+                $maxCode = DB::connection('delphi')->table('cliente')->max('custnr');
+                $nextCode = ($maxCode ? (int)$maxCode : 0) + 1;
 
-            DB::connection('delphi')->table('cliente')->insert([
-                'custname' => $this->newClienteName,
-                'custnr'   => $nextCode,
-                'email'    => $this->newClienteEmail ?: null,
-            ]);
+                DB::connection('delphi')->table('cliente')->insert([
+                    'custname' => $this->newClienteName,
+                    'custnr'   => $nextCode,
+                    'email'    => $this->newClienteEmail ?: null,
+                    'pais'     => $this->newClienteNacionalidad ?: null,
+                    'addr'     => $this->newClienteDireccion ?: null,
+                    'telef1'   => $this->newClienteTelefono ?: null,
+                    'ruc'      => $this->newClienteRuc ?: null,
+                    'identidad'=> $this->newClienteIdentidad ?: null,
+                ]);
 
-            \Log::info("Cliente insertado exitosamente");
-            $newClienteCode = $nextCode;
+                Notification::make()->title('Cliente registrado correctamente')->success()->send();
+                $newClienteCode = $nextCode;
+            }
 
             // Recargar la lista de clientes
             $this->clientes = DB::connection('delphi')
                 ->table('cliente')
                 ->select('custnr', 'custname', 'ruc', 'email')
                 ->orderBy('custname')
-                ->limit(500)
                 ->get()
                 ->map(fn ($c) => (object)[
                     'custnr'   => $c->custnr,
@@ -433,7 +462,11 @@ class PosPage extends Page
                 ])
                 ->toArray();
 
-            // Buscar y seleccionar el nuevo cliente
+            // Buscar y seleccionar el cliente
+            if ($this->editingClienteId) {
+                $newClienteCode = $this->editingClienteId;
+            }
+
             $newCliente = collect($this->clientes)->first(fn ($c) =>
                 (string)$c->custnr === (string)$newClienteCode
             );
