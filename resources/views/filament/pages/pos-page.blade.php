@@ -1615,12 +1615,12 @@ function posClienteCombo(clientes, initialId) {
         <div style="display:flex;flex-direction:column;gap:.6rem;max-height:60vh;overflow-y:auto;">
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nombre *</label>
-                <input wire:model="newClienteName" type="text" placeholder="Nombre completo" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteName" type="text" placeholder="Nombre completo" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Nacionalidad</label>
-                <select wire:model="newClienteNacionalidad" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;background:white;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'">
+                <select wire:model="newClienteNacionalidad" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;background:white;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'">
                     <option value="">Seleccionar país...</option>
                     <option value="PY">Paraguay</option>
                     <option value="AR">Argentina</option>
@@ -1639,27 +1639,27 @@ function posClienteCombo(clientes, initialId) {
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Dirección</label>
-                <input wire:model="newClienteDireccion" type="text" placeholder="Dirección..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteDireccion" type="text" placeholder="Dirección..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Teléfono</label>
-                <input wire:model="newClienteTelefono" type="tel" placeholder="Teléfono..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteTelefono" type="tel" placeholder="Teléfono..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Correo</label>
-                <input wire:model="newClienteEmail" type="email" placeholder="correo@ejemplo.com" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteEmail" type="email" placeholder="correo@ejemplo.com" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">RUC</label>
-                <input wire:model="newClienteRuc" type="text" placeholder="RUC..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteRuc" type="text" placeholder="RUC..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Identidad/Cédula</label>
-                <input wire:model="newClienteIdentidad" type="text" placeholder="Identidad..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+                <input wire:model="newClienteIdentidad" type="text" placeholder="Identidad..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="$el.style.borderColor='#6366f1'" @blur="$el.style.borderColor='#d1d5db'"/>
             </div>
         </div>
 
