@@ -53,6 +53,21 @@ class User extends Authenticatable implements FilamentUser
         return $this->role === 'superadmin';
     }
 
+    public function isAdministrador(): bool
+    {
+        return $this->role === 'administrador';
+    }
+
+    public function isCajero(): bool
+    {
+        return $this->role === 'cajero';
+    }
+
+    public function isVendedor(): bool
+    {
+        return $this->role === 'vendedor';
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

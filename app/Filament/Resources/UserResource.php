@@ -80,9 +80,11 @@ class UserResource extends Resource
                                 ->options([
                                     'superadmin'    => 'Super Admin',
                                     'administrador' => 'Administrador',
+                                    'cajero'        => 'Cajero',
+                                    'vendedor'      => 'Vendedor',
                                 ])
                                 ->default('administrador')
-                                ->helperText('Super Admin puede ver y configurar todo. Administrador solo ve los datos.'),
+                                ->helperText('Super Admin: acceso total. Administrador: gestión general. Cajero: cierre y pagos. Vendedor: solo ventas.'),
                         ]),
 
                     Tab::make('Configuración de Ventas')
