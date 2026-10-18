@@ -474,6 +474,7 @@ class PosPage extends Page
             }
 
             $this->showNewClienteModal = false;
+            $this->dispatch('clienteActualizado', clienteId: $newClienteCode, clienteData: $newCliente);
 
             // Recargar los datos del cliente para que se vean los cambios si se abre el modal nuevamente
             $clienteActualizado = DB::connection('delphi')
