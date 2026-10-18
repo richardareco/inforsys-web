@@ -1143,8 +1143,10 @@ body.pos-keyboard-visible .pos-left::after {
         {{-- Encabezado: Cliente + Total --}}
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
-            <div x-data="posClienteCombo(@js($clientes), $wire.clienteId)"
-                 @click.outside="close()" style="position:relative;">
+            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+                 @click.outside="close()"
+                 x-effect="if ($wire.clienteId !== selectedId) { selectedId = $wire.clienteId; init(); }"
+                 style="position:relative;">
                 <div style="display:flex;gap:.2rem;align-items:center;">
                     <div style="display:flex;align-items:center;gap:.3rem;flex:1;padding:.3rem .5rem;border:1.5px solid #d1d5db;border-radius:.5rem;background:white;">
                         <svg style="width:1.2rem;height:1.2rem;color:#6b7280;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
