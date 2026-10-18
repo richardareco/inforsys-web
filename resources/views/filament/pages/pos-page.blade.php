@@ -844,7 +844,7 @@ html {
 
 /* ─── Responsive: móvil ─── */
 @media (max-width: 767px) {
-    .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; overflow: visible; }
+    .pos-wrap { flex-direction: column; height: auto; border-radius: .85rem; overflow: visible; margin-bottom: 5rem; }
     .pos-left { background: white; overflow: visible; }
     .pos-left-top { border-radius: .85rem .85rem 0 0; overflow: visible; }
     .pos-products { display: none; }
@@ -857,6 +857,65 @@ html {
     .cobrar-btn svg { width: 1.2rem !important; height: 1.2rem !important; }
     .cart-footer button svg { width: 1rem !important; height: 1rem !important; }
     .cart-footer button span { font-size: 0.65rem !important; }
+
+    /* Barra de navegación móvil */
+    .mobile-nav-bar { display: flex !important; }
+}
+
+/* Barra de navegación móvil (app-like) */
+.mobile-nav-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 5rem;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: stretch;
+    padding: env(safe-area-inset-bottom) 0 0 0;
+}
+.dark .mobile-nav-bar { background: #1f2937; border-color: #374151; }
+
+.mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: #6b7280;
+    font-size: 0.65rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+}
+.dark .mobile-nav-item { color: #d1d5db; }
+
+.mobile-nav-item:hover {
+    background: #f3f4f6;
+    color: #0047AB;
+}
+.dark .mobile-nav-item:hover { background: rgba(255,255,255,0.05); color: #60a5fa; }
+
+.mobile-nav-item.active {
+    background: #f0f9ff;
+    color: #0047AB;
+    border-bottom: 3px solid #0047AB;
+}
+.dark .mobile-nav-item.active { background: rgba(0,71,171,0.1); }
+
+.mobile-nav-item svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    stroke-width: 1.5;
 }
 @media (min-width: 768px) {
     .mobile-dropdown { display: none !important; }
@@ -1283,6 +1342,37 @@ body.pos-keyboard-visible .pos-left::after {
     </div>{{-- /pos-cart --}}
 
 </div>{{-- /pos-wrap --}}
+
+{{-- ══════════════ BARRA DE NAVEGACIÓN MÓVIL (App-like) ══════════════ --}}
+<div class="mobile-nav-bar">
+    <a href="{{ route('filament.admin.pages.pos-page') }}" class="mobile-nav-item active" title="Ventas">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75"/>
+        </svg>
+        <span>Ventas</span>
+    </a>
+
+    <a href="{{ route('filament.admin.resources.products.index') }}" class="mobile-nav-item" title="Productos">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m0 0C5.106 7.055 5.25 7.863 5.25 8.25v11.25c0 2.278 3.694 4.125 8.25 4.125s8.25-1.847 8.25-4.125V8.25c0-.387-.144-1.195-.75-1.875"/>
+        </svg>
+        <span>Productos</span>
+    </a>
+
+    <button class="mobile-nav-item" @click="(() => { const btn = document.querySelector('[aria-label*=\"Toggle\"], [aria-label*=\"Expand\"]'); btn?.click(); })()" title="Menú">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+        </svg>
+        <span>Menú</span>
+    </button>
+
+    <a href="{{ route('filament.admin.pages.dashboard') }}" class="mobile-nav-item" title="Reportes">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 6.75c0-.621.504-1.125 1.125-1.125h2.25C13.496 5.625 14 6.129 14 6.75v13.5c0 .621-.504 1.125-1.125 1.125h-2.25c-.621 0-1.125-.504-1.125-1.125V6.75zm6.75 8.25c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v5.25c0 .621-.504 1.125-1.125 1.125h-2.25c-.621 0-1.125-.504-1.125-1.125v-5.25z"/>
+        </svg>
+        <span>Reportes</span>
+    </button>
+</div>
 
 {{-- ══════════════ MODAL: EDITAR CANTIDAD Y PRECIO ══════════════ --}}
 <div x-show="edit.open" class="modal-back" @click.self="cancelEdit()" @keydown.escape.window="cancelEdit()" style="display:none;">
