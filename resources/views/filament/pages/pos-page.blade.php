@@ -907,9 +907,10 @@ body.pos-keyboard-visible .pos-left::after {
 
 <div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())">
 
-<!-- Botón de salida de pantalla completa (solo visible en fullscreen) -->
-<button x-show="isFullscreen" @click="toggleFullscreen()"
+<!-- Botón de salida de pantalla completa -->
+<button @click="toggleFullscreen()"
     class="pos-fullscreen-exit"
+    :style="{ display: isFullscreen ? 'flex' : 'none' }"
     title="Salir de pantalla completa (F11)">
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V5.5m0 0H5.5m3.5 0l-4 4m10 0v4.5m0 0h4.5m-4.5 0l4-4M9 15v4.5m0 0H5.5m3.5 0l-4-4m10-6V5.5m0 0h4.5m-4.5 0l4 4"/>
