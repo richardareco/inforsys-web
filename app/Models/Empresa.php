@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Empresa extends Model
 {
-    protected $fillable = ['nombre', 'db_name', 'logo', 'tipo'];
+    protected $fillable = ['nombre', 'db_name', 'logo', 'tipo', 'modulo_caja_enabled'];
 
     public function users(): HasMany
     {
