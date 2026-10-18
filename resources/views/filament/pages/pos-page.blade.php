@@ -753,6 +753,41 @@ body.pos-fullscreen nav.fi-sidebar,
 body.pos-fullscreen .fi-sidebar { display: none !important; }
 body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !important; }
 
+/* Botón de salida de pantalla completa */
+.pos-fullscreen-exit {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 999;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.4rem;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #111827;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 0;
+}
+.pos-fullscreen-exit:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.05);
+}
+.pos-fullscreen-exit:active {
+    transform: scale(0.95);
+}
+.pos-fullscreen-exit svg {
+    width: 1rem;
+    height: 1rem;
+}
+
 /* ─── Fila de selects (cliente, cajero, depósito) ─── */
 .pos-selects-row { display: flex; gap: .6rem; flex-wrap: wrap; }
 
@@ -871,6 +906,16 @@ body.pos-keyboard-visible .pos-left::after {
 </style>
 
 <div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())">
+
+<!-- Botón de salida de pantalla completa (solo visible en fullscreen) -->
+<button x-show="isFullscreen" @click="toggleFullscreen()"
+    class="pos-fullscreen-exit"
+    title="Salir de pantalla completa (F11)"
+    style="display: none;">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V5.5m0 0H5.5m3.5 0l-4 4m10 0v4.5m0 0h4.5m-4.5 0l4-4M9 15v4.5m0 0H5.5m3.5 0l-4-4m10-6V5.5m0 0h4.5m-4.5 0l4 4"/>
+    </svg>
+</button>
 
 <div class="pos-wrap">
 
