@@ -175,7 +175,7 @@ class PosPage extends Page
         }
 
         $results = $query
-            ->where('items.stock', '>', 0)
+            ->when(!$mostrarProductosSinStock, fn ($q) => $q->where('items.stock', '>', 0))
             ->orderBy('items.descr')
             ->limit(12)
             ->get()
