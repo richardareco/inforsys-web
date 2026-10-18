@@ -1608,8 +1608,8 @@ function posClienteCombo(clientes, initialId) {
 <div class="modal-back" @keydown.escape.window="$wire.call('closeNewClienteModal')" @click.self="$wire.call('closeNewClienteModal')">
     <div class="modal-box" style="max-width:520px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
-            <p style="font-size:1rem;font-weight:900;color:white;">Nuevo Cliente</p>
-            <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Registro rápido</p>
+            <p style="font-size:1rem;font-weight:900;color:white;">@if($editingClienteId) Editar Cliente @else Nuevo Cliente @endif</p>
+            <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">@if($editingClienteId) Modificar información @else Registro rápido @endif</p>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:.6rem;max-height:60vh;overflow-y:auto;">
@@ -1668,7 +1668,7 @@ function posClienteCombo(clientes, initialId) {
                 Cancelar
             </button>
             <button wire:click="saveNewCliente" style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;box-shadow:0 3px 10px rgba(79,70,229,.3);transition:all .2s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
-                Registrar
+                @if($editingClienteId) Guardar @else Registrar @endif
             </button>
         </div>
     </div>
