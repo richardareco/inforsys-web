@@ -135,7 +135,19 @@ class PosPage extends Page
 
         // Depósito por defecto: D01
         $this->depositoId = 'D01';
-        if ($this->cajeros)   $this->cajeroId   = $this->cajeros[0]->pernr;
+
+        // Vendedor: si el usuario tiene uno asignado, usarlo; si no, el primero
+        $userPersonalId = auth()->user()?->personal_id;
+        if ($userPersonalId) {
+            $userVendedor = collect($this->cajeros)->first(fn ($c) => $c->pernr == $userPersonalId);
+            if ($userVendedor) {
+                $this->cajeroId = $userVendedor->pernr;
+            } elseif ($this->cajeros) {
+                $this->cajeroId = $this->cajeros[0]->pernr;
+            }
+        } elseif ($this->cajeros) {
+            $this->cajeroId = $this->cajeros[0]->pernr;
+        }
     }
 
     public function updatedSearch(): void

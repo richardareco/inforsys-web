@@ -14,6 +14,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class UserResource extends Resource
 {
@@ -85,6 +86,20 @@ class UserResource extends Resource
                 ->default(3)
                 ->required()
                 ->helperText('Define hasta qué precio puede bajar al cliente. Ej: si elige Precio 2, no podrá usar Precio 1.'),
+
+            Select::make('personal_id')
+                ->label('Vendedor asignado')
+                ->options(function () {
+                    return DB::connection('delphi')
+                        ->table('personal')
+                        ->where('estado', '=', 1)
+                        ->pluck('nombre', 'persid')
+                        ->toArray();
+                })
+                ->searchable()
+                ->preload()
+                ->nullable()
+                ->helperText('Vendedor que se asignará automáticamente cuando este usuario se loguee.'),
         ]);
     }
 
