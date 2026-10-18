@@ -274,6 +274,16 @@ class PosPage extends Page
         $idx = collect($this->cart)->search(fn($c) => $c['item'] === $itemCode);
 
         if ($idx !== false) {
+            // Si el producto ya está en el carrito, validar que no se exceda el stock
+            $nuevaCantidad = $this->cart[$idx]['qty'] + 1;
+            if (!$permitirVentaSinStock && $nuevaCantidad > $item->stock_depo) {
+                Notification::make()
+                    ->title('Stock insuficiente')
+                    ->body("Solo hay {$item->stock_depo} unidades de {$item->descr} disponibles. Ya hay {$this->cart[$idx]['qty']} en el carrito.")
+                    ->warning()
+                    ->send();
+                return;
+            }
             $this->cart[$idx]['qty']++;
         } else {
             $this->cart[] = [
@@ -312,6 +322,16 @@ class PosPage extends Page
         $idx = collect($this->cart)->search(fn($c) => $c['item'] === $itemCode);
 
         if ($idx !== false) {
+            // Si el producto ya está en el carrito, validar que no se exceda el stock
+            $nuevaCantidad = $this->cart[$idx]['qty'] + 1;
+            if (!$permitirVentaSinStock && $nuevaCantidad > $item->stock_depo) {
+                Notification::make()
+                    ->title('Stock insuficiente')
+                    ->body("Solo hay {$item->stock_depo} unidades de {$item->descr} disponibles. Ya hay {$this->cart[$idx]['qty']} en el carrito.")
+                    ->warning()
+                    ->send();
+                return;
+            }
             $this->cart[$idx]['qty']++;
         } else {
             $this->cart[] = [
