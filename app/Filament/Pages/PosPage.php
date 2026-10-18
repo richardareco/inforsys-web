@@ -97,7 +97,7 @@ class PosPage extends Page
             ->table('cliente')
             ->select('custnr', 'custname', 'ruc', 'email')
             ->orderBy('custname')
-            ->limit(500)
+            ->limit(2000)
             ->get()
             ->map(fn ($c) => (object)[
                 'custnr'   => $c->custnr,
