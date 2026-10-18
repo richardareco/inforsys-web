@@ -340,6 +340,14 @@ class PosPage extends Page
     public function openPaymentModal(): void
     {
         if (empty($this->cart)) return;
+
+        // Si no hay módulo de caja, procesar venta directamente
+        $moduloCajaEnabled = auth()->user()?->empresa?->modulo_caja_enabled ?? true;
+        if (!$moduloCajaEnabled) {
+            $this->confirmSale();
+            return;
+        }
+
         $this->amountReceived   = $this->getCartTotal();
         $this->amountQr         = 0;
         $this->showPaymentModal = true;
