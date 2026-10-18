@@ -5,7 +5,11 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\Empresa;
 use App\Models\User;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Tabs;
+use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -35,70 +39,138 @@ class UserResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            TextInput::make('name')
-                ->label('Nombre')
-                ->required()
-                ->maxLength(255),
+            Tabs::make('Configuración del Usuario')
+                ->tabs([
+                    Tab::make('General')
+                        ->schema([
+                            TextInput::make('name')
+                                ->label('Nombre')
+                                ->required()
+                                ->maxLength(255),
 
-            TextInput::make('email')
-                ->label('Correo electrónico')
-                ->email()
-                ->required()
-                ->unique(ignoreRecord: true)
-                ->maxLength(255),
+                            TextInput::make('email')
+                                ->label('Correo electrónico')
+                                ->email()
+                                ->required()
+                                ->unique(ignoreRecord: true)
+                                ->maxLength(255),
 
-            TextInput::make('password')
-                ->label('Contraseña')
-                ->password()
-                ->revealable()
-                ->minLength(8)
-                ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
-                ->dehydrated(fn ($state) => filled($state))
-                ->required(fn (string $operation) => $operation === 'create')
-                ->helperText(fn (string $operation) => $operation === 'edit' ? 'Dejá vacío para no cambiarla' : null),
+                            TextInput::make('password')
+                                ->label('Contraseña')
+                                ->password()
+                                ->revealable()
+                                ->minLength(8)
+                                ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                                ->dehydrated(fn ($state) => filled($state))
+                                ->required(fn (string $operation) => $operation === 'create')
+                                ->helperText(fn (string $operation) => $operation === 'edit' ? 'Dejá vacío para no cambiarla' : null),
 
-            Select::make('empresa_id')
-                ->label('Empresa')
-                ->relationship('empresa', 'nombre')
-                ->options(Empresa::query()->pluck('nombre', 'id'))
-                ->searchable()
-                ->preload()
-                ->required()
-                ->helperText('Empresa a la que pertenece este usuario (define su base de datos)'),
+                            Select::make('empresa_id')
+                                ->label('Empresa')
+                                ->relationship('empresa', 'nombre')
+                                ->options(Empresa::query()->pluck('nombre', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->helperText('Empresa a la que pertenece este usuario (define su base de datos)'),
 
-            Select::make('role')
-                ->label('Rol')
-                ->required()
-                ->options([
-                    'superadmin'    => 'Super Admin',
-                    'administrador' => 'Administrador',
-                ])
-                ->default('administrador')
-                ->helperText('Super Admin puede ver y configurar todo. Administrador solo ve los datos.'),
+                            Select::make('role')
+                                ->label('Rol')
+                                ->required()
+                                ->options([
+                                    'superadmin'    => 'Super Admin',
+                                    'administrador' => 'Administrador',
+                                ])
+                                ->default('administrador')
+                                ->helperText('Super Admin puede ver y configurar todo. Administrador solo ve los datos.'),
+                        ]),
 
-            Select::make('precio_minimo_permitido')
-                ->label('Nivel de precio mínimo permitido')
-                ->options([
-                    1 => 'Precio 1 (más bajo)',
-                    2 => 'Precio 2 (intermedio)',
-                    3 => 'Precio 3 (estándar - sin descuento)',
-                ])
-                ->default(3)
-                ->required()
-                ->helperText('Define hasta qué precio puede bajar al cliente. Ej: si elige Precio 2, no podrá usar Precio 1.'),
+                    Tab::make('Configuración de Ventas')
+                        ->schema([
+                            Select::make('precio_minimo_permitido')
+                                ->label('Nivel de precio mínimo permitido')
+                                ->options([
+                                    1 => 'Precio 1 (más bajo)',
+                                    2 => 'Precio 2 (intermedio)',
+                                    3 => 'Precio 3 (estándar - sin descuento)',
+                                ])
+                                ->default(3)
+                                ->required()
+                                ->helperText('Define hasta qué precio puede bajar al cliente. Ej: si elige Precio 2, no podrá usar Precio 1.'),
 
-            Select::make('personal_id')
-                ->label('Vendedor asignado')
-                ->options(function () {
-                    return DB::connection('delphi')
-                        ->table('personal')
-                        ->pluck('pername', 'pernr')
-                        ->toArray();
-                })
-                ->searchable()
-                ->preload()
-                ->nullable()
-                ->helperText('Vendedor que se asignará automáticamente cuando este usuario se loguee.'),
+                            Select::make('personal_id')
+                                ->label('Vendedor asignado')
+                                ->options(function () {
+                                    return DB::connection('delphi')
+                                        ->table('personal')
+                                        ->pluck('pername', 'pernr')
+                                        ->toArray();
+                                })
+                                ->searchable()
+                                ->preload()
+                                ->nullable()
+                                ->helperText('Vendedor que se asignará automáticamente cuando este usuario se loguee.'),
+                        ]),
+
+                    Tab::make('Accesos')
+                        ->schema([
+                            Section::make('Módulos Disponibles')
+                                ->description('Selecciona qué módulos puede acceder este usuario')
+                                ->schema([
+                                    Checkbox::make('accesos.dashboard')
+                                        ->label('Dashboard')
+                                        ->default(true),
+
+                                    Checkbox::make('accesos.ventas')
+                                        ->label('Ventas (POS)')
+                                        ->default(true),
+
+                                    Checkbox::make('accesos.clientes')
+                                        ->label('Clientes')
+                                        ->default(true),
+
+                                    Checkbox::make('accesos.productos')
+                                        ->label('Productos / Ítems')
+                                        ->default(true),
+
+                                    Checkbox::make('accesos.historial_ventas')
+                                        ->label('Historial de Ventas')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.cierre_caja')
+                                        ->label('Cierre de Caja')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.cuentas_cobrar')
+                                        ->label('Cuentas por Cobrar')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.proveedores')
+                                        ->label('Proveedores')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.compras')
+                                        ->label('Compras')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.gastos')
+                                        ->label('Gastos')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.reportes')
+                                        ->label('Reportes')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.configuraciones')
+                                        ->label('Configuraciones')
+                                        ->default(false),
+
+                                    Checkbox::make('accesos.usuarios')
+                                        ->label('Usuarios')
+                                        ->default(false),
+                                ])->columns(2),
+                        ]),
+                ]),
         ]);
     }
 

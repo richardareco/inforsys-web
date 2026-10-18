@@ -30,6 +30,7 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'precio_minimo_permitido',
         'personal_id',
+        'accesos',
     ];
 
     public function empresa(): BelongsTo
@@ -72,6 +73,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'accesos' => 'array',
         ];
     }
 }
