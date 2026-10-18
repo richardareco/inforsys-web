@@ -92,8 +92,7 @@ class UserResource extends Resource
                 ->options(function () {
                     return DB::connection('delphi')
                         ->table('personal')
-                        ->where('estado', '=', 1)
-                        ->pluck('nombre', 'persid')
+                        ->pluck('pername', 'pernr')
                         ->toArray();
                 })
                 ->searchable()
