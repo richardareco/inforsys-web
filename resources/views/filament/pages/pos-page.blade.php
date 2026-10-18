@@ -38,6 +38,7 @@ button[wire\:click*="fullscreen"] .fi-btn-label,
     overflow: hidden;
     width: 100%;
     max-width: 100%;
+    margin: 0 auto;
 }
 
 /* Layout responsive para móviles */
@@ -136,6 +137,18 @@ button[aria-label*="toggle sidebar"],
 /* Fondo gris de la página más oscuro para camuflar la línea */
 .fi-page {
     background: #f3f4f6 !important;
+}
+
+/* Cuando sidebar está colapsada (hidden), expandir el contenido */
+.fi-sidebar.hidden ~ .fi-page {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+.fi-sidebar.hidden ~ .fi-page .pos-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* Remover línea divisoria cuando sidebar está visible */
@@ -1719,30 +1732,6 @@ function posClienteCombo(clientes, initialId) {
 @endif
 
 <script>
-// Ocultar la barra lateral automáticamente en POS
-function collapseSidebar() {
-    const sidebar = document.querySelector('.fi-sidebar');
-    if (!sidebar) return;
-
-    // Simplemente añadir la clase 'hidden' para colapsar la sidebar
-    sidebar.classList.add('hidden');
-}
-
-// Ejecutar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', collapseSidebar);
-} else {
-    collapseSidebar();
-}
-
-// También ejecutar después de un pequeño delay para asegurar que todo esté cargado
-setTimeout(collapseSidebar, 300);
-
-// Limpiar cuando se sale del POS
-window.addEventListener('beforeunload', function() {
-    const sidebar = document.querySelector('.fi-sidebar');
-    if (sidebar) sidebar.classList.remove('hidden');
-});
 
 </script>
 
