@@ -36,6 +36,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
             $this->form->fill([
                 'modulo_caja_enabled' => $empresa->modulo_caja_enabled ?? true,
                 'permitir_venta_sin_stock' => $empresa->permitir_venta_sin_stock ?? false,
+                'mostrar_productos_sin_stock' => $empresa->mostrar_productos_sin_stock ?? true,
                 'nombre_empresa' => $empresa->nombre ?? '',
                 'empresa_id' => $empresa->id ?? '',
             ]);
@@ -65,6 +66,15 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                                         Toggle::make('permitir_venta_sin_stock')
                                             ->label('Permitir venta sin stock')
                                             ->helperText('Cuando está ACTIVO: Se permite vender aunque no haya stock. Cuando está INACTIVO: Solo se puede vender si hay stock disponible.')
+                                            ->live(),
+                                    ]),
+
+                                Section::make('Visibilidad de Productos')
+                                    ->description('Controla qué productos se muestran en el filtro del POS.')
+                                    ->schema([
+                                        Toggle::make('mostrar_productos_sin_stock')
+                                            ->label('Mostrar productos sin stock')
+                                            ->helperText('Cuando está ACTIVO: Muestra todos los productos incluso los sin stock. Cuando está INACTIVO: Solo muestra productos con stock disponible.')
                                             ->live(),
                                     ]),
                             ]),
@@ -117,6 +127,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
         $empresa->update([
             'modulo_caja_enabled' => $data['modulo_caja_enabled'] ?? true,
             'permitir_venta_sin_stock' => $data['permitir_venta_sin_stock'] ?? false,
+            'mostrar_productos_sin_stock' => $data['mostrar_productos_sin_stock'] ?? true,
         ]);
 
         Notification::make()
