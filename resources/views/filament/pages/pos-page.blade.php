@@ -1163,11 +1163,14 @@ body.pos-keyboard-visible .pos-left::after {
                         +
                     </button>
                 </div>
-                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:150px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
+                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
                     <template x-for="(c, i) in filtered" :key="c.custnr">
-                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.3rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;font-size:.7rem;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
-                            <span style="font-weight:600;color:#111827;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100" x-text="c.custname"></span>
-                            <span style="color:#9ca3af;flex-shrink:0;" x-text="c.custnr"></span>
+                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;flex-direction:column;gap:.15rem;padding:.4rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
+                            <span style="font-weight:600;color:#111827;font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100" x-text="c.custname"></span>
+                            <div style="display:flex;gap:.5rem;align-items:center;font-size:.65rem;color:#6b7280;">
+                                <span x-text="'ID: ' + c.custnr"></span>
+                                <span x-show="c.ruc" x-text="'RUC: ' + c.ruc"></span>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -1550,20 +1553,23 @@ function posClienteCombo(clientes, initialId) {
         clientes, query: '', open: false, hl: 0, selectedName: '', selectedId: initialId,
         init() {
             const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
-            if (found) this.selectedName = found.custname;
+            if (found) this.selectedName = `${found.custname} (${found.custnr})`;
         },
         get filtered() {
             const q = this.query.toLowerCase().trim();
             // Siempre acceder a $wire.clientes para obtener datos frescos de Livewire
             const clientesList = this.$wire.clientes || this.clientes || [];
             if (!q) return clientesList.slice(0, 60);
-            return clientesList.filter(c =>
-                (c.custname || '').toLowerCase().includes(q) ||
-                String(c.custnr || '').includes(q)
-            ).slice(0, 60);
+            return clientesList.filter(c => {
+                const name = (c.custname || '').toLowerCase();
+                const id = String(c.custnr || '');
+                const ruc = (c.ruc || '').toLowerCase();
+                return name.includes(q) || id.includes(q) || ruc.includes(q);
+            }).slice(0, 60);
         },
         pick(c) {
-            this.selectedName = c.custname; this.selectedId = c.custnr;
+            this.selectedName = `${c.custname} (${c.custnr})`;
+            this.selectedId = c.custnr;
             this.query = ''; this.open = false;
             this.$wire.set('clienteId', c.custnr);
             this.$nextTick(() => window.dispatchEvent(new CustomEvent('focus-search')));
