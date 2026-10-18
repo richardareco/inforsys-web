@@ -188,9 +188,7 @@ class ItemResource extends Resource
                         }
                         return null;
                     })
-                    ->circular()
-                    ->size(50)
-                    ->fallbackIcon('heroicon-o-photo'),
+                    ->size(50),
 
                 TextColumn::make('item')
                     ->label('Código')
