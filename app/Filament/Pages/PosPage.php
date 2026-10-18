@@ -518,14 +518,18 @@ class PosPage extends Page
         $depositoId = $this->depositoId;
         $cajeroId   = $this->cajeroId;
         $clienteId  = $this->clienteId;
+        $moduloCajaEnabled = auth()->user()?->empresa?->modulo_caja_enabled ?? true;
 
         try {
             DB::connection('delphi')->transaction(function () use (
                 $total, $ctotal, $paygs, $paytr, $paytj,
-                $cart, $depositoId, $cajeroId, $clienteId
+                $cart, $depositoId, $cajeroId, $clienteId, $moduloCajaEnabled
             ) {
                 $hoy = today()->toDateString();
                 $hora = now()->format('H:i:s');
+
+                // Determinar saldo según si hay módulo de caja
+                $saldo = $moduloCajaEnabled ? 0 : $total;
 
                 // 1. Cabecera de factura
                 DB::connection('delphi')->table('invo1')->insert([
@@ -537,7 +541,7 @@ class PosPage extends Page
                     'pernr'       => $cajeroId,
                     'custnr'      => $clienteId,
                     'depo'        => $depositoId,
-                    'saldo'       => 0,
+                    'saldo'       => $saldo,
                     'sta_num'     => '01',
                     'sucursal_id' => 1,
                 ]);
@@ -580,32 +584,33 @@ class PosPage extends Page
                         ->decrement('qty', $item['qty']);
                 }
 
-                // 5. Registrar movimiento de caja
-                DB::connection('delphi')->table('cajareg')->insert([
-                    'fecha'       => $hoy,
-                    'totalus'     => $total,
-                    'total'       => $total,
-                    'paygs'       => $paygs,
-                    'paytr'       => $paytr,
-                    'paytj'       => $paytj,
-                    'ctotal'      => $ctotal,
-                    'sta_num'     => '01',
-                    'op'          => 'PC',
-                    'flag'        => 1,
-                    'tipo_moneda' => 'GS',
-                ]);
+                // 5. Registrar movimiento de caja SOLO SI MÓDULO ACTIVADO
+                if ($moduloCajaEnabled) {
+                    DB::connection('delphi')->table('cajareg')->insert([
+                        'fecha'       => $hoy,
+                        'totalus'     => $total,
+                        'total'       => $total,
+                        'paygs'       => $paygs,
+                        'paytr'       => $paytr,
+                        'paytj'       => $paytj,
+                        'ctotal'      => $ctotal,
+                        'sta_num'     => '01',
+                        'op'          => 'PC',
+                        'flag'        => 1,
+                        'tipo_moneda' => 'GS',
+                    ]);
 
-                // 6. Obtener el nro (PK) del registro insertado, luego leer el cajanr
-                //    que generó el trigger (cajanr es un campo separado del PK)
-                $nro    = DB::connection('delphi')->getPdo()->lastInsertId();
-                $cajanr = DB::connection('delphi')
-                    ->table('cajareg')
-                    ->where('nro', $nro)
-                    ->value('cajanr');
+                    // 6. Obtener cajanr solo si cajareg fue creado
+                    $nro    = DB::connection('delphi')->getPdo()->lastInsertId();
+                    $cajanr = DB::connection('delphi')
+                        ->table('cajareg')
+                        ->where('nro', $nro)
+                        ->value('cajanr');
 
-                DB::connection('delphi')->table('invo1')
-                    ->where('invnr', $invnr)
-                    ->update(['cajanr' => $cajanr]);
+                    DB::connection('delphi')->table('invo1')
+                        ->where('invnr', $invnr)
+                        ->update(['cajanr' => $cajanr]);
+                }
             });
 
             $this->cart             = [];
