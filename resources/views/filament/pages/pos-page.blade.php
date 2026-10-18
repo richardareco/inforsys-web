@@ -585,7 +585,33 @@ html {
 }
 
 /* ─── Cuerpo del carrito ─── */
-.cart-body { flex: 1; overflow-y: auto; min-height: 0; }
+.cart-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* ─── Resumen del carrito (siempre visible abajo) ─── */
+.cart-summary {
+    flex-shrink: 0;
+    padding: .5rem .75rem;
+    border-top: 1px solid #e5e7eb;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+.dark .cart-summary { background: #111827; border-color: #374151; }
+.cart-summary-count { color: #111827; }
+.dark .cart-summary-count { color: #f9fafb; }
+.cart-summary-total { font-size: 1rem; font-weight: 900; color: #0047AB; }
+
+@media (max-width: 768px) {
+    .cart-summary { display: none; }
+}
 .cart-row {
     display: flex; align-items: center; gap: .6rem; padding: .6rem .75rem;
     border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background .1s;
@@ -1185,6 +1211,12 @@ body.pos-keyboard-visible .pos-left::after {
                     </div>
                 @endforeach
             @endif
+        </div>
+
+        {{-- Resumen: cantidad de items y total (visible en desktop/tablet) --}}
+        <div class="cart-summary">
+            <span class="cart-summary-count">{{ count($cart) }} {{ count($cart) === 1 ? 'artículo' : 'artículos' }}</span>
+            <span class="cart-summary-total">Gs. {{ number_format($this->getCartTotal(), 0, ',', '.') }}</span>
         </div>
 
         {{-- Footer: botones --}}
