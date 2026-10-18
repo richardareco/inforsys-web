@@ -1372,7 +1372,9 @@ function posApp() {
 
             // Activar pantalla completa automáticamente después de cargar
             const self = this;
-            setTimeout(() => { self.toggleFullscreen(); }, 500);
+            setTimeout(() => {
+                try { self.toggleFullscreen(); } catch(e) { console.log('toggleFullscreen error:', e); }
+            }, 1000);
         },
 
         handleViewportChange() {
