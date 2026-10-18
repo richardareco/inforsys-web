@@ -1164,7 +1164,12 @@ body.pos-keyboard-visible .pos-left::after {
                             style="flex:1;border:none;font-size:.75rem;background:transparent;color:#111827;outline:none;padding:0;"
                         />
                     </div>
-                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.25rem .3rem;background:#6366f1;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openEditClienteModal')" style="padding:.25rem .3rem;background:#8b5cf6;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='#8b5cf6'" title="Editar cliente">
+                        <svg style="width:.8rem;height:.8rem;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </button>
+                    <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openNewClienteModal')" style="padding:.25rem .3rem;background:#6366f1;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'" title="Agregar cliente">
                         +
                     </button>
                 </div>
@@ -1599,7 +1604,7 @@ function posClienteCombo(clientes, initialId) {
 {{-- ══════════════ MODAL: NUEVO CLIENTE ══════════════ --}}
 @if($showNewClienteModal)
 <div class="modal-back" @keydown.escape.window="$wire.call('closeNewClienteModal')" @click.self="$wire.call('closeNewClienteModal')">
-    <div class="modal-box" style="max-width:380px;" @click.stop>
+    <div class="modal-box" style="max-width:520px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
             <p style="font-size:1rem;font-weight:900;color:white;">Nuevo Cliente</p>
             <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Registro rápido</p>
@@ -1638,6 +1643,11 @@ function posClienteCombo(clientes, initialId) {
             <div>
                 <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Teléfono</label>
                 <input wire:model="newClienteTelefono" type="tel" placeholder="Teléfono..." style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
+            </div>
+
+            <div>
+                <label style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;display:block;margin-bottom:.25rem;">Correo</label>
+                <input wire:model="newClienteEmail" type="email" placeholder="correo@ejemplo.com" style="width:100%;padding:.5rem;border:1.5px solid #d1d5db;border-radius:.5rem;font-size:.8rem;outline:none;transition:border-color .2s;" @focus="this.style.borderColor='#6366f1'" @blur="this.style.borderColor='#d1d5db'"/>
             </div>
 
             <div>

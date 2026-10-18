@@ -53,6 +53,7 @@ class PosPage extends Page
     public string $newClienteNacionalidad = '';
     public string $newClienteDireccion = '';
     public string $newClienteTelefono  = '';
+    public string $newClienteEmail     = '';
     public string $newClienteRuc       = '';
     public string $newClienteIdentidad = '';
 
@@ -355,8 +356,33 @@ class PosPage extends Page
         $this->newClienteNacionalidad = '';
         $this->newClienteDireccion = '';
         $this->newClienteTelefono = '';
+        $this->newClienteEmail = '';
         $this->newClienteRuc = '';
         $this->newClienteIdentidad = '';
+    }
+
+    public function openEditClienteModal(): void
+    {
+        if (!$this->clienteId) {
+            Notification::make()->title('Selecciona un cliente primero')->warning()->send();
+            return;
+        }
+
+        $cliente = DB::connection('delphi')
+            ->table('cliente')
+            ->where('custnr', $this->clienteId)
+            ->first();
+
+        if ($cliente) {
+            $this->showNewClienteModal = true;
+            $this->newClienteName = $cliente->custname ?? '';
+            $this->newClienteNacionalidad = $cliente->naci ?? '';
+            $this->newClienteDireccion = $cliente->direccion ?? '';
+            $this->newClienteTelefono = $cliente->telef ?? '';
+            $this->newClienteEmail = $cliente->email ?? '';
+            $this->newClienteRuc = $cliente->ruc ?? '';
+            $this->newClienteIdentidad = $cliente->cedula ?? '';
+        }
     }
 
     public function closeNewClienteModal(): void
@@ -382,6 +408,7 @@ class PosPage extends Page
             DB::connection('delphi')->table('cliente')->insert([
                 'custname' => $this->newClienteName,
                 'custnr'   => $nextCode,
+                'email'    => $this->newClienteEmail ?: null,
             ]);
 
             \Log::info("Cliente insertado exitosamente");
@@ -415,6 +442,7 @@ class PosPage extends Page
             $this->newClienteNacionalidad = '';
             $this->newClienteDireccion = '';
             $this->newClienteTelefono = '';
+            $this->newClienteEmail = '';
             $this->newClienteRuc = '';
             $this->newClienteIdentidad = '';
 
