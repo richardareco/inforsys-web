@@ -35,6 +35,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
         if ($empresa) {
             $this->form->fill([
                 'modulo_caja_enabled' => $empresa->modulo_caja_enabled ?? true,
+                'permitir_venta_sin_stock' => $empresa->permitir_venta_sin_stock ?? false,
                 'nombre_empresa' => $empresa->nombre ?? '',
                 'empresa_id' => $empresa->id ?? '',
             ]);
@@ -55,6 +56,15 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                                         Toggle::make('modulo_caja_enabled')
                                             ->label('Módulo de Caja')
                                             ->helperText('Cuando está ACTIVO: El POS registra inmediatamente el pago en caja. Cuando está INACTIVO: Las ventas quedan pendientes de cobro.')
+                                            ->live(),
+                                    ]),
+
+                                Section::make('Validación de Stock')
+                                    ->description('Controla si se permite vender productos sin stock disponible.')
+                                    ->schema([
+                                        Toggle::make('permitir_venta_sin_stock')
+                                            ->label('Permitir venta sin stock')
+                                            ->helperText('Cuando está ACTIVO: Se permite vender aunque no haya stock. Cuando está INACTIVO: Solo se puede vender si hay stock disponible.')
                                             ->live(),
                                     ]),
                             ]),
@@ -106,6 +116,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
 
         $empresa->update([
             'modulo_caja_enabled' => $data['modulo_caja_enabled'] ?? true,
+            'permitir_venta_sin_stock' => $data['permitir_venta_sin_stock'] ?? false,
         ]);
 
         Notification::make()
