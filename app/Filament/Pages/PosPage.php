@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Traits\CheckUserAcceso;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class PosPage extends Page
 {
+    use CheckUserAcceso;
     protected static string  $view            = 'filament.pages.pos-page';
 
     public function getView(): string
@@ -751,5 +753,10 @@ class PosPage extends Page
                 ->danger()
                 ->send();
         }
+    }
+
+    public static function canAccess(): bool
+    {
+        return self::userHasAcceso('ventas');
     }
 }

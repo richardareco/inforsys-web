@@ -11,9 +11,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use App\Traits\CheckUserAcceso;
 
 class ItemResource extends Resource
 {
+    use CheckUserAcceso;
     protected static ?string $model = Item::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
@@ -247,6 +249,11 @@ class ItemResource extends Resource
     public static function getDeleteBulkActionLabel(): string
     {
         return 'Eliminar seleccionados';
+    }
+
+    public static function canAccess(): bool
+    {
+        return self::userHasAcceso('productos');
     }
 
     // Nota: create y edit se manejan manualmente en ListItems sin registrar aquí

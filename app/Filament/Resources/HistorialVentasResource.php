@@ -19,9 +19,12 @@ use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\DatePicker;
+use App\Traits\CheckUserAcceso;
 
 class HistorialVentasResource extends Resource
 {
+    use CheckUserAcceso;
+
     protected static ?string $model           = Venta::class;
     protected static ?string $navigationIcon  = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Historial de Ventas';
@@ -248,5 +251,10 @@ class HistorialVentasResource extends Resource
             'index' => Pages\ListHistorialVentas::route('/'),
             'view'  => Pages\ViewHistorialVenta::route('/{record}'),
         ];
+    }
+
+    public static function canAccess(): bool
+    {
+        return self::userHasAcceso('historial_ventas');
     }
 }

@@ -19,9 +19,11 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Traits\CheckUserAcceso;
 
 class UserResource extends Resource
 {
+    use CheckUserAcceso;
     protected static ?string $model            = User::class;
     protected static ?string $navigationIcon   = 'heroicon-o-users';
     protected static ?string $navigationLabel  = 'Usuarios';
