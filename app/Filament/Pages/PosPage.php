@@ -411,11 +411,11 @@ class PosPage extends Page
         }
 
         try {
-            if ($this->editingClienteId) {
+            if (!empty($this->editingClienteId)) {
                 // UPDATE cliente existente
                 $newClienteCode = $this->editingClienteId;
                 DB::connection('delphi')->table('cliente')
-                    ->where('custnr', $this->editingClienteId)
+                    ->where('custnr', $newClienteCode)
                     ->update([
                         'custname'  => $this->newClienteName,
                         'email'     => $this->newClienteEmail ?: null,
@@ -427,15 +427,14 @@ class PosPage extends Page
                     ]);
 
                 Notification::make()->title('Cliente actualizado correctamente')->success()->send();
-                $this->editingClienteId = null;
             } else {
                 // INSERT nuevo cliente
                 $maxCode = DB::connection('delphi')->table('cliente')->max('custnr');
-                $nextCode = ($maxCode ? (int)$maxCode : 0) + 1;
+                $newClienteCode = ($maxCode ? (int)$maxCode : 0) + 1;
 
                 DB::connection('delphi')->table('cliente')->insert([
                     'custname' => $this->newClienteName,
-                    'custnr'   => $nextCode,
+                    'custnr'   => $newClienteCode,
                     'email'    => $this->newClienteEmail ?: null,
                     'pais'     => $this->newClienteNacionalidad ?: null,
                     'addr'     => $this->newClienteDireccion ?: null,
@@ -445,8 +444,10 @@ class PosPage extends Page
                 ]);
 
                 Notification::make()->title('Cliente registrado correctamente')->success()->send();
-                $newClienteCode = $nextCode;
             }
+
+            // Limpiar el modo edición INMEDIATAMENTE después de la operación
+            $this->editingClienteId = null;
 
             // Recargar la lista de clientes
             $this->clientes = DB::connection('delphi')
@@ -463,10 +464,6 @@ class PosPage extends Page
                 ->toArray();
 
             // Buscar y seleccionar el cliente
-            if ($this->editingClienteId) {
-                $newClienteCode = $this->editingClienteId;
-            }
-
             $newCliente = collect($this->clientes)->first(fn ($c) =>
                 (string)$c->custnr === (string)$newClienteCode
             );
@@ -484,11 +481,6 @@ class PosPage extends Page
             $this->newClienteEmail = '';
             $this->newClienteRuc = '';
             $this->newClienteIdentidad = '';
-
-            // Disparar evento para que Alpine.js refresque la lista de clientes
-            $this->dispatch('cliente-agregado', clienteId: $newClienteCode, clienteName: $newCliente?->custname ?? $this->newClienteName);
-
-            Notification::make()->title('Cliente registrado correctamente')->success()->send();
         } catch (\Exception $e) {
             Notification::make()->title('Error al registrar cliente')->body($e->getMessage())->danger()->send();
         }
