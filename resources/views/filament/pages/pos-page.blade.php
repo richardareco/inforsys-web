@@ -989,8 +989,11 @@ body.pos-keyboard-visible .pos-left::after {
             {{-- Fila: Cajero --}}
             <div class="pos-selects-row" style="align-items: center; gap: 0.5rem;">
                 <span style="display: none;" class="sel-label">Vendedor:</span>
-                <svg style="width: 1.25rem; height: 1.25rem; color: #6366f1; flex-shrink: 0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+                <svg style="width: 1.5rem; height: 1.5rem; color: #6366f1; flex-shrink: 0;" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4" opacity="0.8"/>
+                    <path d="M12 14c-4 0-6 2-6 4v3h12v-3c0-2-2-4-6-4Z" opacity="0.8"/>
+                    <path d="M19 8c.5 0 1-.5 1-1s-.5-1-1-1-1 .5-1 1 .5 1 1 1Z" opacity="0.6"/>
+                    <path d="M20 12c1 0 2-1 2-2v1c0 1.5-1 2.5-2 3" opacity="0.6"/>
                 </svg>
                 <div style="position: relative; flex: 1;">
                     <select wire:model.live="cajeroId" class="pos-sel" style="flex: 1; padding-right: 2.5rem;" {{ $cajeroLocked ? 'disabled' : '' }}>
