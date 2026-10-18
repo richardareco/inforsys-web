@@ -910,8 +910,7 @@ body.pos-keyboard-visible .pos-left::after {
 <!-- Botón de salida de pantalla completa (solo visible en fullscreen) -->
 <button x-show="isFullscreen" @click="toggleFullscreen()"
     class="pos-fullscreen-exit"
-    title="Salir de pantalla completa (F11)"
-    style="display: none;">
+    title="Salir de pantalla completa (F11)">
     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V5.5m0 0H5.5m3.5 0l-4 4m10 0v4.5m0 0h4.5m-4.5 0l4-4M9 15v4.5m0 0H5.5m3.5 0l-4-4m10-6V5.5m0 0h4.5m-4.5 0l4 4"/>
     </svg>
