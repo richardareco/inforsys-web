@@ -528,9 +528,6 @@ class PosPage extends Page
                 $hoy = today()->toDateString();
                 $hora = now()->format('H:i:s');
 
-                // Determinar saldo según si hay módulo de caja
-                $saldo = $moduloCajaEnabled ? 0 : $total;
-
                 // 1. Cabecera de factura
                 DB::connection('delphi')->table('invo1')->insert([
                     'total'       => $total,
@@ -541,7 +538,7 @@ class PosPage extends Page
                     'pernr'       => $cajeroId,
                     'custnr'      => $clienteId,
                     'depo'        => $depositoId,
-                    'saldo'       => $saldo,
+                    'saldo'       => 0,
                     'sta_num'     => '01',
                     'sucursal_id' => 1,
                 ]);
