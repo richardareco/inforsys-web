@@ -210,11 +210,6 @@ class PosPage extends Page
 
     private function loadCategoryProducts(): void
     {
-        if ($this->categoriaId === null) {
-            $this->searchResults = [];
-            return;
-        }
-
         $mostrarProductosSinStock = auth()->user()?->empresa?->mostrar_productos_sin_stock ?? true;
 
         $query = DB::connection('delphi')
@@ -223,18 +218,28 @@ class PosPage extends Page
             ->selectRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
-            )
-            ->where('items.grupnr', $this->categoriaId)
-            ->when(!$mostrarProductosSinStock, fn ($q) => $q->whereRaw(
+            );
+
+        // Si hay una categoría seleccionada, filtrar por ella
+        if ($this->categoriaId !== null) {
+            $query->where('items.grupnr', $this->categoriaId);
+        }
+
+        // Aplicar filtro de stock si está desactivado
+        if (!$mostrarProductosSinStock) {
+            $query->whereRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) > 0',
                 [$this->depositoId]
-            ))
+            );
+        }
+
+        $results = $query
             ->orderBy('items.descr')
             ->limit(12)
             ->get()
             ->toArray();
 
-        $this->searchResults = $query;
+        $this->searchResults = $results;
     }
 
     private function addToCartItem(object $item): void
