@@ -474,13 +474,31 @@ class PosPage extends Page
             }
 
             $this->showNewClienteModal = false;
-            $this->newClienteName = '';
-            $this->newClienteNacionalidad = '';
-            $this->newClienteDireccion = '';
-            $this->newClienteTelefono = '';
-            $this->newClienteEmail = '';
-            $this->newClienteRuc = '';
-            $this->newClienteIdentidad = '';
+
+            // Recargar los datos del cliente para que se vean los cambios si se abre el modal nuevamente
+            $clienteActualizado = DB::connection('delphi')
+                ->table('cliente')
+                ->where('custnr', $newClienteCode)
+                ->first();
+
+            if ($clienteActualizado) {
+                $this->newClienteName = $clienteActualizado->custname ?? '';
+                $this->newClienteNacionalidad = $clienteActualizado->pais ?? '';
+                $this->newClienteDireccion = $clienteActualizado->addr ?? '';
+                $this->newClienteTelefono = $clienteActualizado->telef1 ?? '';
+                $this->newClienteEmail = $clienteActualizado->email ?? '';
+                $this->newClienteRuc = $clienteActualizado->ruc ?? '';
+                $this->newClienteIdentidad = $clienteActualizado->identidad ?? '';
+            } else {
+                // Si no se encuentra el cliente, limpiar los campos
+                $this->newClienteName = '';
+                $this->newClienteNacionalidad = '';
+                $this->newClienteDireccion = '';
+                $this->newClienteTelefono = '';
+                $this->newClienteEmail = '';
+                $this->newClienteRuc = '';
+                $this->newClienteIdentidad = '';
+            }
         } catch (\Exception $e) {
             Notification::make()->title('Error al registrar cliente')->body($e->getMessage())->danger()->send();
         }
