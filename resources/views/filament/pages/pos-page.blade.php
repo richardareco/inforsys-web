@@ -1392,6 +1392,17 @@ function posApp() {
 
         init() {
             this.$watch('$wire.searchResults', () => { this.activeIdx = -1; });
+
+            // Auto-scroll al carrito cuando se agrega un producto
+            this.$watch('$wire.cart', () => {
+                this.$nextTick(() => {
+                    const cartBody = document.querySelector('.cart-body');
+                    if (cartBody) {
+                        cartBody.scrollTop = cartBody.scrollHeight;
+                    }
+                });
+            });
+
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F10') { e.preventDefault(); this.$wire.openPaymentModal(); }
                 if (e.key === 'F11') { e.preventDefault(); this.toggleFullscreen(); }
