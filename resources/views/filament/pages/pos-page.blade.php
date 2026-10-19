@@ -1385,58 +1385,70 @@ body.pos-keyboard-visible .pos-left::after {
             <p style="font-size:1.9rem;font-weight:900;color:#111827;" class="dark:text-white">Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}</p>
         </div>
 
-        <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:.45rem;">Forma de pago</p>
-        <div style="display:flex;gap:.5rem;margin-bottom:.9rem;">
-            <button wire:click="$set('paymentMethod','efectivo')" class="pay-method {{ $paymentMethod==='efectivo'?'sel-green':'' }}">
-                <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75"/></svg>
-                Efectivo
-            </button>
-            <button wire:click="$set('paymentMethod','transferencia')" class="pay-method {{ $paymentMethod==='transferencia'?'sel-blue':'' }}">
-                <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-                Transferencia
-            </button>
-            <button wire:click="$set('paymentMethod','tarjeta')" class="pay-method {{ $paymentMethod==='tarjeta'?'sel-purple':'' }}">
-                <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
-                Tarjeta
-            </button>
-        </div>
-
-        @if($paymentMethod === 'efectivo')
-        <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;">
-            <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
-            <input id="amount-input" type="number"
-                x-model="localAmount"
-                style="width:100%;padding:.6rem;border-radius:.7rem;border:1.5px solid #86efac;background:white;font-size:1.25rem;font-weight:800;text-align:center;outline:none;"
-                @focus="$event.target.select()" />
-            @php $cartTotal = $this->getCartTotal(); @endphp
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
-                <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
-                <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
-                   :style="localAmount >= {{ $cartTotal }} ? 'font-size:1.35rem;font-weight:900;color:#16a34a;' : 'font-size:1.35rem;font-weight:900;color:#dc2626;'"></p>
+        {{-- ANTES DE CONFIRMAR --}}
+        @if(!$lastInvoiceNumber)
+            <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:.45rem;">Forma de pago</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.9rem;">
+                <button wire:click="$set('paymentMethod','efectivo')" class="pay-method {{ $paymentMethod==='efectivo'?'sel-green':'' }}">
+                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75"/></svg>
+                    Efectivo
+                </button>
+                <button wire:click="$set('paymentMethod','transferencia')" class="pay-method {{ $paymentMethod==='transferencia'?'sel-blue':'' }}">
+                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+                    Transferencia
+                </button>
+                <button wire:click="$set('paymentMethod','tarjeta')" class="pay-method {{ $paymentMethod==='tarjeta'?'sel-purple':'' }}">
+                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+                    Tarjeta
+                </button>
             </div>
-        </div>
+
+            @if($paymentMethod === 'efectivo')
+            <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;">
+                <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
+                <input id="amount-input" type="number"
+                    x-model="localAmount"
+                    style="width:100%;padding:.6rem;border-radius:.7rem;border:1.5px solid #86efac;background:white;font-size:1.25rem;font-weight:800;text-align:center;outline:none;"
+                    @focus="$event.target.select()" />
+                @php $cartTotal = $this->getCartTotal(); @endphp
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+                    <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
+                    <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
+                       :style="localAmount >= {{ $cartTotal }} ? 'font-size:1.35rem;font-weight:900;color:#16a34a;' : 'font-size:1.35rem;font-weight:900;color:#dc2626;'"></p>
+                </div>
+            </div>
+            @endif
+
+            <div style="display:flex;gap:.65rem;">
+                <button wire:click="closePaymentModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">Cancelar</button>
+                <button @click="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())"
+                    wire:loading.attr="disabled" wire:target="confirmSale"
+                    style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;box-shadow:0 4px 14px rgba(79,70,229,.35);">
+                    <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span wire:loading.remove wire:target="confirmSale">Confirmar</span>
+                    <span wire:loading wire:target="confirmSale">Procesando...</span>
+                </button>
+            </div>
         @endif
 
-        <div style="display:flex;gap:.65rem;">
-            <button wire:click="closePaymentModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">Cancelar</button>
-            <button @click="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())"
-                wire:loading.attr="disabled" wire:target="confirmSale"
-                style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;box-shadow:0 4px 14px rgba(79,70,229,.35);">
-                <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span wire:loading.remove wire:target="confirmSale">Confirmar</span>
-                <span wire:loading wire:target="confirmSale">Procesando...</span>
-            </button>
-        </div>
-
-        {{-- Botón de impresión si hay factura generada --}}
+        {{-- DESPUÉS DE CONFIRMAR --}}
         @if($lastInvoiceNumber)
-            <div style="margin-top:.9rem;padding-top:.9rem;border-top:1px solid #e5e7eb;">
-                <a href="{{ route('comprobante.pdf', $lastInvoiceNumber) }}" target="_blank" download
-                    style="display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.7rem;border-radius:.8rem;background:#16a34a;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;text-decoration:none;box-shadow:0 4px 14px rgba(22,163,74,.35);">
-                    <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V7.5M6 9a1.5 1.5 0 01-1.5-1.5m1.5 1.5h12a1.5 1.5 0 011.5 1.5m0 0V7.5m0 1.5h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5H6m0 0V5.25A2.25 2.25 0 018.25 3h7.5A2.25 2.25 0 0118 5.25V9"/></svg>
-                    Descargar Comprobante
-                </a>
+            <div style="background:#f0fdf4;border-radius:.8rem;padding:1rem;margin-bottom:.9rem;text-align:center;">
+                <svg style="width:2.5rem;height:2.5rem;color:#16a34a;margin:0 auto .5rem;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p style="font-size:.9rem;font-weight:900;color:#16a34a;margin-bottom:.25rem;">¡Venta registrada!</p>
+                <p style="font-size:.75rem;color:#65a30d;">Comprobante #{{ str_pad($lastInvoiceNumber, 8, '0', STR_PAD_LEFT) }}</p>
             </div>
+
+            <a href="{{ route('comprobante.pdf', $lastInvoiceNumber) }}" target="_blank" download
+                style="display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.7rem;border-radius:.8rem;background:#16a34a;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;text-decoration:none;margin-bottom:.6rem;box-shadow:0 4px 14px rgba(22,163,74,.35);">
+                <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V7.5M6 9a1.5 1.5 0 01-1.5-1.5m1.5 1.5h12a1.5 1.5 0 011.5 1.5m0 0V7.5m0 1.5h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5H6m0 0V5.25A2.25 2.25 0 018.25 3h7.5A2.25 2.25 0 0118 5.25V9"/></svg>
+                Descargar Comprobante
+            </a>
+
+            <button wire:click="closePaymentModal()"
+                style="width:100%;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.95rem;">
+                Cerrar Modal
+            </button>
         @endif
     </div>
 </div>

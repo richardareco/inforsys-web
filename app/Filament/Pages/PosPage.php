@@ -478,6 +478,7 @@ class PosPage extends Page
     {
         $this->showPaymentModal = false;
         $this->amountQr         = 0;
+        $this->lastInvoiceNumber = null;
         $this->dispatch('focus-search');
     }
 
@@ -744,7 +745,8 @@ class PosPage extends Page
             $this->lastInvoiceNumber = $invnr;
 
             $this->cart             = [];
-            $this->showPaymentModal = false;
+            // NO cerrar la modal aquí - dejar que el usuario descargue el comprobante primero
+            // $this->showPaymentModal = false;
             $this->search           = '';
             $this->searchResults    = [];
             $this->dispatch('focus-search');
