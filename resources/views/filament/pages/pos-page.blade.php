@@ -1153,7 +1153,6 @@ body.pos-keyboard-visible .pos-left::after {
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
             <div x-data="posClienteCombo()"
-                 x-init="$watch(() => $wire.clientes, () => { clientes = $wire.clientes; selectedId = $wire.clienteId; init(); }, { immediate: true })"
                  x-cloak
                  @click.outside="close()"
                  style="position:relative;">
@@ -1602,24 +1601,20 @@ function posApp() {
     };
 }
 
-function posClienteCombo(clientes, initialId) {
+function posClienteCombo() {
     return {
-        clientes, query: '', open: false, hl: 0, selectedName: '', selectedId: initialId, closeOnBlur: false,
-        init() {
-            const found = this.clientes.find(c => String(c.custnr) === String(this.selectedId));
-            if (found) this.selectedName = `${found.custname} (${found.custnr})${found.ruc ? ' - RUC: ' + found.ruc : ''}`;
-        },
+        query: '', open: false, hl: 0, selectedName: '', selectedId: null, closeOnBlur: false,
         get filtered() {
             const q = this.query.toLowerCase().trim();
-            // Siempre acceder a $wire.clientes para obtener datos frescos de Livewire
-            const clientesList = this.$wire.clientes || this.clientes || [];
+            // Obtener clientes desde Livewire
+            const clientesList = (this.$wire && this.$wire.clientes) ? this.$wire.clientes : [];
             if (!q) return clientesList;
+
+            // Filtrar solo por nombre y RUC
             return clientesList.filter(c => {
                 const name = (c.custname || '').toLowerCase();
-                const id = String(c.custnr || '');
                 const ruc = (c.ruc || '').toLowerCase();
-                const email = (c.email || '').toLowerCase();
-                return name.includes(q) || id.includes(q) || ruc.includes(q) || email.includes(q);
+                return name.includes(q) || ruc.includes(q);
             });
         },
         pick(c) {
