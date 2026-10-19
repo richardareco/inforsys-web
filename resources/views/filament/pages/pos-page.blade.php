@@ -1431,34 +1431,44 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
         @endif
 
-        {{-- DESPUÉS DE CONFIRMAR --}}
+        {{-- DESPUÉS DE CONFIRMAR - MOSTRAR TICKET --}}
         @if($lastInvoiceNumber)
-            <div style="background:#f0fdf4;border-radius:.8rem;padding:1rem;margin-bottom:.9rem;text-align:center;">
-                <svg style="width:2.5rem;height:2.5rem;color:#16a34a;margin:0 auto .5rem;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <p style="font-size:.9rem;font-weight:900;color:#16a34a;margin-bottom:.25rem;">¡Venta registrada!</p>
-                <p style="font-size:.75rem;color:#65a30d;">Comprobante #{{ str_pad($lastInvoiceNumber, 8, '0', STR_PAD_LEFT) }}</p>
-                <p style="font-size:.7rem;color:#78a82a;margin-top:.5rem;">📄 Abriendo comprobante...</p>
+            <div style="margin-bottom:.9rem;">
+                @php
+                    $factura = \Illuminate\Support\Facades\DB::connection('delphi')
+                        ->table('invo1')
+                        ->where('invnr', $lastInvoiceNumber)
+                        ->first();
+                    $detalles = \Illuminate\Support\Facades\DB::connection('delphi')
+                        ->table('invo2')
+                        ->where('invnr', $lastInvoiceNumber)
+                        ->get();
+                    $cliente = \Illuminate\Support\Facades\DB::connection('delphi')
+                        ->table('cliente')
+                        ->where('custnr', $factura->custnr)
+                        ->first();
+                @endphp
+
+                @include('filament.components.ticket-html', [
+                    'empresa' => auth()->user()->empresa,
+                    'factura' => $factura,
+                    'detalles' => $detalles,
+                    'cliente' => $cliente,
+                    'invnr' => $lastInvoiceNumber
+                ])
             </div>
 
-            @php $pdfUrl = route('comprobante.pdf', $lastInvoiceNumber); @endphp
-            <script>
-                (function() {
-                    setTimeout(() => {
-                        window.open('{{ $pdfUrl }}', '_blank');
-                    }, 500);
-                })();
-            </script>
-
-            <a href="{{ $pdfUrl }}" target="_blank"
-                style="display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.7rem;border-radius:.8rem;background:#16a34a;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;text-decoration:none;margin-bottom:.6rem;box-shadow:0 4px 14px rgba(22,163,74,.35);">
-                <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V7.5M6 9a1.5 1.5 0 01-1.5-1.5m1.5 1.5h12a1.5 1.5 0 011.5 1.5m0 0V7.5m0 1.5h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5H6m0 0V5.25A2.25 2.25 0 018.25 3h7.5A2.25 2.25 0 0118 5.25V9"/></svg>
-                Abrir de nuevo
-            </a>
-
-            <button wire:click="closePaymentModal()"
-                style="width:100%;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.95rem;">
-                Cerrar Modal
-            </button>
+            <div style="display:flex;gap:.5rem;margin-top:.9rem;">
+                <a href="{{ route('comprobante.pdf', $lastInvoiceNumber) }}" target="_blank"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:.3rem;padding:.6rem;border-radius:.8rem;background:#0047AB;color:white;font-weight:900;font-size:.85rem;border:none;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(0,71,171,.3);">
+                    <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m6-6h6"/></svg>
+                    PDF
+                </a>
+                <button wire:click="closePaymentModal()"
+                    style="flex:1;padding:.6rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.85rem;">
+                    Cerrar
+                </button>
+            </div>
         @endif
     </div>
 </div>
