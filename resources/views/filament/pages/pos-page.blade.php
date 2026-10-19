@@ -1431,19 +1431,7 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
         @endif
 
-        {{-- Script para abrir PDF y cerrar modal cuando se confirma venta --}}
-        @if($lastInvoiceNumber)
-            <script>
-                (function() {
-                    const pdfUrl = '{{ route("comprobante.pdf", $lastInvoiceNumber) }}';
-                    window.open(pdfUrl, '_blank');
-                    // Cerrar modal automáticamente
-                    setTimeout(() => {
-                        @this.closePaymentModal();
-                    }, 500);
-                })();
-            </script>
-        @endif
+        {{-- Listener para abrir PDF cuando se genera factura --}}
     </div>
 </div>
 @endif
@@ -1486,6 +1474,17 @@ function posApp() {
                 });
             });
             window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
+
+            // Listener para abrir PDF y cerrar modal
+            const self = this;
+            window.addEventListener('open-pdf-and-close-modal', (e) => {
+                if (e.detail?.url) {
+                    window.open(e.detail.url, '_blank');
+                    setTimeout(() => {
+                        self.$wire.closePaymentModal();
+                    }, 300);
+                }
+            });
 
             // Detectar teclado virtual en móviles usando visualViewport
             if (window.visualViewport) {

@@ -747,6 +747,11 @@ class PosPage extends Page
             $this->cart             = [];
             $this->search           = '';
             $this->searchResults    = [];
+
+            // Disparar evento para abrir PDF
+            $pdfUrl = route('comprobante.pdf', $invnr);
+            $this->dispatch('open-pdf-and-close-modal', url: $pdfUrl);
+
             $this->dispatch('focus-search');
 
             Notification::make()->title('Venta registrada correctamente')->success()->send();
