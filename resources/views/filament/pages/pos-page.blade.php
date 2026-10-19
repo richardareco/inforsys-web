@@ -1164,8 +1164,8 @@ body.pos-keyboard-visible .pos-left::after {
                  style="position:relative;">
                 <label style="font-size:.65rem;font-weight:600;color:#6b7280;margin-bottom:.25rem;display:block;">Cliente</label>
                 <div style="display:flex;gap:.2rem;align-items:center;">
-                    <div style="display:flex;align-items:center;gap:.3rem;flex:1;padding:.5rem .6rem;border:1.5px solid #d1d5db;border-radius:.5rem;background:white;cursor:text;" @mousedown.prevent="$el.querySelector('input').focus()" @click="$el.querySelector('input').focus()">
-                        <svg style="width:1.2rem;height:1.2rem;color:#6b7280;flex-shrink:0;pointer-events:none;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <div style="display:flex;align-items:center;gap:.3rem;flex:1;padding:.5rem .6rem;border:1.5px solid #d1d5db;border-radius:.5rem;background:white;">
+                        <svg style="width:1.2rem;height:1.2rem;color:#6b7280;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 1114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
                         </svg>
                         <input type="text"
@@ -1179,7 +1179,7 @@ body.pos-keyboard-visible .pos-left::after {
                             @keydown.enter.prevent="pickHighlighted()"
                             @keydown.escape.prevent="close()"
                             autocomplete="off"
-                            style="flex:1;border:none;font-size:.75rem;background:transparent;color:#111827;outline:none;padding:.25rem .3rem;-webkit-appearance:none;-moz-appearance:none;appearance:none;"
+                            style="flex:1;border:none;font-size:.75rem;background:white;color:#111827;outline:none;padding:.5rem .4rem;"
                         />
                     </div>
                     <button onclick="window.Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id')).call('openEditClienteModal')" style="padding:.25rem .3rem;background:#8b5cf6;color:white;border:none;border-radius:.3rem;cursor:pointer;font-size:.6rem;font-weight:700;white-space:nowrap;transition:background .15s;min-width: 1.5rem;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#7c3aed'" onmouseout="this.style.background='#8b5cf6'" title="Editar cliente">
