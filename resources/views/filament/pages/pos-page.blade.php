@@ -1152,11 +1152,10 @@ body.pos-keyboard-visible .pos-left::after {
         {{-- Encabezado: Cliente + Total --}}
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
-            <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+            <div x-data="posClienteCombo()"
+                 x-init="$watch(() => $wire.clientes, () => { clientes = $wire.clientes; selectedId = $wire.clienteId; init(); }, { immediate: true })"
                  x-cloak
                  @click.outside="close()"
-                 x-effect="if ($wire.clienteId !== selectedId) { selectedId = $wire.clienteId; init(); }"
-                 @clienteActualizado="(() => { const found = this.$wire.clientes.find(c => String(c.custnr) === String(this.$wire.clienteId)); if (found) this.selectedName = `${found.custname} (${found.custnr})${found.ruc ? ' - RUC: ' + found.ruc : ''}`; })()"
                  style="position:relative;">
                 <label style="font-size:.65rem;font-weight:600;color:#6b7280;margin-bottom:.25rem;display:block;">Cliente</label>
                 <div style="display:flex;gap:.2rem;align-items:center;">
