@@ -101,7 +101,7 @@ class PosPage extends Page
         $this->clientes = DB::connection('delphi')
             ->table('cliente')
             ->select('custnr', 'custname', 'ruc', 'email')
-            ->orderBy('custname')
+            ->orderByRaw("CASE WHEN custname IS NOT NULL AND custname != '' THEN 0 ELSE 1 END, custname")
             ->get()
             ->map(fn ($c) => (object)[
                 'custnr'   => $c->custnr,
