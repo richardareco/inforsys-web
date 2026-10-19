@@ -1205,10 +1205,8 @@ body.pos-keyboard-visible .pos-left::after {
             {{-- Total --}}
             <div style="text-align:center;border-top:1.5px solid #e5e7eb;padding-top:.3rem;">
                 <div style="font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0047AB;margin-bottom:.05rem;">TOTAL</div>
-                <div style="font-size:1.8rem;font-weight:900;color:#0047AB;line-height:1;display:flex;align-items:center;justify-content:center;gap:.4rem;">
-                    <svg style="width:1.3rem;height:1.3rem;flex-shrink:0;color:#0047AB;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4l1-12z"/>
-                    </svg>
+                <div style="font-size:1.8rem;font-weight:900;color:#0047AB;line-height:1;display:flex;align-items:center;justify-content:center;gap:.6rem;">
+                    <span style="font-size:1.5rem;">🛒</span>
                     Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}
                 </div>
             </div>
