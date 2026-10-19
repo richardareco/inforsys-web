@@ -1373,7 +1373,7 @@ body.pos-keyboard-visible .pos-left::after {
 
 {{-- ══════════════ MODAL: COBRO ══════════════ --}}
 @if($showPaymentModal)
-<div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())">
+<div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())" wire:watch="lastInvoiceNumber">
     <div class="modal-box" style="max-width:420px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
             <p style="font-size:1rem;font-weight:900;color:white;">Cobrar Venta</p>
@@ -1475,14 +1475,17 @@ function posApp() {
             });
             window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
 
-            // Listener para abrir PDF y cerrar modal
+            // Listener para abrir PDF cuando se genera factura
             const self = this;
-            window.addEventListener('open-pdf-and-close-modal', (e) => {
-                if (e.detail?.url) {
-                    window.open(e.detail.url, '_blank');
+            this.$watch(() => this.$wire.lastInvoiceNumber, (newVal) => {
+                if (newVal) {
+                    const pdfUrl = `{{ url('/comprobante') }}/${newVal}/pdf`;
+                    setTimeout(() => {
+                        window.open(pdfUrl, '_blank');
+                    }, 500);
                     setTimeout(() => {
                         self.$wire.closePaymentModal();
-                    }, 300);
+                    }, 800);
                 }
             });
 
