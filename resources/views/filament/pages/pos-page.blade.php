@@ -1157,6 +1157,8 @@ body.pos-keyboard-visible .pos-left::after {
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
             <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
+                 x-cloak
+                 @click.outside="close()"
                  x-effect="if ($wire.clienteId !== selectedId) { selectedId = $wire.clienteId; init(); }"
                  @clienteActualizado="(() => { const found = this.$wire.clientes.find(c => String(c.custnr) === String(this.$wire.clienteId)); if (found) this.selectedName = `${found.custname} (${found.custnr})${found.ruc ? ' - RUC: ' + found.ruc : ''}`; })()"
                  style="position:relative;">
@@ -1172,7 +1174,6 @@ body.pos-keyboard-visible .pos-left::after {
                             x-model="query"
                             @focus="open = true"
                             @input="open = true; hl = 0"
-                            @blur="$nextTick(() => { closeOnBlur = true; })"
                             @keydown.arrow-down.prevent="moveDown()"
                             @keydown.arrow-up.prevent="moveUp()"
                             @keydown.enter.prevent="pickHighlighted()"
@@ -1190,15 +1191,17 @@ body.pos-keyboard-visible .pos-left::after {
                         +
                     </button>
                 </div>
-                <div x-show="open && filtered.length > 0" @mousedown.prevent="closeOnBlur = false" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
+                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
                     <template x-for="(c, i) in filtered" :key="c.custnr">
-                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;flex-direction:column;gap:.15rem;padding:.4rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;" @mouseenter="hl = i" @mousedown.prevent="pick(c)"
-                            <span style="font-weight:600;color:#111827;font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" class="dark:text-gray-100" x-text="c.custname"></span>
-                            <div style="display:flex;gap:.5rem;align-items:center;font-size:.65rem;color:#6b7280;">
-                                <span x-text="'ID: ' + c.custnr"></span>
-                                <span x-show="c.ruc" x-text="'RUC: ' + c.ruc"></span>
-                            </div>
-                            <div x-show="c.email" style="font-size:.6rem;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="c.email"></div>
+                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;flex-direction:column;gap:.15rem;padding:.4rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
+                            <span style="font-weight:600;color:#111827;font-size:.75rem;" x-text="c.custname" class="dark:text-gray-100"></span>
+                            <span style="font-size:.65rem;color:#6b7280;" x-text="'ID: ' + c.custnr"></span>
+                            <template x-if="c.ruc">
+                                <span style="font-size:.65rem;color:#6b7280;" x-text="'RUC: ' + c.ruc"></span>
+                            </template>
+                            <template x-if="c.email">
+                                <span style="font-size:.6rem;color:#9ca3af;" x-text="c.email"></span>
+                            </template>
                         </div>
                     </template>
                 </div>
