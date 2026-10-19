@@ -1152,7 +1152,49 @@ body.pos-keyboard-visible .pos-left::after {
         {{-- Encabezado: Cliente + Total --}}
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
-            <div x-data="posClienteCombo()"
+            <div x-data="{
+                query: '',
+                open: false,
+                hl: 0,
+                selectedName: '',
+                selectedId: null,
+                closeOnBlur: false,
+                get filtered() {
+                    const q = this.query.toLowerCase().trim();
+                    const clientesList = (this.$wire && this.$wire.clientes) ? this.$wire.clientes : [];
+                    if (!q) return clientesList;
+                    return clientesList.filter(c => {
+                        const name = (c.custname || '').toLowerCase();
+                        const ruc = (c.ruc || '').toLowerCase();
+                        return name.includes(q) || ruc.includes(q);
+                    });
+                },
+                pick(c) {
+                    this.selectedName = c.custname + ' - RUC: ' + (c.ruc || '');
+                    this.selectedId = c.custnr;
+                    this.query = '';
+                    this.open = false;
+                    this.$wire.set('clienteId', c.custnr);
+                },
+                pickHighlighted() {
+                    const item = this.filtered[this.hl];
+                    if (item) this.pick(item);
+                },
+                moveDown() {
+                    if (!this.open) { this.open = true; return; }
+                    this.hl = Math.min(this.hl + 1, this.filtered.length - 1);
+                },
+                moveUp() {
+                    this.hl = Math.max(this.hl - 1, 0);
+                },
+                close() {
+                    if (this.closeOnBlur) {
+                        this.open = false;
+                        this.query = '';
+                    }
+                    this.closeOnBlur = false;
+                }
+            }"
                  x-cloak
                  @click.outside="close()"
                  style="position:relative;">
