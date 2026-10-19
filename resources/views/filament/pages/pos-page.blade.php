@@ -1193,10 +1193,16 @@ body.pos-keyboard-visible .pos-left::after {
                         this.query = '';
                     }
                     this.closeOnBlur = false;
+                },
+                init() {
+                    if (!this.selectedId && this.$wire && this.$wire.clientes && this.$wire.clientes.length > 0) {
+                        this.pick(this.$wire.clientes[0]);
+                    }
                 }
             }"
                  x-cloak
                  @click.outside="close()"
+                 @init="init()"
                  style="position:relative;">
                 <label style="font-size:.65rem;font-weight:600;color:#6b7280;margin-bottom:.25rem;display:block;">Cliente</label>
                 <div style="display:flex;gap:.2rem;align-items:center;">
