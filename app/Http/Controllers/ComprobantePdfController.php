@@ -56,6 +56,6 @@ class ComprobantePdfController extends Controller
             ->setOption('margin-left', 5)
             ->setOption('margin-right', 5);
 
-        return $pdf->download("comprobante-{$invnr}.pdf");
+        return $pdf->stream("comprobante-{$invnr}.pdf");
     }
 }

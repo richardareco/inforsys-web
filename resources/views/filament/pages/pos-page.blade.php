@@ -1437,12 +1437,22 @@ body.pos-keyboard-visible .pos-left::after {
                 <svg style="width:2.5rem;height:2.5rem;color:#16a34a;margin:0 auto .5rem;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p style="font-size:.9rem;font-weight:900;color:#16a34a;margin-bottom:.25rem;">¡Venta registrada!</p>
                 <p style="font-size:.75rem;color:#65a30d;">Comprobante #{{ str_pad($lastInvoiceNumber, 8, '0', STR_PAD_LEFT) }}</p>
+                <p style="font-size:.7rem;color:#78a82a;margin-top:.5rem;">📄 Abriendo comprobante...</p>
             </div>
 
-            <a href="{{ route('comprobante.pdf', $lastInvoiceNumber) }}" target="_blank" download
+            @php $pdfUrl = route('comprobante.pdf', $lastInvoiceNumber); @endphp
+            <script>
+                (function() {
+                    setTimeout(() => {
+                        window.open('{{ $pdfUrl }}', '_blank');
+                    }, 500);
+                })();
+            </script>
+
+            <a href="{{ $pdfUrl }}" target="_blank"
                 style="display:flex;align-items:center;justify-content:center;gap:.4rem;width:100%;padding:.7rem;border-radius:.8rem;background:#16a34a;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;text-decoration:none;margin-bottom:.6rem;box-shadow:0 4px 14px rgba(22,163,74,.35);">
                 <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V7.5M6 9a1.5 1.5 0 01-1.5-1.5m1.5 1.5h12a1.5 1.5 0 011.5 1.5m0 0V7.5m0 1.5h1.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-9a1.5 1.5 0 011.5-1.5H6m0 0V5.25A2.25 2.25 0 018.25 3h7.5A2.25 2.25 0 0118 5.25V9"/></svg>
-                Descargar Comprobante
+                Abrir de nuevo
             </a>
 
             <button wire:click="closePaymentModal()"
