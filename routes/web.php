@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardPdfController;
 use App\Http\Controllers\PresupuestoPdfController;
+use App\Http\Controllers\ComprobantePdfController;
 use App\Http\Controllers\ItemImageController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('dashboard.export-pdf');
     Route::get('/presupuesto/{presnr}/pdf', [PresupuestoPdfController::class, 'export'])
         ->name('presupuesto.pdf');
+    Route::get('/comprobante/{invnr}/pdf', [ComprobantePdfController::class, 'generarComprobante'])
+        ->name('comprobante.pdf');
 
     // Ruta para servir imágenes de productos
     Route::get('/api/item-image/{item}', [ItemImageController::class, 'show'])

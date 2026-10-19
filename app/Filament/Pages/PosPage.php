@@ -49,6 +49,7 @@ class PosPage extends Page
     public string $paymentMethod    = 'efectivo';
     public float  $amountReceived   = 0;
     public float  $amountQr        = 0;
+    public mixed  $lastInvoiceNumber = null;
 
     // Modal de nuevo cliente
     public bool   $showNewClienteModal = false;
@@ -648,9 +649,10 @@ class PosPage extends Page
         $moduloCajaEnabled = auth()->user()?->empresa?->modulo_caja_enabled ?? true;
 
         try {
+            $invnr = null;
             DB::connection('delphi')->transaction(function () use (
                 $total, $ctotal, $paygs, $paytr, $paytj,
-                $cart, $depositoId, $cajeroId, $clienteId, $moduloCajaEnabled
+                $cart, $depositoId, $cajeroId, $clienteId, $moduloCajaEnabled, &$invnr
             ) {
                 $hoy = today()->toDateString();
                 $hora = now()->format('H:i:s');
@@ -737,6 +739,9 @@ class PosPage extends Page
                         ->update(['cajanr' => $cajanr]);
                 }
             });
+
+            // Guardar el número de factura para poder imprimir el comprobante
+            $this->lastInvoiceNumber = $invnr;
 
             $this->cart             = [];
             $this->showPaymentModal = false;
