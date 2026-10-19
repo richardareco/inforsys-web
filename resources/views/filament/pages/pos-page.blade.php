@@ -1187,17 +1187,24 @@ body.pos-keyboard-visible .pos-left::after {
                         +
                     </button>
                 </div>
-                <div x-show="open && filtered.length > 0" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
-                    <template x-for="(c, i) in filtered" :key="c.custnr">
-                        <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;flex-direction:column;gap:.15rem;padding:.4rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
-                            <span style="font-weight:600;color:#111827;font-size:.75rem;" x-text="c.custname" class="dark:text-gray-100"></span>
-                            <span style="font-size:.65rem;color:#6b7280;" x-text="'ID: ' + c.custnr"></span>
-                            <template x-if="c.ruc">
-                                <span style="font-size:.65rem;color:#6b7280;" x-text="'RUC: ' + c.ruc"></span>
-                            </template>
-                            <template x-if="c.email">
-                                <span style="font-size:.6rem;color:#9ca3af;" x-text="c.email"></span>
-                            </template>
+                <div x-show="open" style="display:none;position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:60;background:white;border:1.5px solid #6366f1;border-radius:.5rem;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);" class="dark:bg-gray-800">
+                    <template x-if="filtered.length > 0">
+                        <template x-for="(c, i) in filtered" :key="c.custnr">
+                            <div :class="i === hl ? 'bg-violet-100' : ''" style="display:flex;flex-direction:column;gap:.15rem;padding:.4rem .6rem;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .08s;" @mouseenter="hl = i" @click="pick(c)">
+                                <span style="font-weight:600;color:#111827;font-size:.75rem;" x-text="c.custname" class="dark:text-gray-100"></span>
+                                <span style="font-size:.65rem;color:#6b7280;" x-text="'ID: ' + c.custnr"></span>
+                                <template x-if="c.ruc">
+                                    <span style="font-size:.65rem;color:#6b7280;" x-text="'RUC: ' + c.ruc"></span>
+                                </template>
+                                <template x-if="c.email">
+                                    <span style="font-size:.6rem;color:#9ca3af;" x-text="c.email"></span>
+                                </template>
+                            </div>
+                        </template>
+                    </template>
+                    <template x-if="filtered.length === 0">
+                        <div style="padding:.8rem .6rem;text-align:center;color:#9ca3af;font-size:.75rem;">
+                            Sin resultados para "<span x-text="query"></span>"
                         </div>
                     </template>
                 </div>
