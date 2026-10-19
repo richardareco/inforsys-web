@@ -1431,44 +1431,18 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
         @endif
 
-        {{-- DESPUÉS DE CONFIRMAR - MOSTRAR TICKET --}}
+        {{-- Script para abrir PDF y cerrar modal cuando se confirma venta --}}
         @if($lastInvoiceNumber)
-            <div style="margin-bottom:.9rem;">
-                @php
-                    $factura = \Illuminate\Support\Facades\DB::connection('delphi')
-                        ->table('invo1')
-                        ->where('invnr', $lastInvoiceNumber)
-                        ->first();
-                    $detalles = \Illuminate\Support\Facades\DB::connection('delphi')
-                        ->table('invo2')
-                        ->where('invnr', $lastInvoiceNumber)
-                        ->get();
-                    $cliente = \Illuminate\Support\Facades\DB::connection('delphi')
-                        ->table('cliente')
-                        ->where('custnr', $factura->custnr)
-                        ->first();
-                @endphp
-
-                @include('filament.components.ticket-html', [
-                    'empresa' => auth()->user()->empresa,
-                    'factura' => $factura,
-                    'detalles' => $detalles,
-                    'cliente' => $cliente,
-                    'invnr' => $lastInvoiceNumber
-                ])
-            </div>
-
-            <div style="display:flex;gap:.5rem;margin-top:.9rem;">
-                <a href="{{ route('comprobante.pdf', $lastInvoiceNumber) }}" target="_blank"
-                    style="flex:1;display:flex;align-items:center;justify-content:center;gap:.3rem;padding:.6rem;border-radius:.8rem;background:#0047AB;color:white;font-weight:900;font-size:.85rem;border:none;cursor:pointer;text-decoration:none;box-shadow:0 4px 12px rgba(0,71,171,.3);">
-                    <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m6-6h6"/></svg>
-                    PDF
-                </a>
-                <button wire:click="closePaymentModal()"
-                    style="flex:1;padding:.6rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;font-size:.85rem;">
-                    Cerrar
-                </button>
-            </div>
+            <script>
+                (function() {
+                    const pdfUrl = '{{ route("comprobante.pdf", $lastInvoiceNumber) }}';
+                    window.open(pdfUrl, '_blank');
+                    // Cerrar modal automáticamente
+                    setTimeout(() => {
+                        @this.closePaymentModal();
+                    }, 500);
+                })();
+            </script>
         @endif
     </div>
 </div>

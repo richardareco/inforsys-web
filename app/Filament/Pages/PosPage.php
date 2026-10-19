@@ -741,12 +741,10 @@ class PosPage extends Page
                 }
             });
 
-            // Guardar el número de factura para poder imprimir el comprobante
+            // Guardar el número de factura para abrir el PDF automáticamente
             $this->lastInvoiceNumber = $invnr;
 
             $this->cart             = [];
-            // NO cerrar la modal aquí - dejar que el usuario descargue el comprobante primero
-            // $this->showPaymentModal = false;
             $this->search           = '';
             $this->searchResults    = [];
             $this->dispatch('focus-search');
