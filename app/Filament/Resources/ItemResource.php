@@ -188,22 +188,38 @@ class ItemResource extends Resource
                 TextColumn::make('total_stock')
                     ->label('Stock')
                     ->getStateUsing(fn($record) => (int)($record->depos()->sum('xqty') ?? 0))
-                    ->formatStateUsing(fn($state) => number_format($state, 0))
+                    ->formatStateUsing(function($state) {
+                        $empresa = auth()->user()?->empresa;
+                        $decimales = $empresa?->decimales_cantidad ?? 0;
+                        return number_format($state, $decimales, ',', '.');
+                    })
                     ->sortable(),
 
                 TextColumn::make('precio1')
                     ->label('Precio 1')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(function($state) {
+                        $empresa = auth()->user()?->empresa;
+                        $decimales = $empresa?->decimales_precios ?? 2;
+                        return number_format($state, $decimales, ',', '.');
+                    })
                     ->sortable(),
 
                 TextColumn::make('precio2')
                     ->label('Precio 2')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(function($state) {
+                        $empresa = auth()->user()?->empresa;
+                        $decimales = $empresa?->decimales_precios ?? 2;
+                        return number_format($state, $decimales, ',', '.');
+                    })
                     ->sortable(),
 
                 TextColumn::make('precio3')
                     ->label('Precio 3')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, ',', '.'))
+                    ->formatStateUsing(function($state) {
+                        $empresa = auth()->user()?->empresa;
+                        $decimales = $empresa?->decimales_precios ?? 2;
+                        return number_format($state, $decimales, ',', '.');
+                    })
                     ->sortable(),
             ])
             ->filters([

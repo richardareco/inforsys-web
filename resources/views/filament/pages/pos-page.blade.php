@@ -1157,7 +1157,6 @@ body.pos-keyboard-visible .pos-left::after {
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
             {{-- Selector de Cliente con búsqueda --}}
             <div x-data="posClienteCombo(@js($clientes), @js($clienteId))"
-                 @click.outside="close()"
                  x-effect="if ($wire.clienteId !== selectedId) { selectedId = $wire.clienteId; init(); }"
                  @clienteActualizado="(() => { const found = this.$wire.clientes.find(c => String(c.custnr) === String(this.$wire.clienteId)); if (found) this.selectedName = `${found.custname} (${found.custnr})${found.ruc ? ' - RUC: ' + found.ruc : ''}`; })()"
                  style="position:relative;">
@@ -1173,6 +1172,7 @@ body.pos-keyboard-visible .pos-left::after {
                             x-model="query"
                             @focus="open = true"
                             @input="open = true; hl = 0"
+                            @blur="$nextTick(() => { setTimeout(() => { close(); }, 200); })"
                             @keydown.arrow-down.prevent="moveDown()"
                             @keydown.arrow-up.prevent="moveUp()"
                             @keydown.enter.prevent="pickHighlighted()"

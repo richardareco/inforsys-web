@@ -37,6 +37,8 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                 'modulo_caja_enabled' => $empresa->modulo_caja_enabled ?? true,
                 'permitir_venta_sin_stock' => $empresa->permitir_venta_sin_stock ?? false,
                 'mostrar_productos_sin_stock' => $empresa->mostrar_productos_sin_stock ?? true,
+                'decimales_cantidad' => $empresa->decimales_cantidad ?? 0,
+                'decimales_precios' => $empresa->decimales_precios ?? 2,
                 'nombre_empresa' => $empresa->nombre ?? '',
                 'empresa_id' => $empresa->id ?? '',
             ]);
@@ -81,13 +83,32 @@ class ConfiguracionesVentasPage extends Page implements HasForms
 
                         Tab::make('Productos')
                             ->schema([
-                                Section::make('Configuración de Productos')
-                                    ->description('Opciones relacionadas con productos e inventario.')
+                                Section::make('Formato de Números')
+                                    ->description('Configurar cuántos decimales mostrar en cantidad y precios.')
                                     ->schema([
-                                        TextInput::make('placeholder')
-                                            ->disabled()
-                                            ->label('Próximas configuraciones')
-                                            ->default('En desarrollo...'),
+                                        Select::make('decimales_cantidad')
+                                            ->label('Decimales en Cantidad/Stock')
+                                            ->options([
+                                                '0' => '0 decimales (ej: 100)',
+                                                '1' => '1 decimal (ej: 100.5)',
+                                                '2' => '2 decimales (ej: 100.50)',
+                                            ])
+                                            ->native(false)
+                                            ->required()
+                                            ->helperText('Define cuántos decimales mostrar en la cantidad de productos en stock.'),
+
+                                        Select::make('decimales_precios')
+                                            ->label('Decimales en Precios')
+                                            ->options([
+                                                '0' => '0 decimales (ej: 1000)',
+                                                '1' => '1 decimal (ej: 1000.5)',
+                                                '2' => '2 decimales (ej: 1000.50)',
+                                                '3' => '3 decimales (ej: 1000.500)',
+                                                '4' => '4 decimales (ej: 1000.5000)',
+                                            ])
+                                            ->native(false)
+                                            ->required()
+                                            ->helperText('Define cuántos decimales mostrar en los precios de los productos.'),
                                     ]),
                             ]),
 
@@ -105,7 +126,6 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                     ]),
             ])
             ->statePath('data')
-            ->model(Auth::user()->empresa)
             ->inlineLabel();
     }
 
@@ -128,6 +148,8 @@ class ConfiguracionesVentasPage extends Page implements HasForms
             'modulo_caja_enabled' => $data['modulo_caja_enabled'] ?? true,
             'permitir_venta_sin_stock' => $data['permitir_venta_sin_stock'] ?? false,
             'mostrar_productos_sin_stock' => $data['mostrar_productos_sin_stock'] ?? true,
+            'decimales_cantidad' => $data['decimales_cantidad'] ?? 0,
+            'decimales_precios' => $data['decimales_precios'] ?? 2,
         ]);
 
         Notification::make()
