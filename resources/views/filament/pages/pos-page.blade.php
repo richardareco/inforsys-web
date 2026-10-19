@@ -931,11 +931,7 @@ body.pos-keyboard-visible .sel-label {
 }
 
 body.pos-keyboard-visible .mobile-dropdown {
-    max-height: 50vh !important;
-}
-
-body.pos-keyboard-visible .pos-cart {
-    display: none;
+    max-height: 40vh !important;
 }
 
 body.pos-keyboard-visible .pos-wrap {
