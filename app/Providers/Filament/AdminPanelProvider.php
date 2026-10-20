@@ -451,6 +451,14 @@ html:not(.dark) .fi-topbar nav {
 
     /* Espaciado entre bloques */
     .fi-dashboard-page .fi-wi { gap: 1.25rem; }
+
+    /* ══════════ LISTA DE PRODUCTOS: FILAS COMPACTAS ══════════ */
+    .fi-resource-items .fi-ta-cell { padding-top: .2rem !important; padding-bottom: .2rem !important; }
+    .fi-resource-items .fi-ta-cell > div,
+    .fi-resource-items .fi-ta-cell .fi-ta-col-wrp { padding-top: .1rem !important; padding-bottom: .1rem !important; }
+    .fi-resource-items .fi-ta-text-item-description { font-size: .68rem; line-height: 1.1; }
+    .fi-resource-items .fi-ta-header-cell { padding-top: .5rem !important; padding-bottom: .5rem !important; font-size: .7rem; }
+    .fi-resource-items .fi-ta-image img { box-shadow: 0 1px 3px rgba(15,23,42,.18); }
 </style>')
             )
             ->navigationGroups([

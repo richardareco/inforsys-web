@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use App\Traits\CheckUserAcceso;
 
 class ItemResource extends Resource
@@ -173,16 +174,57 @@ class ItemResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $precio = function ($state) {
+            $decimales = auth()->user()?->empresa?->decimales_precios ?? 2;
+            return number_format((float) $state, $decimales, ',', '.');
+        };
+
         return $table
+            // Marca si el producto tiene foto, sin traer la imagen en cada fila
+            ->modifyQueryUsing(fn (Builder $query) => $query->selectRaw(
+                'items.*, EXISTS(SELECT 1 FROM itemsimage WHERE itemsimage.item = items.item) AS tiene_imagen'
+            ))
             ->columns([
-                TextColumn::make('item')
-                    ->label('Código')
-                    ->sortable()
-                    ->searchable(),
+                ImageColumn::make('foto')
+                    ->label('')
+                    ->getStateUsing(fn ($record) => $record->tiene_imagen
+                        ? route('item-image.show', ['item' => $record->item])
+                        : null)
+                    ->defaultImageUrl('data:image/svg+xml;utf8,' . rawurlencode(
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="#f1f5f9"/><path d="M12 26l5-5 4 4 3-3 4 4v2a1 1 0 01-1 1H13a1 1 0 01-1-1v-2zm4-9a2 2 0 110 4 2 2 0 010-4z" fill="#cbd5e1"/></svg>'
+                    ))
+                    ->size(40)
+                    ->extraImgAttributes(['loading' => 'lazy', 'class' => 'rounded-lg object-cover']),
 
                 TextColumn::make('descr')
-                    ->label('Descripción')
-                    ->searchable()
+                    ->label('Producto')
+                    ->description(fn ($record) => 'Cód. ' . $record->item)
+                    ->size('sm')
+                    ->weight('medium')
+                    ->limit(42)
+                    ->tooltip(fn ($record) => $record->descr)
+                    ->searchable(query: fn (Builder $query, string $search) => $query->where(function ($q) use ($search) {
+                        $q->where('items.descr', 'like', "%{$search}%")
+                          ->orWhere('items.item', 'like', "%{$search}%")
+                          ->orWhere('items.scode', 'like', "%{$search}%")
+                          ->orWhere('items.scode1', 'like', "%{$search}%");
+                    }))
+                    ->sortable(),
+
+                TextColumn::make('scode')
+                    ->label('Referencia')
+                    ->size('xs')
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->copyable()
+                    ->sortable(),
+
+                TextColumn::make('scode1')
+                    ->label('Cód. barra')
+                    ->size('xs')
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->copyable()
                     ->sortable(),
 
                 TextColumn::make('total_stock')
@@ -193,35 +235,42 @@ class ItemResource extends Resource
                         $decimales = $empresa?->decimales_cantidad ?? 0;
                         return number_format($state, $decimales, ',', '.');
                     })
+                    ->size('sm')
+                    ->alignEnd()
+                    ->sortable(),
+
+                TextColumn::make('costo')
+                    ->label('Costo')
+                    ->formatStateUsing($precio)
+                    ->size('sm')
+                    ->color('warning')
+                    ->alignEnd()
                     ->sortable(),
 
                 TextColumn::make('precio1')
                     ->label('Precio 1')
-                    ->formatStateUsing(function($state) {
-                        $empresa = auth()->user()?->empresa;
-                        $decimales = $empresa?->decimales_precios ?? 2;
-                        return number_format($state, $decimales, ',', '.');
-                    })
+                    ->formatStateUsing($precio)
+                    ->size('sm')
+                    ->alignEnd()
                     ->sortable(),
 
                 TextColumn::make('precio2')
                     ->label('Precio 2')
-                    ->formatStateUsing(function($state) {
-                        $empresa = auth()->user()?->empresa;
-                        $decimales = $empresa?->decimales_precios ?? 2;
-                        return number_format($state, $decimales, ',', '.');
-                    })
+                    ->formatStateUsing($precio)
+                    ->size('sm')
+                    ->alignEnd()
                     ->sortable(),
 
                 TextColumn::make('precio3')
                     ->label('Precio 3')
-                    ->formatStateUsing(function($state) {
-                        $empresa = auth()->user()?->empresa;
-                        $decimales = $empresa?->decimales_precios ?? 2;
-                        return number_format($state, $decimales, ',', '.');
-                    })
+                    ->formatStateUsing($precio)
+                    ->size('sm')
+                    ->weight('bold')
+                    ->alignEnd()
                     ->sortable(),
             ])
+            ->striped()
+            ->recordClasses('pt-compacto')
             ->filters([
                 //
             ])
