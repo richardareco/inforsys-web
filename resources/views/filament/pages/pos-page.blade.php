@@ -1514,7 +1514,13 @@ function posApp() {
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F10') {
                     e.preventDefault();
-                    self.$wire.call('openPaymentModal');
+                    // Obtener el componente Livewire del DOM
+                    const wireElement = document.querySelector('[wire\\:id]');
+                    if (wireElement && wireElement.__livewire) {
+                        wireElement.__livewire.call('openPaymentModal');
+                    } else {
+                        self.$wire.call('openPaymentModal');
+                    }
                 }
                 if (e.key === 'F11') {
                     e.preventDefault();
