@@ -1511,25 +1511,28 @@ function posApp() {
             });
 
             const self = this;
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'F10') {
-                    console.log('F10: pressed');
-                    e.preventDefault();
-                    // Buscar todos los botones y loguear sus textos
-                    const allButtons = document.querySelectorAll('button');
-                    console.log('F10: found ' + allButtons.length + ' buttons');
 
-                    // Hacer click en el botón que contenga COBRAR
-                    for (let btn of allButtons) {
-                        const btnText = btn.textContent || btn.innerText || '';
-                        console.log('Button text: ' + btnText.substring(0, 50));
-                        if (btnText.includes('COBRAR')) {
-                            console.log('F10: found and clicking COBRAR button');
-                            btn.click();
-                            break;
+            // F10 en el input de búsqueda para abrir modal de cobro
+            this.$nextTick(() => {
+                const searchInput = document.querySelector('input[placeholder*="Buscar"]');
+                if (searchInput) {
+                    searchInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'F10') {
+                            e.preventDefault();
+                            // Hacer click en el botón COBRAR
+                            const buttons = document.querySelectorAll('button');
+                            for (let btn of buttons) {
+                                if (btn.textContent.includes('COBRAR')) {
+                                    btn.click();
+                                    break;
+                                }
+                            }
                         }
-                    }
+                    });
                 }
+            });
+
+            window.addEventListener('keydown', (e) => {
                 if (e.key === 'F11') {
                     e.preventDefault();
                     self.toggleFullscreen();
