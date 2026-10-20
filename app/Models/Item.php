@@ -38,6 +38,6 @@ class Item extends Model
 
     public function getTotalStockAttribute()
     {
-        return $this->depos()->sum('xqty') ?? 0;
+        return $this->depos()->sum('qty') ?? 0;
     }
 }

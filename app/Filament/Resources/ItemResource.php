@@ -187,7 +187,7 @@ class ItemResource extends Resource
 
                 TextColumn::make('total_stock')
                     ->label('Stock')
-                    ->getStateUsing(fn($record) => (int)($record->depos()->sum('xqty') ?? 0))
+                    ->getStateUsing(fn($record) => (int)($record->depos()->sum('qty') ?? 0))
                     ->formatStateUsing(function($state) {
                         $empresa = auth()->user()?->empresa;
                         $decimales = $empresa?->decimales_cantidad ?? 0;
