@@ -1125,7 +1125,7 @@ body.pos-keyboard-visible .pos-left::after {
 }
 </style>
 
-<div x-data="posApp()" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
+<div x-data="posApp()" data-cart-key="pos-cart:{{ auth()->id() }}:{{ auth()->user()?->empresa_id ?? 0 }}" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
 
 <div class="pos-wrap">
 
@@ -1707,6 +1707,7 @@ function posApp() {
         edit: { open: false, idx: null, qty: 1, precio: 0, descr: '', stock_depo: 0 },
         localAmount: 0,
         calcAmount: 0,
+        cartKey: '',
         scannerOpen: false,
         scannerStatus: '',
         scannerError: '',
@@ -1716,6 +1717,14 @@ function posApp() {
 
         init() {
             this.$watch('$wire.searchResults', () => { this.activeIdx = -1; });
+
+            // Persistencia del carrito en el navegador: sobrevive a recargas y cierres accidentales
+            this.cartKey = this.$el.dataset.cartKey;
+            this.$watch('$wire.cart', () => this.persistCart());
+            this.$watch('$wire.clienteId', () => this.persistCart());
+            this.$watch('$wire.depositoId', () => this.persistCart());
+            const restoreTimer = setTimeout(() => this.restoreSavedCart(), 700);
+            this._restoreTimer = restoreTimer;
 
             // Auto-scroll al carrito cuando se agrega un producto
             this.$watch('$wire.cart', () => {
@@ -1819,7 +1828,44 @@ function posApp() {
             this._cleanups.push(() => clearTimeout(fsTimer));
         },
 
+        /* ─── Carrito guardado en el navegador ─── */
+        persistCart() {
+            if (!this.cartKey) return;
+            try {
+                const cart = this.$wire.cart || [];
+                if (!cart.length) {
+                    localStorage.removeItem(this.cartKey);
+                    return;
+                }
+                localStorage.setItem(this.cartKey, JSON.stringify({
+                    ts: Date.now(),
+                    cart: JSON.parse(JSON.stringify(cart)),
+                    clienteId: this.$wire.clienteId ?? null,
+                    depositoId: this.$wire.depositoId ?? null,
+                }));
+            } catch (e) {}
+        },
+
+        restoreSavedCart() {
+            if (!this.cartKey) return;
+            try {
+                if ((this.$wire.cart || []).length > 0) return;
+                const raw = localStorage.getItem(this.cartKey);
+                if (!raw) return;
+                const saved = JSON.parse(raw);
+                const vencido = !saved.ts || (Date.now() - saved.ts) > 24 * 60 * 60 * 1000;
+                if (vencido || !Array.isArray(saved.cart) || saved.cart.length === 0) {
+                    localStorage.removeItem(this.cartKey);
+                    return;
+                }
+                this.$wire.restoreCart(saved.cart, saved.clienteId ?? null, saved.depositoId ?? null);
+            } catch (e) {
+                try { localStorage.removeItem(this.cartKey); } catch (e2) {}
+            }
+        },
+
         destroy() {
+            clearTimeout(this._restoreTimer);
             (this._cleanups || []).forEach(fn => fn());
             this._cleanups = [];
             document.body.classList.remove('pos-fullscreen', 'pos-keyboard-visible');
@@ -1856,16 +1902,29 @@ function posApp() {
                 const F = window.Html5QrcodeSupportedFormats;
                 this._scanner = new Html5Qrcode('barcode-reader', {
                     formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.QR_CODE],
-                    useBarCodeDetectorIfSupported: true,
+                    experimentalFeatures: { useBarCodeDetectorIfSupported: true },
                     verbose: false,
                 });
                 await this._scanner.start(
                     { facingMode: 'environment' },
-                    { fps: 10, qrbox: (w, h) => ({ width: Math.floor(Math.min(w * 0.85, 340)), height: Math.floor(Math.min(h * 0.55, 170)) }) },
+                    {
+                        fps: 15,
+                        disableFlip: true,
+                        // Área de lectura ancha: los códigos de barras son horizontales y largos
+                        qrbox: (w, h) => ({ width: Math.floor(w * 0.92), height: Math.floor(Math.min(h * 0.7, w * 0.55)) }),
+                        // Alta resolución: con 640x480 el código queda con muy pocos píxeles y no se decodifica
+                        videoConstraints: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                        },
+                    },
                     (text) => this.onScanSuccess(text),
                     () => {}
                 );
-                this.scannerStatus = 'Buscando código...';
+                // Enfoque continuo si la cámara lo soporta (si no, se ignora)
+                try { await this._scanner.applyVideoConstraints({ focusMode: 'continuous' }); } catch (e) {}
+                this.scannerStatus = 'Acercá el código, con buena luz, y mantenelo quieto.';
             } catch (e) {
                 this.scannerStatus = '';
                 const msg = String(e?.message || e);

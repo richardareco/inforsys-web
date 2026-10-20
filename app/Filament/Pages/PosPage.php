@@ -192,16 +192,34 @@ class PosPage extends Page
                 [$this->depositoId]
             ));
 
-        // Filtrar por categoría si está seleccionada
-        if ($this->categoriaId !== null) {
+        // Un término numérico largo es un código de barras (lector USB o cámara): se busca en todo el
+        // catálogo, sin importar la categoría elegida, y tolerando ceros a la izquierda (UPC-A / EAN-13)
+        $esCodigo   = ctype_digit($term) && strlen($term) >= 8;
+        $candidatos = [$term];
+        if ($esCodigo) {
+            $sinCeros   = ltrim($term, '0');
+            $candidatos = array_values(array_unique([$term, $sinCeros, '0' . $sinCeros, '00' . $sinCeros]));
+        }
+
+        // Filtrar por categoría si está seleccionada (no aplica a códigos de barras)
+        if ($this->categoriaId !== null && !$esCodigo) {
             $query->where('items.grupnr', $this->categoriaId);
         }
 
-        foreach ($words as $word) {
-            $query->whereRaw(
-                "CONCAT_WS(' ', items.item, items.scode, items.scode1, items.descr) LIKE ?",
-                ['%' . $word . '%']
-            );
+        if ($esCodigo) {
+            $query->where(function ($q) use ($candidatos, $term) {
+                $q->whereIn('items.scode1', $candidatos)
+                  ->orWhereIn('items.scode', $candidatos)
+                  ->orWhereIn('items.item', $candidatos)
+                  ->orWhereRaw("CONCAT_WS(' ', items.item, items.scode, items.scode1, items.descr) LIKE ?", ['%' . $term . '%']);
+            });
+        } else {
+            foreach ($words as $word) {
+                $query->whereRaw(
+                    "CONCAT_WS(' ', items.item, items.scode, items.scode1, items.descr) LIKE ?",
+                    ['%' . $word . '%']
+                );
+            }
         }
 
         $results = $query
@@ -212,15 +230,24 @@ class PosPage extends Page
             ->toArray();
 
         // Si el término coincide exactamente con item, scode o scode1 → agregar al carrito automáticamente
+        $lowerCandidatos = array_map('strtolower', $candidatos);
         $exact = collect($results)->first(fn ($r) =>
-            strtolower((string) ($r->item   ?? '')) === strtolower($term) ||
-            strtolower((string) ($r->scode  ?? '')) === strtolower($term) ||
-            strtolower((string) ($r->scode1 ?? '')) === strtolower($term)
+            in_array(strtolower((string) ($r->item   ?? '')), $lowerCandidatos, true) ||
+            in_array(strtolower((string) ($r->scode  ?? '')), $lowerCandidatos, true) ||
+            in_array(strtolower((string) ($r->scode1 ?? '')), $lowerCandidatos, true)
         );
 
         if ($exact) {
             $this->addToCartItem($exact);
             return;
+        }
+
+        if ($esCodigo && empty($results)) {
+            Notification::make()
+                ->title('Código no encontrado')
+                ->body("No hay ningún producto con el código {$term}.")
+                ->warning()
+                ->send();
         }
 
         $this->searchResults = $results;
@@ -393,6 +420,88 @@ class PosPage extends Page
         // Limpia el input (sin disparar updatedSearch, así la grilla queda visible)
         $this->search = '';
         $this->dispatch('focus-search');
+    }
+
+    /**
+     * Reconstruye un carrito guardado en el navegador (por ejemplo tras recargar la página),
+     * revalidando cada línea contra la base: existencia, stock y precio mínimo permitido.
+     */
+    public function restoreCart(array $saved, mixed $clienteId = null, mixed $depositoId = null): void
+    {
+        if (!empty($this->cart) || empty($saved)) return;
+
+        if ($depositoId !== null && collect($this->depositos)->contains(fn ($d) => (string) $d->deponr === (string) $depositoId)) {
+            $this->depositoId = $depositoId;
+        }
+
+        if ($clienteId !== null) {
+            $cliente = collect($this->clientes)->first(fn ($c) => (string) $c->custnr === (string) $clienteId);
+            if ($cliente) {
+                $this->clienteId   = $cliente->custnr;
+                $this->clienteName = $cliente->custname;
+                $this->dispatch('clienteActualizado', clienteId: $cliente->custnr, clienteName: $cliente->custname, clienteRuc: $cliente->ruc ?? '');
+            }
+        }
+
+        $user    = auth()->user();
+        $permitirSinStock = $user?->empresa?->permitir_venta_sin_stock ?? false;
+        $nivel   = (int) ($user?->precio_minimo_permitido ?? 3);
+        $nivel   = in_array($nivel, [1, 2, 3], true) ? $nivel : 3;
+
+        $cart = [];
+        $quitados = 0;
+        $ajustados = 0;
+
+        foreach (array_slice($saved, 0, 200) as $line) {
+            $code = is_array($line) ? (string) ($line['item'] ?? '') : '';
+            if ($code === '') continue;
+
+            $row = DB::connection('delphi')->table('items')
+                ->where('item', $code)
+                ->selectRaw(
+                    'item, descr, costo, precio1, precio2, precio3, COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
+                    [$this->depositoId]
+                )
+                ->first();
+
+            if (!$row) { $quitados++; continue; }
+
+            $qty   = max(1, (int) ($line['qty'] ?? 1));
+            $stock = (int) $row->stock_depo;
+
+            if (!$permitirSinStock) {
+                if ($stock <= 0) { $quitados++; continue; }
+                if ($qty > $stock) { $qty = $stock; $ajustados++; }
+            }
+
+            $minimo = (float) $row->{'precio' . $nivel};
+            $precioGuardado = (float) ($line['precio'] ?? $row->precio3);
+            $precio = max($minimo, $precioGuardado);
+            if ($precio !== $precioGuardado) $ajustados++;
+
+            $cart[] = [
+                'item'       => $row->item,
+                'descr'      => $row->descr,
+                'qty'        => $qty,
+                'precio'     => $precio,
+                'costo'      => (float) $row->costo,
+                'stock_depo' => $stock,
+            ];
+        }
+
+        if (empty($cart)) return;
+
+        $this->cart = $cart;
+
+        $detalle = [];
+        if ($quitados)  $detalle[] = "{$quitados} producto(s) ya no estaban disponibles";
+        if ($ajustados) $detalle[] = "{$ajustados} línea(s) se ajustaron por stock o precio";
+
+        Notification::make()
+            ->title('Carrito recuperado')
+            ->body(count($cart) . ' producto(s) restaurados.' . ($detalle ? ' ' . implode('; ', $detalle) . '.' : ''))
+            ->info()
+            ->send();
     }
 
     public function updateQty(int $index, mixed $qty): void
