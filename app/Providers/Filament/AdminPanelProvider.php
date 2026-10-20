@@ -133,11 +133,11 @@ document.addEventListener('livewire:navigated', aplicarAccesosMenu);
 .fi-sidebar,
 .fi-sidebar nav,
 .fi-sidebar-nav {
-    background-color: #253347 !important;
+    background-color: #0369c4 !important;
 }
 .fi-sidebar-header,
 .fi-sidebar > div:first-child {
-    background-color: #253347 !important;
+    background-color: transparent !important;
     border-bottom-color: transparent !important;
     min-height: auto !important;
     padding: 1rem !important;
@@ -166,15 +166,15 @@ document.addEventListener('livewire:navigated', aplicarAccesosMenu);
 }
 /* items del menú — texto blanco semitransparente para inactivos */
 .fi-sidebar-item-button {
-    color: rgba(255,255,255,0.75) !important;
+    color: rgba(255,255,255,0.92) !important;
 }
 .fi-sidebar-item-button span,
 .fi-sidebar-item-label {
-    color: rgba(255,255,255,0.75) !important;
+    color: rgba(255,255,255,0.92) !important;
 }
 .fi-sidebar-item-icon,
 .fi-sidebar-item-button svg {
-    color: rgba(255,255,255,0.6) !important;
+    color: rgba(255,255,255,0.82) !important;
 }
 .fi-sidebar-item-button:hover {
     background-color: rgba(255,255,255,0.08) !important;
@@ -265,12 +265,15 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
 .fi-sidebar,
 .fi-sidebar nav,
 .fi-sidebar-nav {
-    background: linear-gradient(180deg, #1e2b3f 0%, #253347 55%, #1b2638 100%) !important;
+    background: linear-gradient(180deg, #0a3fa8 0%, #0047ab 36%, #0369c4 72%, #0284c7 100%) !important;
 }
 .fi-sidebar {
-    box-shadow: 4px 0 24px -8px rgba(15, 23, 42, .35) !important;
-    border-inline-end: 1px solid rgba(255,255,255,.04) !important;
+    box-shadow: 4px 0 24px -8px rgba(2, 40, 110, .45) !important;
+    border-inline-end: 1px solid rgba(255,255,255,.08) !important;
+    border-radius: 0 1.75rem 1.75rem 0 !important;
+    overflow: hidden;
 }
+.fi-sidebar nav, .fi-sidebar-nav { border-radius: 0 1.75rem 1.75rem 0 !important; }
 .fi-sidebar-header,
 .fi-sidebar > div:first-child {
     background: transparent !important;
@@ -299,7 +302,7 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
     transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease !important;
 }
 .fi-sidebar-item-button:hover {
-    background-color: rgba(255,255,255,.09) !important;
+    background-color: rgba(255,255,255,.16) !important;
     transform: translateX(3px);
 }
 .fi-sidebar-item-icon,
@@ -312,8 +315,8 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
 .fi-sidebar-item-active .fi-sidebar-item-button,
 .fi-sidebar-item-button[aria-current="page"],
 .fi-sidebar-item-button.fi-active {
-    background: linear-gradient(135deg, #0047AB 0%, #0a6cdc 100%) !important;
-    box-shadow: 0 6px 16px -4px rgba(10, 108, 220, .55), inset 0 1px 0 rgba(255,255,255,.18) !important;
+    background: rgba(255,255,255,.24) !important;
+    box-shadow: 0 8px 18px -8px rgba(1, 20, 60, .6), inset 0 1px 0 rgba(255,255,255,.38), inset 0 0 0 1px rgba(255,255,255,.2) !important;
     transform: none;
 }
 .fi-sidebar-item-active .fi-sidebar-item-button::before,
@@ -323,8 +326,8 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
     left: -.45rem; top: 22%; bottom: 22%;
     width: 4px;
     border-radius: 9999px;
-    background: #7dd3fc;
-    box-shadow: 0 0 10px rgba(125, 211, 252, .8);
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, .85);
 }
 
 /* Etiquetas de grupo */
@@ -333,7 +336,7 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
     letter-spacing: .09em !important;
     font-size: .68rem !important;
     font-weight: 700 !important;
-    color: rgba(255,255,255,.38) !important;
+    color: rgba(255,255,255,.68) !important;
 }
 .fi-sidebar-group { margin-top: .4rem; }
 
@@ -361,9 +364,9 @@ html:not(.dark) .fi-topbar nav {
 /* Botón colapsar sidebar */
 .fi-sidebar-header .fi-icon-btn {
     border-radius: .65rem !important;
-    background: rgba(255,255,255,.07) !important;
+    background: rgba(255,255,255,.16) !important;
 }
-.fi-sidebar-header .fi-icon-btn:hover { background: rgba(255,255,255,.15) !important; }
+.fi-sidebar-header .fi-icon-btn:hover { background: rgba(255,255,255,.28) !important; }
 </style>')
             )
             ->renderHook(
