@@ -1513,7 +1513,7 @@ function posApp() {
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F10') {
                     e.preventDefault();
-                    this.$wire.openPaymentModal();
+                    this.$wire.call('openPaymentModal');
                 }
                 if (e.key === 'F11') {
                     e.preventDefault();
