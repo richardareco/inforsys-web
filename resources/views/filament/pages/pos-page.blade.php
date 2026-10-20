@@ -1516,13 +1516,11 @@ function posApp() {
             window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
 
             // Listener para evento de fullscreen de Livewire
-            this.$watch(() => this.$wire, (wire) => {
-                if (wire) {
-                    wire.on('toggle-fullscreen', () => {
-                        window.dispatchEvent(new Event('toggle-fullscreen'));
-                    });
-                }
-            }, { immediate: true });
+            if (this.$wire) {
+                this.$wire.on('toggleFullscreenMode', () => {
+                    this.toggleFullscreen();
+                });
+            }
 
             window.addEventListener('focus-amount', () => {
                 this.$nextTick(() => {

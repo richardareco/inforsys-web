@@ -76,8 +76,14 @@ class PosPage extends Page
                 ->icon('heroicon-o-arrows-pointing-out')
                 ->color('gray')
                 ->outlined()
-                ->action(fn () => $this->dispatch('toggle-fullscreen')),
+                ->action('toggleFullscreenMode'),
         ];
+    }
+
+    public function toggleFullscreenMode()
+    {
+        // Este método se llama cuando se presiona el botón
+        // El JavaScript en el lado del cliente capturará este evento
     }
 
     public function mount(): void
