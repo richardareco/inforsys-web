@@ -35,7 +35,7 @@
     $columns = $this->getColumns();
 @endphp
 
-<x-filament-pages::page>
+<x-filament-panels::page>
     @if (method_exists($this, 'filtersForm'))
         {{ $this->filtersForm }}
     @endif
@@ -50,4 +50,4 @@
             :columns="$columns"
         />
     @endif
-</x-filament-pages::page>
+</x-filament-panels::page>
