@@ -1515,11 +1515,14 @@ function posApp() {
                 if (e.key === 'F10') {
                     e.preventDefault();
                     // Hacer click en el botón COBRAR
-                    const cobrarButton = Array.from(document.querySelectorAll('button')).find(btn =>
-                        btn.textContent.includes('COBRAR')
-                    );
-                    if (cobrarButton) {
-                        cobrarButton.click();
+                    const buttons = document.querySelectorAll('button');
+                    for (let btn of buttons) {
+                        const btnText = btn.textContent.trim();
+                        if (btnText.includes('COBRAR')) {
+                            console.log('F10: clicking COBRAR button');
+                            btn.click();
+                            break;
+                        }
                     }
                 }
                 if (e.key === 'F11') {
