@@ -1533,15 +1533,16 @@ function posApp() {
             this.$watch('$wire.showPaymentModal', (isOpen) => {
                 if (isOpen) {
                     this.$nextTick(() => {
-                        // Usar Livewire para calcular el total dinámicamente
-                        this.$wire.call('getCartTotal').then((total) => {
-                            this.localAmount = total;
-                            const el = document.getElementById('amount-input');
-                            if (el) {
-                                el.focus();
-                                el.select();
-                            }
-                        });
+                        // Calcular el total desde el carrito
+                        const cartTotal = (this.$wire.cart || []).reduce((sum, item) => {
+                            return sum + (item.precio * item.qty);
+                        }, 0);
+                        this.localAmount = cartTotal;
+                        const el = document.getElementById('amount-input');
+                        if (el) {
+                            el.focus();
+                            el.select();
+                        }
                     });
                 }
             });
