@@ -1513,13 +1513,18 @@ function posApp() {
             const self = this;
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F10') {
+                    console.log('F10: pressed');
                     e.preventDefault();
-                    // Hacer click en el botón COBRAR
-                    const buttons = document.querySelectorAll('button');
-                    for (let btn of buttons) {
-                        const btnText = btn.textContent.trim();
+                    // Buscar todos los botones y loguear sus textos
+                    const allButtons = document.querySelectorAll('button');
+                    console.log('F10: found ' + allButtons.length + ' buttons');
+
+                    // Hacer click en el botón que contenga COBRAR
+                    for (let btn of allButtons) {
+                        const btnText = btn.textContent || btn.innerText || '';
+                        console.log('Button text: ' + btnText.substring(0, 50));
                         if (btnText.includes('COBRAR')) {
-                            console.log('F10: clicking COBRAR button');
+                            console.log('F10: found and clicking COBRAR button');
                             btn.click();
                             break;
                         }
