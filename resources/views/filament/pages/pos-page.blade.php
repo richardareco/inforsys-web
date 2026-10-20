@@ -1510,16 +1510,17 @@ function posApp() {
                 });
             });
 
+            const self = this;
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F10') {
                     e.preventDefault();
-                    this.$wire.call('openPaymentModal');
+                    self.$wire.call('openPaymentModal');
                 }
                 if (e.key === 'F11') {
                     e.preventDefault();
-                    this.toggleFullscreen();
+                    self.toggleFullscreen();
                 }
-            }.bind(this));
+            });
             window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
 
             // Listener para evento de fullscreen de Livewire
