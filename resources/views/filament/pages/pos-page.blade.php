@@ -793,51 +793,13 @@ html {
 .dark .qty-num { background: #374151; color: #f9fafb; border-color: #4b5563; }
 
 /* ─── Fullscreen ─── */
-/* En móvil: ocultar sidebar en fullscreen */
+/* En móvil: el menú lateral sigue disponible (se abre con el botón de hamburguesa) */
 @media (max-width: 1024px) {
-    body.pos-fullscreen aside,
-    body.pos-fullscreen nav.fi-sidebar,
-    body.pos-fullscreen .fi-sidebar { display: none !important; }
     body.pos-fullscreen .fi-main-ctn { margin-left: 0 !important; padding-left: 0 !important; }
 }
 /* En desktop: mantener sidebar visible en fullscreen */
 @media (min-width: 1025px) {
     body.pos-fullscreen .fi-main-ctn { padding-left: 0 !important; }
-}
-
-/* Botón de salida de pantalla completa */
-.pos-fullscreen-exit {
-    position: fixed;
-    top: 8px;
-    right: 60px;
-    z-index: 999;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.4rem;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    color: #111827;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    transition: all 0.15s;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 0;
-}
-.pos-fullscreen-exit:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: scale(1.05);
-}
-.pos-fullscreen-exit:active {
-    transform: scale(0.95);
-}
-.pos-fullscreen-exit svg {
-    width: 1rem;
-    height: 1rem;
 }
 
 /* ─── Fila de selects (cliente, cajero, depósito) ─── */
@@ -867,7 +829,7 @@ html {
     .pos-left { background: white; overflow: visible; }
     .pos-left-top { border-radius: .85rem .85rem 0 0; overflow: visible; }
     .pos-products { display: none; }
-    .mobile-dropdown { display: block; z-index: 100; }
+    .mobile-dropdown.show { display: block; z-index: 20; }
     .pos-cart { width: 100%; border-left: none; border-top: 1px solid #e5e7eb; }
     .dark .pos-cart { border-color: #374151; }
     .cart-footer { position: sticky; bottom: 0; z-index: 10; flex-direction: column !important; gap: 0.5rem !important; padding: 0.5rem 0.5rem !important; }
@@ -953,26 +915,186 @@ body.pos-keyboard-visible .pos-left::after {
     gap: .3rem;
     order: 100;
 }
+
+/* ══════════════ PULIDO VISUAL (solo apariencia) ══════════════ */
+.pos-wrap {
+    border: 1px solid rgba(148, 163, 184, .28);
+    border-radius: 1.25rem;
+    background: #fff;
+    box-shadow: 0 18px 40px -22px rgba(15, 23, 42, .35), 0 2px 6px rgba(15, 23, 42, .04);
+}
+@media (max-width: 768px) {
+    .pos-wrap { border-radius: 0; box-shadow: none; }
+}
+
+/* Panel izquierdo */
+.pos-left { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
+.pos-left-top { background: rgba(255,255,255,.92); backdrop-filter: blur(6px); }
+
+/* Buscador */
+.pos-search-wrap {
+    border: 1.5px solid #c7d2fe;
+    border-radius: .9rem;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+.pos-search-wrap:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, .14), 0 6px 18px -8px rgba(79, 70, 229, .45);
+}
+.pos-search-icon { color: #818cf8; }
+
+/* Tarjetas de producto */
+.product-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.product-card:hover {
+    border-color: #a5b4fc;
+    box-shadow: 0 12px 24px -12px rgba(79, 70, 229, .35);
+    transform: translateY(-3px);
+}
+.product-image { border-radius: .75rem; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
+.product-add-btn {
+    background: linear-gradient(135deg, #6366f1, #7c3aed);
+    border-radius: .7rem;
+    box-shadow: 0 4px 10px -4px rgba(99, 102, 241, .6);
+    transition: filter .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.product-add-btn:hover { background: linear-gradient(135deg, #4f46e5, #6d28d9); filter: brightness(1.05); }
+
+/* Resultados en móvil */
+.mob-item { border-radius: .9rem; border-color: #e2e8f0; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+.mob-item-add-btn { background: linear-gradient(135deg, #6366f1, #7c3aed); }
+
+/* Carrito */
+.pos-cart { border-left: 1px solid #e2e8f0; box-shadow: -10px 0 28px -22px rgba(15, 23, 42, .35); }
+.cart-header { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+.cliente-combo-input, .pos-sel { border-radius: .6rem; transition: border-color .15s ease, box-shadow .15s ease; }
+.cart-header-total .total-amount {
+    background: linear-gradient(135deg, #0047AB, #0a6cdc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.cart-row { border-bottom: 1px solid #eef2f7; transition: background .15s ease; }
+.cart-row:hover { background: #f5f7ff; }
+.cart-item-image { border-radius: .75rem; box-shadow: 0 1px 3px rgba(15, 23, 42, .12); }
+.del-btn { border-radius: .55rem; transition: background .15s ease, transform .15s ease; }
+.del-btn:hover { background: #fee2e2; transform: scale(1.08); }
+.cart-summary { background: #f8fafc; border-top: 1px solid #e2e8f0; }
+.cart-footer { border-top: 1px solid #e2e8f0; background: linear-gradient(180deg, #ffffff, #f8fafc); }
+
+/* Botón cobrar */
+.cobrar-btn {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: .9rem;
+    box-shadow: 0 8px 18px -6px rgba(79, 70, 229, .55), inset 0 1px 0 rgba(255, 255, 255, .22);
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.cobrar-btn:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    box-shadow: 0 12px 24px -8px rgba(79, 70, 229, .65), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.cobrar-btn:disabled { background: #e5e7eb; box-shadow: none; }
+
+/* Modales */
+.modal-back { backdrop-filter: blur(6px); background: rgba(15, 23, 42, .55); }
+.modal-box {
+    border-radius: 1.4rem;
+    box-shadow: 0 30px 70px -20px rgba(15, 23, 42, .55), 0 0 0 1px rgba(148, 163, 184, .18);
+}
+.pay-method { border-radius: .9rem; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
+.pay-method:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -10px rgba(15, 23, 42, .4); }
+.qty-btn { border-radius: .6rem; }
+
+/* Modal de cobro: formas de pago con ficha de ícono */
+.pay-method { gap: .6rem; padding: 1rem .5rem .85rem; border: 2px solid #e2e8f0; border-radius: 1rem; }
+.pay-method .pm-ico {
+    width: 3rem; height: 3rem; border-radius: 1rem;
+    display: grid; place-items: center;
+    background: #f1f5f9; color: #64748b;
+    transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.pay-method .pm-ico svg { width: 1.65rem; height: 1.65rem; }
+.pay-method:hover .pm-ico { transform: scale(1.06); }
+.pay-method.sel-green  { box-shadow: 0 10px 22px -12px rgba(34, 197, 94, .7); }
+.pay-method.sel-blue   { box-shadow: 0 10px 22px -12px rgba(59, 130, 246, .7); }
+.pay-method.sel-purple { box-shadow: 0 10px 22px -12px rgba(168, 85, 247, .7); }
+.pay-method.sel-green  .pm-ico { background: linear-gradient(135deg, #22c55e, #15803d); color: #fff; box-shadow: 0 6px 14px -4px rgba(22, 163, 74, .65); }
+.pay-method.sel-blue   .pm-ico { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; box-shadow: 0 6px 14px -4px rgba(37, 99, 235, .65); }
+.pay-method.sel-purple .pm-ico { background: linear-gradient(135deg, #a855f7, #7e22ce); color: #fff; box-shadow: 0 6px 14px -4px rgba(147, 51, 234, .65); }
+
+/* Total, monto y botones del modal de cobro */
+.pm-total {
+    background: linear-gradient(135deg, #eef2ff, #f5f3ff) !important;
+    border: 1px solid #e0e7ff;
+    border-radius: 1rem !important;
+}
+.pm-monto { border: 1px solid #bbf7d0; border-radius: 1rem !important; }
+.pm-monto input:focus { border-color: #22c55e !important; box-shadow: 0 0 0 4px rgba(34, 197, 94, .15); }
+.pm-cancel { border-radius: .9rem !important; transition: background .15s ease, border-color .15s ease; }
+.pm-cancel:hover { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+.pm-confirm {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+    border-radius: .9rem !important;
+    box-shadow: 0 10px 22px -8px rgba(79, 70, 229, .6), inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+    transition: transform .18s ease, filter .18s ease !important;
+}
+.pm-confirm:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pm-confirm:disabled { opacity: .7; cursor: wait; transform: none; }
+
+/* Botón y modal del lector de código de barras */
+.pos-scan-btn {
+    flex-shrink: 0;
+    width: 2.1rem; height: 2.1rem; margin: .2rem .25rem .2rem 0;
+    border: none; border-radius: .65rem; cursor: pointer;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #6366f1, #7c3aed);
+    color: #fff;
+    box-shadow: 0 4px 10px -4px rgba(99, 102, 241, .65), inset 0 1px 0 rgba(255,255,255,.22);
+    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+}
+.pos-scan-btn svg { width: 1.2rem; height: 1.2rem; }
+.pos-scan-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 8px 16px -6px rgba(99, 102, 241, .7); }
+.pos-scan-btn:active { transform: scale(.94); }
+
+.scan-box { text-align: center; }
+.scan-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; text-align: left; margin-bottom: .8rem; }
+.scan-title { font-size: 1.05rem; font-weight: 900; color: #111827; }
+.scan-sub { font-size: .75rem; color: #6b7280; margin-top: .1rem; }
+.scan-close {
+    flex-shrink: 0; width: 2rem; height: 2rem; border-radius: .6rem; border: 1px solid #e5e7eb;
+    background: #fff; color: #6b7280; display: grid; place-items: center; cursor: pointer; transition: background .15s ease;
+}
+.scan-close:hover { background: #f3f4f6; }
+.scan-close svg { width: 1rem; height: 1rem; }
+.scan-view {
+    border-radius: 1rem; overflow: hidden; background: #0f172a;
+    min-height: 220px; box-shadow: inset 0 0 0 2px rgba(99, 102, 241, .35);
+}
+#barcode-reader { width: 100%; }
+#barcode-reader video { width: 100% !important; display: block; }
+.scan-status { margin-top: .7rem; font-size: .8rem; color: #6b7280; }
+.scan-error { margin-top: .7rem; font-size: .8rem; font-weight: 600; color: #b91c1c; background: #fef2f2; border-radius: .7rem; padding: .6rem .8rem; }
+.scan-cancel {
+    margin-top: .9rem; width: 100%; padding: .7rem; border-radius: .9rem; border: 1.5px solid #e5e7eb;
+    background: transparent; font-weight: 700; color: #6b7280; cursor: pointer; transition: background .15s ease;
+}
+.scan-cancel:hover { background: #f8fafc; }
+
+/* Ancho real de los modales de cobro e impresión (la regla base los limitaba a 400px) */
+@media (min-width: 640px) {
+    .modal-box[style*="max-width:550px"] { max-width: 550px !important; width: 100% !important; padding: 1.4rem !important; }
+    .modal-box[style*="max-width:420px"] { max-width: 420px !important; width: 100% !important; padding: 1.4rem !important; }
+    .modal-box[style*="max-width:480px"] { max-width: 480px !important; width: 100% !important; padding: 1.4rem !important; }
+}
 </style>
 
-<div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
-
-<!-- Botón de pantalla completa (entrada/salida) -->
-<button @click="toggleFullscreen()"
-    class="pos-fullscreen-exit"
-    :style="{ display: 'flex' }"
-    title="Pantalla completa (F11)">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <!-- Icono de ENTRADA a fullscreen -->
-        <g v-if="!isFullscreen">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5a2 2 0 012-2h4M3 17v2a2 2 0 002 2h4m8-16h4a2 2 0 012 2v4m0 8v2a2 2 0 01-2 2h-4"/>
-        </g>
-        <!-- Icono de SALIDA de fullscreen -->
-        <g v-else>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V5.5m0 0H5.5m3.5 0l-4 4m10 0v4.5m0 0h4.5m-4.5 0l4-4M9 15v4.5m0 0H5.5m3.5 0l-4-4m10-6V5.5m0 0h4.5m-4.5 0l4 4"/>
-        </g>
-    </svg>
-</button>
+<div x-data="posApp()" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
 
 <div class="pos-wrap">
 
@@ -1032,6 +1154,9 @@ body.pos-keyboard-visible .pos-left::after {
                     @keydown.enter.prevent="enter()"
                     @keydown.escape.prevent="clearSearch()"
                 />
+                <button type="button" class="pos-scan-btn" @click="openScanner()" title="Leer código de barras con la cámara" aria-label="Leer código de barras con la cámara">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75V5.25A1.5 1.5 0 015.25 3.75h1.5M17.25 3.75h1.5a1.5 1.5 0 011.5 1.5v1.5M20.25 17.25v1.5a1.5 1.5 0 01-1.5 1.5h-1.5M6.75 20.25h-1.5a1.5 1.5 0 01-1.5-1.5v-1.5M7.5 8.25v7.5M10.5 8.25v7.5M13.5 8.25v7.5M16.5 8.25v7.5"/></svg>
+                </button>
             </div>
 
                 {{-- Categorías (primeras 5) --}}
@@ -1197,6 +1322,7 @@ body.pos-keyboard-visible .pos-left::after {
             }"
                  x-cloak
                  @click.outside="close()"
+                 @cliente-actualizado.window.camel="selectedName = $event.detail.clienteName + ' - RUC: ' + ($event.detail.clienteRuc || ''); selectedId = $event.detail.clienteId; query = ''; open = false"
                  x-effect="if (!selectedId && $wire.clientes && $wire.clientes.length > 0) pick($wire.clientes[0])"
                  style="position:relative;">
                 <label style="font-size:.65rem;font-weight:600;color:#6b7280;margin-bottom:.25rem;display:block;">Cliente</label>
@@ -1420,7 +1546,7 @@ body.pos-keyboard-visible .pos-left::after {
 </div>
 
 {{-- ══════════════ MODAL: COBRO ══════════════ --}}
-@if($showPaymentModal)
+@if($showPaymentModal && !$lastInvoiceNumber)
 <div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())" wire:watch="lastInvoiceNumber">
     <div class="modal-box" style="max-width:550px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
@@ -1428,7 +1554,7 @@ body.pos-keyboard-visible .pos-left::after {
             <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Seleccioná la forma de pago</p>
         </div>
 
-        <div style="background:#f8fafc;border-radius:.8rem;padding:.85rem;text-align:center;margin-bottom:.9rem;" class="dark:bg-gray-700">
+        <div style="background:#f8fafc;border-radius:.8rem;padding:.85rem;text-align:center;margin-bottom:.9rem;" class="pm-total dark:bg-gray-700">
             <p style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;">Total</p>
             <p style="font-size:1.9rem;font-weight:900;color:#111827;" class="dark:text-white">Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}</p>
         </div>
@@ -1438,23 +1564,26 @@ body.pos-keyboard-visible .pos-left::after {
             <p style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:.45rem;">Forma de pago</p>
             <div style="display:flex;gap:.5rem;margin-bottom:.9rem;">
                 <button wire:click="$set('paymentMethod','efectivo')" class="pay-method {{ $paymentMethod==='efectivo'?'sel-green':'' }}">
-                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75"/></svg>
-                    Efectivo
+                    <span class="pm-ico"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg></span>
+                    <span>Efectivo</span>
                 </button>
                 <button wire:click="$set('paymentMethod','transferencia')" class="pay-method {{ $paymentMethod==='transferencia'?'sel-blue':'' }}">
-                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-                    Transferencia
+                    <span class="pm-ico"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/></svg></span>
+                    <span>Transferencia</span>
                 </button>
                 <button wire:click="$set('paymentMethod','tarjeta')" class="pay-method {{ $paymentMethod==='tarjeta'?'sel-purple':'' }}">
-                    <svg style="width:1.4rem;height:1.4rem" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
-                    Tarjeta
+                    <span class="pm-ico"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg></span>
+                    <span>Tarjeta</span>
                 </button>
             </div>
 
             @if($paymentMethod === 'efectivo')
-            <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;">
+            <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;" class="pm-monto">
                 <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
                 <input id="amount-input" type="number"
+                    data-total="{{ (float) $this->getCartTotal() }}"
+                    oninput="clearTimeout(window._vueltoT); const el=this; window._vueltoT=setTimeout(()=>{ const t=parseFloat(el.dataset.total)||0, m=parseFloat(el.value)||0, v=document.getElementById('vuelto-text'); if(!v) return; v.textContent='Gs. '+new Intl.NumberFormat('es-PY').format(Math.max(0,m-t)); v.style.color = m>=t ? '#16a34a' : '#dc2626'; }, 600)"
+                    x-init="localAmount = {{ (float) $this->getCartTotal() }}; $nextTick(() => { $el.focus(); $el.select(); })"
                     x-model.number="localAmount"
                     style="width:100%;padding:.6rem;border-radius:.7rem;border:1.5px solid #86efac;background:white;font-size:1.25rem;font-weight:800;text-align:center;outline:none;"
                     @focus="$event.target.select()"
@@ -1462,15 +1591,15 @@ body.pos-keyboard-visible .pos-left::after {
                 @php $cartTotal = $this->getCartTotal(); @endphp
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
                     <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
-                    <p x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(Math.max(0, localAmount - {{ $cartTotal }}))"
-                       :style="localAmount >= {{ $cartTotal }} ? 'font-size:1.35rem;font-weight:900;color:#16a34a;' : 'font-size:1.35rem;font-weight:900;color:#dc2626;'"></p>
+                    <p id="vuelto-text" style="font-size:1.35rem;font-weight:900;color:#16a34a;">Gs. 0</p>
                 </div>
             </div>
             @endif
 
             <div style="display:flex;gap:.65rem;">
-                <button wire:click="closePaymentModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">Cancelar</button>
+                <button wire:click="closePaymentModal" class="pm-cancel" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">Cancelar</button>
                 <button @click="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())"
+                    class="pm-confirm"
                     wire:loading.attr="disabled" wire:target="confirmSale"
                     style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;box-shadow:0 4px 14px rgba(79,70,229,.35);">
                     <svg style="width:1rem;height:1rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1480,10 +1609,72 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
         @endif
 
-        {{-- Listener para abrir PDF cuando se genera factura --}}
     </div>
 </div>
 @endif
+
+{{-- ══════════════ MODAL: ¿IMPRIMIR TICKET? ══════════════ --}}
+@if($showPaymentModal && $lastInvoiceNumber)
+@php
+    $vueltoVenta = $lastPaymentMethod === 'efectivo' ? max(0, $lastReceived - $lastTotal) : 0;
+    $ticketUrl = url('/comprobante') . '/' . $lastInvoiceNumber . '/ticket?pago=' . (int) $lastReceived . '&medio=' . $lastPaymentMethod;
+@endphp
+<div class="modal-back"
+     x-data="{ imprimir() { window.open('{{ $ticketUrl }}', '_blank'); $wire.closePaymentModal(); } }"
+     x-init="$nextTick(() => $refs.btnImprimir?.focus())"
+     @keydown.enter.window.prevent="imprimir()"
+     @keydown.escape.window="$wire.closePaymentModal()">
+    <div class="modal-box" style="max-width:420px;text-align:center;" @click.stop>
+        <div style="width:3.4rem;height:3.4rem;margin:0 auto .8rem;border-radius:9999px;background:#dcfce7;display:flex;align-items:center;justify-content:center;">
+            <svg style="width:1.9rem;height:1.9rem;color:#16a34a;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        </div>
+        <p style="font-size:1.1rem;font-weight:900;color:#111827;" class="dark:text-white">Venta registrada</p>
+        <p style="font-size:.78rem;color:#6b7280;margin-top:.15rem;">Ticket Nº {{ str_pad($lastInvoiceNumber, 6, '0', STR_PAD_LEFT) }} · Gs. {{ number_format($lastTotal, 0, ',', '.') }}</p>
+
+        @if($vueltoVenta > 0)
+        <div style="margin:.9rem 0 .2rem;background:#f0fdf4;border-radius:.8rem;padding:.65rem;">
+            <p style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;">Vuelto</p>
+            <p style="font-size:1.7rem;font-weight:900;color:#16a34a;">Gs. {{ number_format($vueltoVenta, 0, ',', '.') }}</p>
+        </div>
+        @endif
+
+        <p style="font-size:.95rem;font-weight:700;color:#374151;margin:1rem 0 .8rem;" class="dark:text-gray-200">¿Desea imprimir el ticket?</p>
+
+        <div style="display:flex;gap:.65rem;">
+            <button wire:click="closePaymentModal" style="flex:1;padding:.7rem;border-radius:.8rem;border:1.5px solid #e5e7eb;background:transparent;font-weight:700;color:#6b7280;cursor:pointer;">No</button>
+            <button x-ref="btnImprimir" @click="imprimir()" style="flex:1.5;padding:.7rem;border-radius:.8rem;background:#4f46e5;color:white;font-weight:900;font-size:.95rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.45rem;box-shadow:0 4px 14px rgba(79,70,229,.35);">
+                <svg style="width:1.05rem;height:1.05rem" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z"/></svg>
+                Sí, imprimir
+            </button>
+        </div>
+        <p style="font-size:.65rem;color:#9ca3af;margin-top:.7rem;">Enter = imprimir · Esc = no imprimir</p>
+    </div>
+</div>
+@endif
+
+{{-- ══════════════ MODAL: LECTOR DE CÓDIGO DE BARRAS (CÁMARA) ══════════════ --}}
+<div x-show="scannerOpen" x-cloak style="display:none;" class="modal-back" @keydown.escape.window="scannerOpen && closeScanner()" @click.self="closeScanner()">
+    <div class="modal-box scan-box" style="max-width:480px;" @click.stop>
+        <div class="scan-head">
+            <div>
+                <p class="scan-title">Leer código de barras</p>
+                <p class="scan-sub">Apuntá la cámara al código del producto</p>
+            </div>
+            <button type="button" class="scan-close" @click="closeScanner()" aria-label="Cerrar">
+                <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="scan-view" wire:ignore>
+            <div id="barcode-reader"></div>
+        </div>
+
+        <p x-show="scannerStatus && !scannerError" x-text="scannerStatus" class="scan-status"></p>
+        <p x-show="scannerError" x-text="scannerError" class="scan-error"></p>
+
+        <button type="button" class="scan-cancel" @click="closeScanner()">Cancelar</button>
+    </div>
+</div>
 
 </div>{{-- /x-data posApp --}}
 
@@ -1494,6 +1685,11 @@ function posApp() {
         isFullscreen: false,
         edit: { open: false, idx: null, qty: 1, precio: 0, descr: '', stock_depo: 0 },
         localAmount: 0,
+        calcAmount: 0,
+        scannerOpen: false,
+        scannerStatus: '',
+        scannerError: '',
+        _scanner: null,
         keyboardVisible: false,
         lastViewportHeight: 0,
 
@@ -1511,6 +1707,14 @@ function posApp() {
             });
 
             const self = this;
+
+            // Con navegación SPA la página no se recarga: todo listener global debe poder quitarse en destroy()
+            this._cleanups = [];
+            const on = (target, evt, fn) => {
+                target.addEventListener(evt, fn);
+                this._cleanups.push(() => target.removeEventListener(evt, fn));
+            };
+            on(document, 'livewire:navigating', () => this.destroy());
 
             // F10 en el input de búsqueda para abrir modal de cobro
             this.$nextTick(() => {
@@ -1531,13 +1735,13 @@ function posApp() {
                 }
             });
 
-            window.addEventListener('keydown', (e) => {
+            on(window, 'keydown', (e) => {
                 if (e.key === 'F11') {
                     e.preventDefault();
                     self.toggleFullscreen();
                 }
             });
-            window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
+            on(window, 'toggle-fullscreen', () => this.toggleFullscreen());
 
             // Listener para evento de fullscreen de Livewire
             if (this.$wire) {
@@ -1549,59 +1753,139 @@ function posApp() {
             // Auto-cargar total cuando se abre el modal de pago
             this.$watch('$wire.showPaymentModal', (isOpen) => {
                 if (isOpen) {
-                    this.$nextTick(() => {
-                        // Calcular el total desde el carrito
-                        const cartTotal = (this.$wire.cart || []).reduce((sum, item) => {
-                            return sum + (item.precio * item.qty);
-                        }, 0);
-                        this.localAmount = cartTotal;
+                    this.$nextTick(async () => {
+                        try {
+                            // Obtener el total desde Livewire
+                            const cartTotal = await this.$wire.call('getCartTotal');
+                            this.localAmount = cartTotal;
+                        } catch (e) {
+                            console.error('Error getting cart total:', e);
+                        }
                         const el = document.getElementById('amount-input');
                         if (el) {
-                            el.focus();
-                            el.select();
+                            this.$nextTick(() => {
+                                el.focus();
+                                el.select();
+                            });
                         }
                     });
                 }
             });
 
-            window.addEventListener('focus-amount', () => {
+            on(window, 'focus-amount', () => {
                 this.$nextTick(() => {
                     this.localAmount = this.$wire.amountReceived;
                     const el = document.getElementById('amount-input');
                     el?.focus(); el?.select();
                 });
             });
-            window.addEventListener('beforeunload', () => document.body.classList.remove('pos-fullscreen'));
-
-            // Listener para abrir PDF cuando se genera factura
-            const self = this;
-            this.$watch(() => this.$wire.lastInvoiceNumber, (newVal) => {
-                if (newVal) {
-                    const pdfUrl = `{{ url('/comprobante') }}/${newVal}/pdf`;
-                    setTimeout(() => {
-                        window.open(pdfUrl, '_blank');
-                    }, 500);
-                    setTimeout(() => {
-                        self.$wire.closePaymentModal();
-                    }, 800);
-                }
-            });
+            on(window, 'beforeunload', () => document.body.classList.remove('pos-fullscreen'));
 
             // Detectar teclado virtual en móviles usando visualViewport
             if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => this.handleViewportChange());
-                window.visualViewport.addEventListener('scroll', () => this.handleViewportChange());
+                on(window.visualViewport, 'resize', () => this.handleViewportChange());
+                on(window.visualViewport, 'scroll', () => this.handleViewportChange());
                 this.lastViewportHeight = window.visualViewport.height;
             }
 
             // Fallback: detectar cambios en innerHeight
-            window.addEventListener('resize', () => this.handleViewportChange());
+            on(window, 'resize', () => this.handleViewportChange());
 
             // Activar pantalla completa automáticamente después de cargar
-            const self = this;
-            setTimeout(() => {
-                try { self.toggleFullscreen(); } catch(e) { console.log('toggleFullscreen error:', e); }
+            const fsTimer = setTimeout(() => {
+                try { if (!self.isFullscreen) self.toggleFullscreen(); } catch(e) { console.log('toggleFullscreen error:', e); }
             }, 1000);
+            this._cleanups.push(() => clearTimeout(fsTimer));
+        },
+
+        destroy() {
+            (this._cleanups || []).forEach(fn => fn());
+            this._cleanups = [];
+            document.body.classList.remove('pos-fullscreen', 'pos-keyboard-visible');
+            this.stopScanner();
+        },
+
+        /* ─── Lector de código de barras con cámara ─── */
+        loadScannerLib() {
+            if (window.Html5Qrcode) return Promise.resolve();
+            if (window._html5qrLoading) return window._html5qrLoading;
+            window._html5qrLoading = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';
+                s.onload = () => resolve();
+                s.onerror = () => { window._html5qrLoading = null; reject(new Error('No se pudo cargar el lector. Verificá tu conexión a internet.')); };
+                document.head.appendChild(s);
+            });
+            return window._html5qrLoading;
+        },
+
+        async openScanner() {
+            this.scannerError = '';
+            this.scannerStatus = 'Iniciando cámara...';
+            this.scannerOpen = true;
+            await this.$nextTick();
+
+            if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+                this.scannerError = 'La cámara solo funciona en una conexión segura (https) y con un navegador compatible.';
+                return;
+            }
+
+            try {
+                await this.loadScannerLib();
+                const F = window.Html5QrcodeSupportedFormats;
+                this._scanner = new Html5Qrcode('barcode-reader', {
+                    formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.QR_CODE],
+                    useBarCodeDetectorIfSupported: true,
+                    verbose: false,
+                });
+                await this._scanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: (w, h) => ({ width: Math.floor(Math.min(w * 0.85, 340)), height: Math.floor(Math.min(h * 0.55, 170)) }) },
+                    (text) => this.onScanSuccess(text),
+                    () => {}
+                );
+                this.scannerStatus = 'Buscando código...';
+            } catch (e) {
+                this.scannerStatus = '';
+                const msg = String(e?.message || e);
+                this.scannerError = /Permission|NotAllowed|denied/i.test(msg)
+                    ? 'No se permitió el acceso a la cámara. Habilitá el permiso en el navegador e intentá de nuevo.'
+                    : /NotFound|no camera|Requested device not found/i.test(msg)
+                        ? 'No se encontró ninguna cámara en este dispositivo.'
+                        : (msg || 'No se pudo iniciar la cámara.');
+                this.stopScanner();
+            }
+        },
+
+        onScanSuccess(text) {
+            if (!text) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.frequency.value = 880;
+                osc.connect(ctx.destination);
+                osc.start();
+                setTimeout(() => { osc.stop(); ctx.close(); }, 120);
+            } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate(60);
+            this.closeScanner();
+            this.$wire.set('search', String(text).trim());
+        },
+
+        async stopScanner() {
+            const sc = this._scanner;
+            this._scanner = null;
+            if (!sc) return;
+            try { await sc.stop(); } catch (e) {}
+            try { sc.clear(); } catch (e) {}
+        },
+
+        async closeScanner() {
+            this.scannerOpen = false;
+            this.scannerStatus = '';
+            this.scannerError = '';
+            await this.stopScanner();
+            this.$nextTick(() => this.$refs.search?.focus());
         },
 
         handleViewportChange() {
@@ -1677,7 +1961,7 @@ function posApp() {
                 document.body.classList.add('pos-fullscreen');
                 // Intentar la API de fullscreen si está disponible
                 try {
-                    document.documentElement.requestFullscreen?.();
+                    document.documentElement.requestFullscreen?.()?.catch(() => {});
                 } catch (e) {
                     // Fallar silenciosamente si no está disponible
                 }

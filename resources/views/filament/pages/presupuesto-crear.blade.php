@@ -154,7 +154,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
-<div x-data="presupApp()" x-init="init()" @focus-search.window="$nextTick(() => { $refs.search?.focus(); $refs.search?.select(); })">
+<div x-data="presupApp()" @focus-search.window="$nextTick(() => { $refs.search?.focus(); $refs.search?.select(); })">
 <div class="pres-wrap">
 
     {{-- ══════ BARRA SUPERIOR ══════ --}}
@@ -420,10 +420,19 @@ function presupApp() {
                 this.results   = v ?? [];
                 this.activeIdx = -1;
             });
-            window.addEventListener('abrir-pdf',       e => window.open(e.detail.url, '_blank'));
-            window.addEventListener('abrir-whatsapp',  e => window.open(e.detail.url, '_blank'));
-            // Coincidencia exacta por código: seleccionar automáticamente
-            window.addEventListener('item-exacto', e => this.setLocalItem(e.detail.item));
+            // Con navegación SPA estos listeners deben quitarse en destroy()
+            const handlers = {
+                'abrir-pdf':      e => window.open(e.detail.url, '_blank'),
+                'abrir-whatsapp': e => window.open(e.detail.url, '_blank'),
+                // Coincidencia exacta por código: seleccionar automáticamente
+                'item-exacto':    e => this.setLocalItem(e.detail.item),
+            };
+            Object.entries(handlers).forEach(([evt, fn]) => window.addEventListener(evt, fn));
+            this._cleanup = () => Object.entries(handlers).forEach(([evt, fn]) => window.removeEventListener(evt, fn));
+        },
+
+        destroy() {
+            this._cleanup?.();
         },
 
         /* Selecciona ítem desde el dropdown */

@@ -50,6 +50,9 @@ class PosPage extends Page
     public float  $amountReceived   = 0;
     public float  $amountQr        = 0;
     public mixed  $lastInvoiceNumber = null;
+    public float  $lastTotal         = 0;
+    public float  $lastReceived      = 0;
+    public string $lastPaymentMethod = 'efectivo';
 
     // Modal de nuevo cliente
     public bool   $showNewClienteModal = false;
@@ -487,6 +490,8 @@ class PosPage extends Page
         $this->showPaymentModal = false;
         $this->amountQr         = 0;
         $this->lastInvoiceNumber = null;
+        $this->lastTotal         = 0;
+        $this->lastReceived      = 0;
         $this->dispatch('focus-search');
     }
 
@@ -611,7 +616,12 @@ class PosPage extends Page
             }
 
             $this->showNewClienteModal = false;
-            $this->dispatch('clienteActualizado', clienteId: $newClienteCode, clienteData: $newCliente);
+            $this->dispatch(
+                'clienteActualizado',
+                clienteId: $newClienteCode,
+                clienteName: $newCliente->custname ?? $this->newClienteName,
+                clienteRuc: $newCliente->ruc ?? $this->newClienteRuc,
+            );
 
             // Recargar los datos del cliente para que se vean los cambios si se abre el modal nuevamente
             $clienteActualizado = DB::connection('delphi')
@@ -749,7 +759,12 @@ class PosPage extends Page
                 }
             });
 
-            // Guardar el número de factura para abrir el PDF automáticamente
+            // Guardar datos de la venta para ofrecer la impresión del ticket
+            $this->lastTotal         = $total;
+            $this->lastPaymentMethod = $this->paymentMethod;
+            $this->lastReceived      = $this->paymentMethod === 'efectivo' && $this->amountReceived > 0
+                ? (float) $this->amountReceived
+                : $total;
             $this->lastInvoiceNumber = $invnr;
 
             $this->cart             = [];

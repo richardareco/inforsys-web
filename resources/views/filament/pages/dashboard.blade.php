@@ -26,6 +26,7 @@
             display: flex !important;
         }
     }
+
 </style>
 
 @php

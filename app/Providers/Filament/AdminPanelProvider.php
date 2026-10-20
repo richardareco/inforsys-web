@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Enums\ThemeMode;
 use Filament\FontProviders\GoogleFontProvider;
 use App\Filament\Pages\Auth\Login;
 use App\Http\Middleware\SetDelphiConnection;
@@ -43,8 +44,14 @@ class AdminPanelProvider extends PanelProvider
                 ? Storage::disk('public')->url(auth()->user()->empresa->logo)
                 : null)
             ->brandLogoHeight('6rem')
+            ->spa()
             ->darkMode(true)
+            ->defaultThemeMode(ThemeMode::Light)
             ->sidebarCollapsibleOnDesktop()
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): string => auth()->check() ? view('filament.components.fullscreen-button')->render() : ''
+            )
             ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 fn (): HtmlString => new HtmlString(
@@ -71,7 +78,10 @@ class AdminPanelProvider extends PanelProvider
 
                     return new HtmlString("
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
+if (window.__accesosMenuInit) return;
+window.__accesosMenuInit = true;
+function aplicarAccesosMenu() {
     const accesos = $accesos;
     const isSuperAdmin = $isSuperAdmin;
 
@@ -106,7 +116,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-});
+}
+document.addEventListener('DOMContentLoaded', aplicarAccesosMenu);
+document.addEventListener('livewire:navigated', aplicarAccesosMenu);
+})();
 </script>
                     ");
                 }
@@ -242,6 +255,202 @@ html:not(.dark) .fi-topbar .fi-icon-btn {
         display: flex !important;
     }
 }
+</style>')
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): HtmlString => new HtmlString('
+<style>
+/* ══ MENÚS: TOQUE MODERNO (sidebar + topbar) ══ */
+.fi-sidebar,
+.fi-sidebar nav,
+.fi-sidebar-nav {
+    background: linear-gradient(180deg, #1e2b3f 0%, #253347 55%, #1b2638 100%) !important;
+}
+.fi-sidebar {
+    box-shadow: 4px 0 24px -8px rgba(15, 23, 42, .35) !important;
+    border-inline-end: 1px solid rgba(255,255,255,.04) !important;
+}
+.fi-sidebar-header,
+.fi-sidebar > div:first-child {
+    background: transparent !important;
+    position: relative;
+}
+.fi-sidebar-header::after {
+    content: "";
+    position: absolute;
+    left: 1rem; right: 1rem; bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+}
+.fi-brand-name {
+    letter-spacing: -.01em !important;
+    font-weight: 800 !important;
+    font-size: 1.15rem !important;
+}
+
+/* Items */
+.fi-sidebar-nav { padding-top: 1rem !important; }
+.fi-sidebar-item-button {
+    border-radius: .8rem !important;
+    padding: .62rem .8rem !important;
+    margin-inline: .15rem;
+    font-weight: 600 !important;
+    transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease !important;
+}
+.fi-sidebar-item-button:hover {
+    background-color: rgba(255,255,255,.09) !important;
+    transform: translateX(3px);
+}
+.fi-sidebar-item-icon,
+.fi-sidebar-item-button svg {
+    transition: color .18s ease, transform .18s ease !important;
+}
+.fi-sidebar-item-button:hover svg { transform: scale(1.1); }
+
+/* Item activo */
+.fi-sidebar-item-active .fi-sidebar-item-button,
+.fi-sidebar-item-button[aria-current="page"],
+.fi-sidebar-item-button.fi-active {
+    background: linear-gradient(135deg, #0047AB 0%, #0a6cdc 100%) !important;
+    box-shadow: 0 6px 16px -4px rgba(10, 108, 220, .55), inset 0 1px 0 rgba(255,255,255,.18) !important;
+    transform: none;
+}
+.fi-sidebar-item-active .fi-sidebar-item-button::before,
+.fi-sidebar-item-button[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: -.45rem; top: 22%; bottom: 22%;
+    width: 4px;
+    border-radius: 9999px;
+    background: #7dd3fc;
+    box-shadow: 0 0 10px rgba(125, 211, 252, .8);
+}
+
+/* Etiquetas de grupo */
+.fi-sidebar-group-label {
+    text-transform: uppercase !important;
+    letter-spacing: .09em !important;
+    font-size: .68rem !important;
+    font-weight: 700 !important;
+    color: rgba(255,255,255,.38) !important;
+}
+.fi-sidebar-group { margin-top: .4rem; }
+
+/* Scroll fino */
+.fi-sidebar-nav::-webkit-scrollbar { width: 6px; }
+.fi-sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 9999px; }
+.fi-sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.26); }
+.fi-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+
+/* Barra superior */
+.fi-topbar nav {
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 rgba(15, 23, 42, .06), 0 8px 24px -16px rgba(15, 23, 42, .25) !important;
+}
+html:not(.dark) .fi-topbar nav {
+    background-color: rgba(255,255,255,.88) !important;
+}
+.fi-topbar .fi-icon-btn { border-radius: .7rem !important; transition: background-color .15s ease !important; }
+.fi-user-menu .fi-avatar {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(0, 71, 171, .35);
+    transition: box-shadow .18s ease;
+}
+.fi-user-menu button:hover .fi-avatar { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0047AB; }
+
+/* Botón colapsar sidebar */
+.fi-sidebar-header .fi-icon-btn {
+    border-radius: .65rem !important;
+    background: rgba(255,255,255,.07) !important;
+}
+.fi-sidebar-header .fi-icon-btn:hover { background: rgba(255,255,255,.15) !important; }
+</style>')
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): HtmlString => new HtmlString('
+<style>
+    /* ══════════ PULIDO VISUAL DEL DASHBOARD (solo apariencia) ══════════ */
+    html:not(.dark) .fi-dashboard-page {
+        background:
+            radial-gradient(900px 380px at 100% -5%, rgba(99, 102, 241, .08), transparent 60%),
+            radial-gradient(700px 360px at -5% 25%, rgba(14, 165, 233, .06), transparent 60%),
+            #ffffff;
+    }
+
+    /* Encabezado */
+    .fi-dashboard-page .fi-header { padding-bottom: .9rem; border-bottom: 1px solid rgba(148, 163, 184, .25); }
+    .fi-dashboard-page .fi-header-heading { letter-spacing: -.025em; color: #0b2a5b; }
+    .dark .fi-dashboard-page .fi-header-heading { color: #f1f5f9; }
+    .fi-dashboard-page .fi-header-subheading { font-size: .95rem; margin-top: .35rem; color: #64748b; }
+
+    /* Botón Exportar PDF */
+    .fi-dashboard-page .fi-header .fi-btn {
+        border-radius: .8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        border: none;
+        box-shadow: 0 8px 18px -8px rgba(79, 70, 229, .6), inset 0 1px 0 rgba(255,255,255,.22);
+        transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+    .fi-dashboard-page .fi-header .fi-btn svg { color: #fff; }
+    .fi-dashboard-page .fi-header .fi-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+    /* Filtro de período */
+    .fi-dashboard-page .fi-fo-select .fi-input-wrp,
+    .fi-dashboard-page .fi-input-wrp {
+        border-radius: .85rem;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .05), inset 0 0 0 1px rgba(148, 163, 184, .35);
+        transition: box-shadow .18s ease;
+    }
+    .fi-dashboard-page .fi-input-wrp:focus-within {
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, .14), inset 0 0 0 1.5px #6366f1;
+    }
+
+    /* Secciones (gráficos, rankings, metas) */
+    .fi-dashboard-page .fi-section {
+        border-radius: 1.2rem;
+        border: 1px solid rgba(148, 163, 184, .22);
+        box-shadow: 0 12px 28px -20px rgba(15, 23, 42, .35), 0 1px 3px rgba(15, 23, 42, .04);
+        --tw-ring-color: transparent;
+        transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .fi-dashboard-page .fi-section:hover {
+        box-shadow: 0 18px 36px -20px rgba(15, 23, 42, .4), 0 1px 3px rgba(15, 23, 42, .05);
+    }
+    .fi-dashboard-page .fi-section-header { border-bottom: 1px solid rgba(148, 163, 184, .18); }
+    .fi-dashboard-page .fi-section-header-heading {
+        font-weight: 800;
+        letter-spacing: -.01em;
+        position: relative;
+        padding-left: .75rem;
+    }
+    .fi-dashboard-page .fi-section-header-heading::before {
+        content: "";
+        position: absolute;
+        left: 0; top: 12%; bottom: 12%;
+        width: 4px;
+        border-radius: 9999px;
+        background: linear-gradient(180deg, #6366f1, #0ea5e9);
+    }
+
+    /* Tablas de rankings */
+    .fi-dashboard-page .fi-section table thead th {
+        font-size: .68rem;
+        letter-spacing: .08em;
+        color: #94a3b8;
+    }
+    .fi-dashboard-page .fi-section table tbody tr { transition: background-color .15s ease; }
+    .fi-dashboard-page .fi-section table tbody tr:hover { background-color: rgba(99, 102, 241, .05); }
+    .fi-dashboard-page .fi-section table tbody tr td:first-child { font-weight: 800; }
+    .fi-dashboard-page .fi-section table tbody tr:nth-child(1) td:first-child { color: #d97706; }
+    .fi-dashboard-page .fi-section table tbody tr:nth-child(2) td:first-child { color: #64748b; }
+    .fi-dashboard-page .fi-section table tbody tr:nth-child(3) td:first-child { color: #b45309; }
+
+    /* Espaciado entre bloques */
+    .fi-dashboard-page .fi-wi { gap: 1.25rem; }
 </style>')
             )
             ->navigationGroups([

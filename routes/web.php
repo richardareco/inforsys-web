@@ -16,6 +16,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comprobante/{invnr}/pdf', [ComprobantePdfController::class, 'generarComprobante'])
         ->name('comprobante.pdf');
 
+    Route::get('/comprobante/{invnr}/ticket', [ComprobantePdfController::class, 'ticket'])
+        ->name('comprobante.ticket');
+
     // Ruta para servir imágenes de productos
     Route::get('/api/item-image/{item}', [ItemImageController::class, 'show'])
         ->name('item-image.show');
