@@ -16,6 +16,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comprobante/{invnr}/pdf', [ComprobantePdfController::class, 'generarComprobante'])
         ->name('comprobante.pdf');
 
+    Route::get('/cierre-caja/imprimir', [ComprobantePdfController::class, 'cierreCaja'])
+        ->name('cierre-caja.imprimir');
     Route::get('/comprobante/{invnr}/ticket', [ComprobantePdfController::class, 'ticket'])
         ->name('comprobante.ticket');
 

@@ -101,6 +101,7 @@ class FinancialStatsWidget extends Widget
             'devolucionesChange' => $this->pctChange($prevDevoluciones, $devoluciones),
             'ganancia'         => $ganancia,
             'gananciaChange'   => $this->pctChange($prevGanancia, $ganancia),
+            'margen'           => $ventas > 0 ? $ganancia / $ventas * 100 : null,
             'cobrar'           => $cobrar,
             'cobrarCount'      => $cobrarCount,
             'pagar'            => $pagar,

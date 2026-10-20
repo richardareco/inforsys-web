@@ -179,6 +179,12 @@ class HistorialVentasResource extends Resource
                     }),
             ])
             ->actions([
+                \Filament\Tables\Actions\Action::make('imprimir')
+                    ->label('Imprimir')
+                    ->icon('heroicon-o-printer')
+                    ->color('primary')
+                    ->url(fn ($record) => url('/comprobante/' . $record->invnr . '/ticket') . '?reimpresion=1')
+                    ->openUrlInNewTab(),
                 ViewAction::make()->label('Ver detalle'),
             ])
             ->defaultSort('fecha', 'desc')

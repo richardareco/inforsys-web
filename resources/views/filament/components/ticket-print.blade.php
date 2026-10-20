@@ -7,6 +7,7 @@
         'transferencia' => 'TRANSFERENCIA',
         'tarjeta' => 'TARJETA',
         'qr' => 'QR',
+        'credito' => 'CRÉDITO',
         default => 'EFECTIVO',
     };
     $pagoMonto = $pago !== null ? (float) $pago : $total;
@@ -103,6 +104,10 @@
 
         <hr class="dash">
         <div class="title">TICKET DE VENTA</div>
+        @if(!empty($reimpresion))
+            <div style="text-align:center;font-weight:700;letter-spacing:1.5px;font-size:11px;margin:-.5mm 0 1.5mm;border:1px solid #000;padding:.6mm 0;">*** REIMPRESIÓN ***</div>
+            <div style="text-align:center;font-size:10px;margin-bottom:1.5mm;">Impreso el {{ now()->format('d/m/Y H:i') }}</div>
+        @endif
 
         <div class="row"><span>Fecha: {{ $fecha }}</span><span>Hora: {{ $hora }}</span></div>
         <div class="row"><span>Caja: {{ $factura->cajanr ?? '-' }}</span><span>Ticket: {{ str_pad($invnr, 6, '0', STR_PAD_LEFT) }}</span></div>
@@ -142,7 +147,7 @@
             <div class="row"><span>IVA 10% (incl.):</span><span>{{ $fmt($iva10) }}</span></div>
             <div class="row total-line"><span>TOTAL GS:</span><span>{{ $fmt($total) }}</span></div>
             <div class="row"><span>PAGO: {{ $medioTxt }}</span><span>{{ $medio === 'efectivo' ? $fmt($pagoMonto) : '' }}</span></div>
-            @if($medio === 'efectivo')
+            @if($medio === 'efectivo' && $pago !== null)
                 <div class="row"><span>VUELTO:</span><span>{{ $fmt($vuelto) }}</span></div>
             @endif
         </div>

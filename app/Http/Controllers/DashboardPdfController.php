@@ -11,7 +11,9 @@ class DashboardPdfController extends Controller
 {
     public function export(Request $request)
     {
-        $period  = str_replace("\u{00F1}", 'n', $request->get('period', 'dia'));
+        \Carbon\Carbon::setLocale('es');
+
+        $period  = str_replace("\u{00F1}", 'n', $request->input('period', 'dia'));
         $user    = Auth::user();
         $empresa = $user->empresa;
 
@@ -155,7 +157,12 @@ class DashboardPdfController extends Controller
 
         $filename = 'dashboard-' . now()->format('Y-m-d') . '.pdf';
 
-        return $pdf->download($filename);
+        // Por defecto se muestra en el navegador; con ?download=1 se descarga
+        if ($request->boolean('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
     }
 
     private function getDateRange(string $period): array

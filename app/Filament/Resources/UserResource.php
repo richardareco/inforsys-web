@@ -162,7 +162,7 @@ class UserResource extends Resource
                                         ->default(false),
 
                                     Checkbox::make('accesos.reportes')
-                                        ->label('Reportes')
+                                        ->label('Informes')
                                         ->default(false),
 
                                     Checkbox::make('accesos.configuraciones')

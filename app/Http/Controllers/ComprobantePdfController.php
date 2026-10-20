@@ -9,6 +9,23 @@ use Illuminate\Support\Facades\Auth;
 
 class ComprobantePdfController extends Controller
 {
+    public function cierreCaja(Request $request)
+    {
+        abort_unless(\App\Filament\Pages\CierreCajaPage::canAccess(), 403);
+
+        $fecha = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $request->query('fecha'))
+            ? $request->query('fecha')
+            : today()->toDateString();
+
+        return view('filament.components.cierre-caja-print', [
+            'd'        => \App\Filament\Pages\CierreCajaPage::datos($fecha),
+            'fecha'    => $fecha,
+            'empresa'  => Auth::user()->empresa,
+            'usuario'  => Auth::user(),
+            'generado' => now()->locale('es')->isoFormat('DD/MM/YYYY [a las] HH:mm'),
+        ]);
+    }
+
     public function ticket(Request $request, $invnr)
     {
         $factura = DB::connection('delphi')->table('invo1')->where('invnr', $invnr)->first();
@@ -18,9 +35,10 @@ class ComprobantePdfController extends Controller
         $cliente  = DB::connection('delphi')->table('cliente')->where('custnr', $factura->custnr)->first();
         $cajero   = DB::connection('delphi')->table('personal')->where('pernr', $factura->pernr)->first();
 
-        $medio = in_array($request->query('medio'), ['efectivo', 'transferencia', 'tarjeta', 'qr'], true)
-            ? $request->query('medio')
-            : 'efectivo';
+        $medio = $request->query('medio');
+        if (!in_array($medio, ['efectivo', 'transferencia', 'tarjeta', 'qr', 'credito'], true)) {
+            $medio = $this->medioDePago($factura);
+        }
         $pago = is_numeric($request->query('pago')) ? (float) $request->query('pago') : null;
 
         return view('filament.components.ticket-print', [
@@ -32,7 +50,28 @@ class ComprobantePdfController extends Controller
             'invnr'    => $invnr,
             'medio'    => $medio,
             'pago'     => $pago,
+            'reimpresion' => $request->boolean('reimpresion'),
         ]);
+    }
+
+    /** Deduce la forma de pago de una venta a partir de su registro en caja. */
+    private function medioDePago(object $factura): string
+    {
+        if ((float) ($factura->acredito ?? 0) > 0) {
+            return 'credito';
+        }
+
+        $caja = $factura->cajanr
+            ? DB::connection('delphi')->table('cajareg')->where('cajanr', $factura->cajanr)->first()
+            : null;
+
+        if ($caja) {
+            $caja = (object) array_change_key_case((array) $caja, CASE_LOWER);
+            if ((float) $caja->paytr > 0) return 'transferencia';
+            if ((float) $caja->paytj > 0) return 'tarjeta';
+        }
+
+        return 'efectivo';
     }
 
     public function generarComprobante($invnr)

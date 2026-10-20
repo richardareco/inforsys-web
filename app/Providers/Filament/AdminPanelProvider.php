@@ -455,6 +455,8 @@ html:not(.dark) .fi-topbar nav {
             )
             ->navigationGroups([
                 'Ventas',
+                'Caja',
+                'Informes',
                 'Configuración',
                 'Administración',
             ])

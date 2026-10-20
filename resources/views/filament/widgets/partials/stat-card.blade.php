@@ -38,6 +38,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.35rem;">
 
         <div>
+            @if ($changeStr !== null && $sub)
+                <p style="font-size:0.62rem;font-weight:600;color:rgba(255,255,255,0.85);margin:0 0 3px;">{{ $sub }}</p>
+            @endif
             @if ($changeStr !== null)
                 <span style="
                     display:inline-flex;align-items:center;gap:3px;

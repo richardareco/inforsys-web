@@ -36,6 +36,7 @@
                 'label'   => 'Ganancia Neta',
                 'value'   => 'Gs. ' . number_format($ganancia, 0, ',', '.'),
                 'change'  => $gananciaChange,
+                'sub'     => $margen !== null ? 'Margen neto ' . number_format($margen, 1, ',', '.') . '%' : null,
                 'icon'    => $ganancia >= 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-arrow-trending-down',
                 'solidBg' => $ganancia >= 0 ? '#15803d' : '#dc2626',
             ],

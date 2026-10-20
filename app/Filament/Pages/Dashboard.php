@@ -2,7 +2,11 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\CuentasVencidasWidget;
 use App\Filament\Widgets\FinancialStatsWidget;
+use App\Filament\Widgets\ProductosSinMovimientoWidget;
+use App\Filament\Widgets\StockBajoWidget;
+use App\Filament\Widgets\VentasCategoriaWidget;
 use App\Filament\Widgets\MetodosPagoChartWidget;
 use App\Filament\Widgets\TopClientesWidget;
 use App\Filament\Widgets\TopProductosWidget;
@@ -38,7 +42,7 @@ class Dashboard extends BaseDashboard
     public function getSubheading(): ?string
     {
         $empresa = Auth::user()->empresa?->nombre;
-        $fecha   = now()->isoFormat('dddd D [de] MMMM [de] YYYY');
+        $fecha   = ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM [de] YYYY'));
 
         return $empresa
             ? "{$empresa} · {$fecha}"
@@ -73,6 +77,10 @@ class Dashboard extends BaseDashboard
             TopProductosWidget::class,
             TopClientesWidget::class,
             VendedoresWidget::class,
+            StockBajoWidget::class,
+            CuentasVencidasWidget::class,
+            VentasCategoriaWidget::class,
+            ProductosSinMovimientoWidget::class,
         ];
     }
 
@@ -86,7 +94,7 @@ class Dashboard extends BaseDashboard
         return [
             Action::make('exportPdf')
                 ->label('Exportar PDF')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon('heroicon-o-document-chart-bar')
                 ->color('gray')
                 ->url(fn () => route('dashboard.export-pdf', [
                     'period' => $this->filters['period'] ?? 'dia',

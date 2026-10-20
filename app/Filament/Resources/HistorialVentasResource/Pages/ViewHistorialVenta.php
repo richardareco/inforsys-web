@@ -13,6 +13,12 @@ class ViewHistorialVenta extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('imprimir')
+                ->label('Imprimir ticket')
+                ->icon('heroicon-o-printer')
+                ->color('primary')
+                ->url(fn () => url('/comprobante/' . $this->record->invnr . '/ticket') . '?reimpresion=1')
+                ->openUrlInNewTab(),
             \Filament\Actions\Action::make('volver')
                 ->label('Volver al listado')
                 ->icon('heroicon-o-arrow-left')
