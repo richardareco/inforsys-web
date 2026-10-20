@@ -955,7 +955,7 @@ body.pos-keyboard-visible .pos-left::after {
 }
 </style>
 
-<div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())">
+<div x-data="posApp()" x-init="init()" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
 
 <!-- Botón de pantalla completa (entrada/salida) -->
 <button @click="toggleFullscreen()"
@@ -1514,6 +1514,16 @@ function posApp() {
                 if (e.key === 'F11') { e.preventDefault(); this.toggleFullscreen(); }
             });
             window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
+
+            // Listener para evento de fullscreen de Livewire
+            this.$watch(() => this.$wire, (wire) => {
+                if (wire) {
+                    wire.on('toggle-fullscreen', () => {
+                        window.dispatchEvent(new Event('toggle-fullscreen'));
+                    });
+                }
+            }, { immediate: true });
+
             window.addEventListener('focus-amount', () => {
                 this.$nextTick(() => {
                     this.localAmount = this.$wire.amountReceived;
