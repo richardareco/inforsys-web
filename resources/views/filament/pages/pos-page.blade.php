@@ -1455,9 +1455,10 @@ body.pos-keyboard-visible .pos-left::after {
             <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;">
                 <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
                 <input id="amount-input" type="number"
-                    x-model="localAmount"
+                    x-model.number="localAmount"
                     style="width:100%;padding:.6rem;border-radius:.7rem;border:1.5px solid #86efac;background:white;font-size:1.25rem;font-weight:800;text-align:center;outline:none;"
-                    @focus="$event.target.select()" />
+                    @focus="$event.target.select()"
+                    @keydown.enter.prevent="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())" />
                 @php $cartTotal = $this->getCartTotal(); @endphp
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
                     <p style="font-size:.8rem;font-weight:600;color:#166534;">Vuelto:</p>
@@ -1510,9 +1511,15 @@ function posApp() {
             });
 
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'F10') { e.preventDefault(); this.$wire.openPaymentModal(); }
-                if (e.key === 'F11') { e.preventDefault(); this.toggleFullscreen(); }
-            });
+                if (e.key === 'F10') {
+                    e.preventDefault();
+                    this.$wire.openPaymentModal();
+                }
+                if (e.key === 'F11') {
+                    e.preventDefault();
+                    this.toggleFullscreen();
+                }
+            }.bind(this));
             window.addEventListener('toggle-fullscreen', () => this.toggleFullscreen());
 
             // Listener para evento de fullscreen de Livewire
@@ -1521,6 +1528,23 @@ function posApp() {
                     this.toggleFullscreen();
                 });
             }
+
+            // Auto-cargar total cuando se abre el modal de pago
+            this.$watch('$wire.showPaymentModal', (isOpen) => {
+                if (isOpen) {
+                    this.$nextTick(() => {
+                        // Usar Livewire para calcular el total dinámicamente
+                        this.$wire.call('getCartTotal').then((total) => {
+                            this.localAmount = total;
+                            const el = document.getElementById('amount-input');
+                            if (el) {
+                                el.focus();
+                                el.select();
+                            }
+                        });
+                    });
+                }
+            });
 
             window.addEventListener('focus-amount', () => {
                 this.$nextTick(() => {
