@@ -1422,7 +1422,7 @@ body.pos-keyboard-visible .pos-left::after {
 {{-- ══════════════ MODAL: COBRO ══════════════ --}}
 @if($showPaymentModal)
 <div class="modal-back" @keydown.escape.window="$wire.closePaymentModal()" @keydown.enter.window="$wire.set('amountReceived', localAmount).then(() => $wire.confirmSale())" wire:watch="lastInvoiceNumber">
-    <div class="modal-box" style="max-width:420px;" @click.stop>
+    <div class="modal-box" style="max-width:550px;" @click.stop>
         <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);margin:-1.4rem -1.4rem 1.1rem;padding:1.1rem 1.35rem;border-radius:.85rem .85rem 0 0;">
             <p style="font-size:1rem;font-weight:900;color:white;">Cobrar Venta</p>
             <p style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:.1rem;">Seleccioná la forma de pago</p>
@@ -1516,10 +1516,9 @@ function posApp() {
             this.$nextTick(() => {
                 const searchInput = document.querySelector('input[placeholder*="Buscar"]');
                 if (searchInput) {
-                    searchInput.addEventListener('keydown', (e) => {
+                    searchInput.addEventListener('keydown', function(e) {
                         if (e.key === 'F10') {
                             e.preventDefault();
-                            // Hacer click en el botón COBRAR
                             const buttons = document.querySelectorAll('button');
                             for (let btn of buttons) {
                                 if (btn.textContent.includes('COBRAR')) {
@@ -1528,7 +1527,7 @@ function posApp() {
                                 }
                             }
                         }
-                    });
+                    }.bind(this));
                 }
             });
 
