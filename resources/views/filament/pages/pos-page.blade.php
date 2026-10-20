@@ -1105,7 +1105,7 @@ body.pos-keyboard-visible .pos-left::after {
 .scan-close svg { width: 1rem; height: 1rem; }
 .scan-view {
     border-radius: 1rem; overflow: hidden; background: #0f172a;
-    min-height: 220px; box-shadow: inset 0 0 0 2px rgba(99, 102, 241, .35);
+    min-height: 160px; position: relative; box-shadow: inset 0 0 0 2px rgba(99, 102, 241, .35);
 }
 #barcode-reader { width: 100%; }
 #barcode-reader video { width: 100% !important; display: block; }
@@ -1900,6 +1900,22 @@ function posApp() {
             try {
                 await this.loadScannerLib();
                 const F = window.Html5QrcodeSupportedFormats;
+
+                // La librería decodifica a la resolución con que se DIBUJA el video. En una ventana chica el código
+                // queda aplastado y no se lee, así que el lector trabaja en un lienzo grande y se muestra reducido.
+                const host = document.getElementById('barcode-reader');
+                const wrap = host.parentElement;
+                const LIENZO = 1280;
+                host.style.width = LIENZO + 'px';
+                host.style.transformOrigin = 'top left';
+                host.style.transform = 'none';
+                wrap.style.height = '';
+                this._ajustarVisor = () => {
+                    const s = wrap.clientWidth / LIENZO;
+                    host.style.transform = `scale(${s})`;
+                    wrap.style.height = Math.max(160, Math.round(host.offsetHeight * s)) + 'px';
+                };
+                this._ajustarVisor();
                 this._scanner = new Html5Qrcode('barcode-reader', {
                     formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.CODE_128, F.CODE_39, F.CODE_93, F.ITF, F.QR_CODE],
                     experimentalFeatures: { useBarCodeDetectorIfSupported: true },
@@ -1924,6 +1940,8 @@ function posApp() {
                 );
                 // Enfoque continuo si la cámara lo soporta (si no, se ignora)
                 try { await this._scanner.applyVideoConstraints({ focusMode: 'continuous' }); } catch (e) {}
+                // El video tarda en tener su tamaño final: se reajusta el visor reducido varias veces
+                [150, 500, 1200].forEach(ms => setTimeout(() => this._ajustarVisor?.(), ms));
                 this.scannerStatus = 'Acercá el código, con buena luz, y mantenelo quieto.';
             } catch (e) {
                 this.scannerStatus = '';
