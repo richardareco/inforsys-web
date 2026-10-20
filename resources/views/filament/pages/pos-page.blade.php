@@ -957,7 +957,8 @@ body.pos-keyboard-visible .pos-left::after {
     box-shadow: 0 12px 24px -12px rgba(79, 70, 229, .35);
     transform: translateY(-3px);
 }
-.product-image { border-radius: .75rem; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); }
+.product-image { border-radius: .75rem; background: #ffffff; }
+.mob-item-image, .cart-item-image { background: #ffffff; }
 .product-add-btn {
     background: linear-gradient(135deg, #6366f1, #7c3aed);
     border-radius: .7rem;
@@ -1046,6 +1047,36 @@ body.pos-keyboard-visible .pos-left::after {
 }
 .pm-confirm:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .pm-confirm:disabled { opacity: .7; cursor: wait; transform: none; }
+
+
+/* Categorías: chips más grandes y modernos */
+.pos-cats { display: flex; flex-wrap: wrap; gap: .5rem; padding: .35rem 0 .25rem; }
+.pos-cat {
+    padding: .45rem 1.05rem;
+    border-radius: 9999px;
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
+}
+.pos-cat:hover { background: #eef2ff; border-color: #a5b4fc; color: #4338ca; transform: translateY(-1px); }
+.pos-cat.on {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 8px 16px -8px rgba(79, 70, 229, .75);
+}
+.pos-cat.on:hover { color: #ffffff; filter: brightness(1.06); }
+@media (max-width: 768px) {
+    .pos-cat { padding: .38rem .85rem; font-size: .74rem; }
+}
 
 /* Botón y modal del lector de código de barras */
 .pos-scan-btn {
@@ -1160,22 +1191,12 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
 
                 {{-- Categorías (primeras 5) --}}
-                <div style="display:flex;gap:.2rem;overflow-x:auto;padding:.15rem 0 .1rem !important;margin-top:.08rem !important;flex-wrap:wrap;">
-                    <button
-                        wire:click="$set('categoriaId', null)"
-                        style="padding:.15rem .35rem !important;border-radius:.3rem;border:1px solid;font-size:.55rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink: 0;
-                        {{ $categoriaId === null ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
-                        onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
-                        onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
+                <div class="pos-cats">
+                    <button type="button" wire:click="$set('categoriaId', null)" class="pos-cat {{ $categoriaId === null ? 'on' : '' }}">
                         Todos
                     </button>
                     @foreach(array_slice($categorias, 0, 5) as $cat)
-                        <button
-                            wire:click="$set('categoriaId', '{{ $cat->grupnr }}')"
-                            style="padding:.15rem .35rem !important;border-radius:.3rem;border:1px solid;font-size:.55rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink: 0;
-                            {{ $categoriaId === $cat->grupnr ? 'background:#4f46e5;color:white;border-color:#4f46e5;' : 'background:#f3f4f6;color:#6b7280;border-color:#d1d5db;' }}"
-                            onmouseover="if(this.style.borderColor=='#d1d5db')this.style.background='#ede9fe'"
-                            onmouseout="if(this.style.borderColor=='#d1d5db')this.style.background='#f3f4f6'">
+                        <button type="button" wire:click="$set('categoriaId', '{{ $cat->grupnr }}')" class="pos-cat {{ $categoriaId === $cat->grupnr ? 'on' : '' }}">
                             {{ $cat->descr }}
                         </button>
                     @endforeach
