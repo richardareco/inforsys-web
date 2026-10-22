@@ -706,11 +706,11 @@ html {
 .dark .cart-footer { background: #1f2937; border-color: #374151; }
 .cobrar-btn {
     display: flex; align-items: center; gap: .3rem; padding: .5rem .7rem;
-    background: #4f46e5; color: white; font-weight: 900; font-size: .75rem;
+    background: #10b981; color: white; font-weight: 900; font-size: .75rem;
     border: none; border-radius: .75rem; cursor: pointer;
-    box-shadow: 0 3px 12px rgba(79,70,229,.35); transition: all .15s; white-space: nowrap;
+    box-shadow: 0 3px 12px rgba(5,150,105,.35); transition: all .15s; white-space: nowrap;
 }
-.cobrar-btn:hover { background: #4338ca; transform: translateY(-1px); }
+.cobrar-btn:hover { background: #059669; transform: translateY(-1px); }
 .cobrar-btn:active { transform: scale(.97); }
 .cobrar-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
 
@@ -916,6 +916,116 @@ body.pos-keyboard-visible .pos-left::after {
     order: 100;
 }
 
+/* ══════════════ MODO "APP" EN PANTALLAS CHICAS (celular / tablet) ══════════════ */
+@media (max-width: 1024px) {
+    html:has(body.pos-app) { overflow: hidden; overscroll-behavior: none; }
+    body.pos-app {
+        overflow: hidden;
+        overscroll-behavior: none;            /* sin "rebote" ni recarga al deslizar hacia abajo */
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;           /* sin zoom por doble toque */
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    body.pos-app input, body.pos-app textarea { -webkit-user-select: text; user-select: text; }
+
+    /* iOS/Safari hace zoom automático al enfocar un campo con letra menor a 16 px: se evita con 16 px */
+    body.pos-app input:not([type="checkbox"]):not([type="radio"]),
+    body.pos-app select,
+    body.pos-app textarea { font-size: 16px !important; }
+
+    /* Sin título de página ni márgenes: el punto de venta ocupa toda la pantalla bajo la barra superior */
+    body.pos-app .fi-header { display: none !important; }
+    body.pos-app .fi-main { padding: 0 !important; max-width: none !important; }
+    body.pos-app .fi-page,
+    body.pos-app .fi-page > section { padding: 0 !important; margin: 0 !important; row-gap: 0 !important; background: #fff !important; }
+    body.pos-app .pos-wrap {
+        height: calc(100dvh - 4rem) !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        width: 100% !important;
+    }
+}
+
+/* ══════════ CELULAR (hasta 767 px): catálogo como vista principal + panel de venta a pantalla completa ══════════ */
+.pos-mbar, .pos-cart-back, .pos-mempty { display: none; }
+
+@media (max-width: 767px) {
+    body.pos-app { overflow-x: hidden; }
+    body.pos-app .pos-wrap { display: flex !important; flex-direction: column; overflow: hidden !important; max-width: 100vw; }
+
+    /* Catálogo: ocupa todo el alto disponible; solo se desliza la lista de productos */
+    body.pos-app .pos-left { flex: 1 1 0 !important; min-height: 0 !important; min-width: 0; display: flex; flex-direction: column; overflow: hidden !important; }
+    body.pos-app .pos-left-top { flex: 1 1 0 !important; min-height: 0; min-width: 0; display: flex !important; flex-direction: column; overflow: hidden !important; }
+    body.pos-app .pos-left-top > * { min-width: 0; max-width: 100%; }
+    body.pos-app .mobile-dropdown { flex: 1 1 0 !important; min-height: 0; max-height: none !important; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    body.pos-app .mobile-dropdown:not(.show) { display: none !important; }
+    body.pos-app .mobile-products-grid { padding-bottom: .75rem; }
+    body.pos-app .mob-item { min-width: 0; }
+    body.pos-app .mob-item-info { min-width: 0; }
+    body.pos-app .mob-item-name { overflow-wrap: anywhere; }
+    body.pos-app .pos-cats { flex-shrink: 0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: .4rem; -webkit-overflow-scrolling: touch; }
+    body.pos-app .pos-mempty {
+        flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: .5rem; text-align: center; color: #94a3b8; font-size: .95rem; padding: 1rem;
+    }
+    body.pos-app .pos-mempty svg { width: 3rem; height: 3rem; }
+    body.pos-app .mobile-dropdown.show ~ .pos-mempty { display: none; }
+
+    /* Barra inferior: cantidad, total y "Ver venta" */
+    body.pos-app .pos-mbar {
+        order: 3; flex: 0 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: .5rem;
+        padding: .6rem .85rem .65rem;
+        background: #ffffff; border-top: 1px solid #e2e8f0;
+        box-shadow: 0 -10px 22px -16px rgba(15, 23, 42, .45);
+        position: relative; z-index: 10;
+    }
+    body.pos-app .pos-mbar-info { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; min-width: 0; line-height: 1.1; }
+    body.pos-app .pos-mbar-count { font-size: .74rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    body.pos-app .pos-mbar-total { font-size: 1.4rem; font-weight: 900; color: #0047AB; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.pos-app .pos-mbar-btn {
+        width: 100%; height: 3.1rem; padding: 0 1.1rem; border: none; border-radius: 1rem;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; font-size: 1.05rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center; gap: .6rem; cursor: pointer;
+        box-shadow: 0 10px 20px -10px rgba(79, 70, 229, .75);
+        transition: transform .15s ease, opacity .15s ease;
+    }
+    body.pos-app .pos-mbar-btn:active { transform: scale(.98); }
+    body.pos-app .pos-mbar-btn:disabled { opacity: .45; box-shadow: none; cursor: not-allowed; }
+    body.pos-app .pos-mbar-btn svg { width: 1.35rem; height: 1.35rem; flex-shrink: 0; }
+
+    /* Panel de venta (carrito + cobro): pantalla completa bajo la barra superior */
+    body.pos-app .pos-cart { display: none !important; }
+    body.pos-app .pos-cart.mob-open {
+        display: flex !important; flex-direction: column;
+        position: fixed; top: 4rem; left: 0; right: 0; bottom: var(--mnav-h, 0px); z-index: 15;
+        width: 100% !important; max-width: 100vw; height: auto !important; max-height: none !important; min-height: 0;
+        background: #ffffff; overflow: hidden; border: none; box-shadow: none;
+    }
+    body.pos-app .pos-cart.mob-open > * { min-width: 0; max-width: 100%; }
+    body.pos-app .pos-cart-back {
+        display: flex; align-items: center; gap: .55rem; flex: 0 0 auto; width: 100%;
+        padding: .9rem 1rem; border: none; border-bottom: 1px solid #e2e8f0; background: #f8fafc;
+        color: #4338ca; font-size: .98rem; font-weight: 800; text-align: left; cursor: pointer;
+    }
+    body.pos-app .pos-cart-back svg { width: 1.15rem; height: 1.15rem; flex-shrink: 0; }
+    body.pos-app .pos-cart.mob-open .cart-body {
+        flex: 1 1 0 !important; min-height: 0 !important; max-height: none !important;
+        overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+    }
+    body.pos-app .pos-cart.mob-open .cart-header { padding: .5rem .75rem !important; flex: 0 0 auto; }
+    body.pos-app .pos-cart.mob-open #cart-footer-compact {
+        flex: 0 0 auto; padding: .6rem .85rem !important;
+    }
+    body.pos-app .pos-cart.mob-open #cart-footer-compact .cobrar-btn { height: 3.1rem !important; font-size: 1rem !important; border-radius: 1rem; gap: .5rem !important; }
+    body.pos-app .pos-cart.mob-open #cart-footer-compact .cobrar-btn svg { width: 1.3rem !important; height: 1.3rem !important; }
+    body.pos-app .cart-row { min-width: 0; }
+    body.pos-app .cart-row p { overflow-wrap: anywhere; }
+}
+
 /* ══════════════ PULIDO VISUAL (solo apariencia) ══════════════ */
 .pos-wrap {
     border: 1px solid rgba(148, 163, 184, .28);
@@ -989,16 +1099,17 @@ body.pos-keyboard-visible .pos-left::after {
 .cart-summary { background: #f8fafc; border-top: 1px solid #e2e8f0; }
 .cart-footer { border-top: 1px solid #e2e8f0; background: linear-gradient(180deg, #ffffff, #f8fafc); }
 
-/* Botón cobrar */
+/* Botón cobrar (verde) */
 .cobrar-btn {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
     border-radius: .9rem;
-    box-shadow: 0 8px 18px -6px rgba(79, 70, 229, .55), inset 0 1px 0 rgba(255, 255, 255, .22);
+    box-shadow: 0 8px 18px -6px rgba(5, 150, 105, .55), inset 0 1px 0 rgba(255, 255, 255, .25);
     transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
 .cobrar-btn:hover {
-    background: linear-gradient(135deg, #4338ca, #6d28d9);
-    box-shadow: 0 12px 24px -8px rgba(79, 70, 229, .65), inset 0 1px 0 rgba(255, 255, 255, .25);
+    background: linear-gradient(135deg, #059669, #047857);
+    box-shadow: 0 12px 24px -8px rgba(5, 150, 105, .65), inset 0 1px 0 rgba(255, 255, 255, .25);
 }
 .cobrar-btn:disabled { background: #e5e7eb; box-shadow: none; }
 
@@ -1123,9 +1234,23 @@ body.pos-keyboard-visible .pos-left::after {
     .modal-box[style*="max-width:420px"] { max-width: 420px !important; width: 100% !important; padding: 1.4rem !important; }
     .modal-box[style*="max-width:480px"] { max-width: 480px !important; width: 100% !important; padding: 1.4rem !important; }
 }
+
+/* Celular: los modales (cobro, impresión) se centran en pantalla, con ancho cómodo */
+@media (max-width: 639px) {
+    .modal-back { align-items: center !important; justify-content: center; padding: 1rem; }
+    .modal-box {
+        width: 100% !important; max-width: 26rem !important; border-radius: 1.4rem !important;
+        padding: 1.1rem !important; font-size: .95rem !important; max-height: calc(100dvh - 2rem);
+        box-shadow: 0 30px 70px -20px rgba(15, 23, 42, .55), 0 0 0 1px rgba(148, 163, 184, .18);
+    }
+    .modal-box[style*="max-width:550px"] > div:first-child { margin: -1.1rem -1.1rem 1rem !important; border-radius: 1.4rem 1.4rem 0 0 !important; }
+    .modal-box .pay-method { min-width: 0; flex: 1 1 0; padding: .6rem .25rem; font-size: .72rem; }
+    .modal-box .pm-confirm { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 8px 18px -8px rgba(5, 150, 105, .65) !important; height: 3rem; }
+    .modal-box .pm-cancel { height: 3rem; }
+}
 </style>
 
-<div x-data="posApp()" data-cart-key="pos-cart:{{ auth()->id() }}:{{ auth()->user()?->empresa_id ?? 0 }}" @focus-search.window="$nextTick(() => $refs.search?.focus())" @toggle-fullscreen.window="toggleFullscreen()">
+<div x-data="posApp()" data-cart-key="pos-cart:{{ auth()->id() }}:{{ auth()->user()?->empresa_id ?? 0 }}" @focus-search.window="$nextTick(() => { if (window.innerWidth > 767) $refs.search?.focus() })" @toggle-fullscreen.window="toggleFullscreen()">
 
 <div class="pos-wrap">
 
@@ -1177,7 +1302,6 @@ body.pos-keyboard-visible .pos-left::after {
                     type="text"
                     wire:model.live.debounce.200ms="search"
                     x-ref="search"
-                    autofocus
                     placeholder="Buscar producto..."
                     class="pos-search"
                     @keydown.arrow-down.prevent="arrowDown()"
@@ -1206,7 +1330,8 @@ body.pos-keyboard-visible .pos-left::after {
                 <div class="mobile-dropdown {{ count($searchResults) > 0 ? 'show' : '' }}">
                     <div class="mobile-products-grid">
                         @foreach($searchResults as $i => $product)
-                        <div class="mob-item" wire:click="addToCart('{{ $product->item }}')">
+                        @continue(blank(trim((string) ($product->item ?? ''))))
+                        <div class="mob-item" wire:click="addToCartKeepSearch('{{ $product->item }}')">
                             <img
                                 src="{{ route('item-image.show', ['item' => $product->item]) }}"
                                 alt="{{ $product->descr }}"
@@ -1224,7 +1349,7 @@ body.pos-keyboard-visible .pos-left::after {
                                     <p class="mob-item-price">Gs. {{ number_format($product->precio, 0, ',', '.') }}</p>
                                 </div>
                             </div>
-                            <button class="mob-item-add-btn" @click.stop="$wire.addToCart('{{ $product->item }}')">
+                            <button class="mob-item-add-btn" @click.stop="$wire.addToCartKeepSearch('{{ $product->item }}')">
                                 <svg style="width:.8rem;height:.8rem" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                                 </svg>
@@ -1233,6 +1358,12 @@ body.pos-keyboard-visible .pos-left::after {
                         @endforeach
                     </div>
                 </div>
+                @if(count($searchResults) === 0)
+                    <div class="pos-mempty">
+                        <svg fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <span>@if(strlen(trim($search)) >= 2)Sin resultados para "{{ $search }}"@else Buscá un producto o elegí una categoría @endif</span>
+                    </div>
+                @endif
         </div>
 
         {{-- Grid de productos (solo desktop) --}}
@@ -1240,6 +1371,7 @@ body.pos-keyboard-visible .pos-left::after {
             @if(count($searchResults) > 0)
                 <div class="products-grid">
                     @foreach($searchResults as $i => $product)
+                        @continue(blank(trim((string) ($product->item ?? ''))))
                         <div
                             class="product-card"
                             :class="activeIdx === {{ $i }} ? 'border-indigo-400 shadow-md' : ''"
@@ -1293,7 +1425,13 @@ body.pos-keyboard-visible .pos-left::after {
     </div>
 
     {{-- ══════ PANEL DERECHO: carrito ══════ --}}
-    <div class="pos-cart">
+    <div class="pos-cart" :class="{ 'mob-open': mobileCartOpen }">
+
+        {{-- Volver al catálogo (solo celular) --}}
+        <button type="button" class="pos-cart-back" @click="mobileCartOpen = false">
+            <svg fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+            Seguir agregando productos
+        </button>
 
         {{-- Encabezado: Cliente + Total --}}
         <div class="cart-header" style="padding:.5rem .75rem;display:flex;flex-direction:column;gap:.35rem;">
@@ -1468,20 +1606,6 @@ body.pos-keyboard-visible .pos-left::after {
 
         {{-- Footer: botones --}}
         <div class="cart-footer" style="gap:.5rem;" id="cart-footer-full">
-            {{-- Guardar (sin acción por ahora) --}}
-            <button type="button" {{ empty($cart) ? 'disabled' : '' }}
-                style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.25rem;padding:.5rem .7rem;
-                    background:#f3f4f6;color:#4b5563;font-weight:700;font-size:.75rem;
-                    border:1.5px solid #d1d5db;border-radius:.75rem;cursor:pointer;
-                    transition:all .15s;white-space:nowrap;flex:1;"
-                onmouseover="if(!this.disabled)this.style.background='#e5e7eb'"
-                onmouseout="this.style.background='#f3f4f6'">
-                <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
-                </svg>
-                Guardar
-            </button>
-
             {{-- Cobrar --}}
             <button wire:click="openPaymentModal" class="cobrar-btn" style="flex:1;flex-direction:column;justify-content:center;gap:.25rem;padding:.5rem .7rem;display:flex;align-items:center;font-size:.75rem;" {{ empty($cart) ? 'disabled' : '' }}>
                 <svg style="width:.9rem;height:.9rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1506,18 +1630,6 @@ body.pos-keyboard-visible .pos-left::after {
             </div>
             {{-- Fila 2: Botones --}}
             <div style="display:flex;gap:.3rem;width:100%;">
-                <button type="button" {{ empty($cart) ? 'disabled' : '' }}
-                    style="display:flex;align-items:center;justify-content:center;padding:.4rem;flex:1;
-                        background:#f3f4f6;color:#4b5563;font-weight:700;font-size:.65rem;
-                        border:1px solid #d1d5db;border-radius:.5rem;cursor:pointer;
-                        transition:all .15s;height:2.4rem;gap:.25rem;"
-                    onmouseover="if(!this.disabled)this.style.background='#e5e7eb'"
-                    onmouseout="this.style.background='#f3f4f6'">
-                    <svg style="width:.7rem;height:.7rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
-                    </svg>
-                    <span>Guardar</span>
-                </button>
                 <button wire:click="openPaymentModal" class="cobrar-btn" style="display:flex;align-items:center;justify-content:center;padding:.4rem;flex:1.2;font-size:.65rem;font-weight:700;gap:.25rem;height:2.4rem;" {{ empty($cart) ? 'disabled' : '' }}>
                     <svg style="width:.7rem;height:.7rem" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>
@@ -1528,6 +1640,18 @@ body.pos-keyboard-visible .pos-left::after {
         </div>
 
     </div>{{-- /pos-cart --}}
+
+    {{-- Barra inferior (solo celular): cantidad, total y acceso al panel de venta --}}
+    <div class="pos-mbar">
+        <div class="pos-mbar-info">
+            <span class="pos-mbar-count">{{ count($cart) }} producto{{ count($cart) !== 1 ? 's' : '' }}</span>
+            <span class="pos-mbar-total">Gs.&nbsp;{{ number_format($this->getCartTotal(), 0, ',', '.') }}</span>
+        </div>
+        <button type="button" class="pos-mbar-btn" @click="mobileCartOpen = true" {{ empty($cart) ? 'disabled' : '' }}>
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.36-1.99 1.26 12c.07.66-.45 1.24-1.12 1.24H4.25c-.67 0-1.19-.58-1.12-1.24l1.26-12a1.13 1.13 0 0 1 1.12-1.01h13.1c.58 0 1.07.44 1.12 1.01Z"/></svg>
+            Ver venta
+        </button>
+    </div>
 
 </div>{{-- /pos-wrap --}}
 
@@ -1540,14 +1664,14 @@ body.pos-keyboard-visible .pos-left::after {
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Cantidad</label>
         <div class="qty-ctrl">
             <button class="qty-btn" @click="if(edit.qty > 1) edit.qty--">−</button>
-            <input class="qty-num" type="number" min="1" x-model.number="edit.qty" @change="if(edit.qty > edit.stock_depo && edit.stock_depo > 0) { edit.qty = edit.stock_depo }" />
+            <input class="qty-num" type="number" inputmode="numeric" min="1" x-model.number="edit.qty" @change="if(edit.qty > edit.stock_depo && edit.stock_depo > 0) { edit.qty = edit.stock_depo }" />
             <button class="qty-btn" @click="if(edit.qty < edit.stock_depo) { edit.qty++ } else if(edit.stock_depo > 0) { $dispatch('notify', {type: 'warning', title: 'Stock insuficiente', message: 'No hay suficiente stock disponible'}) }">+</button>
         </div>
 
         <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;display:block;margin-bottom:.4rem;">Precio unitario (Gs.)</label>
         <input
             id="edit-precio"
-            type="number" min="0"
+            type="number" inputmode="numeric" min="0"
             x-model.number="edit.precio"
             style="width:100%;padding:.75rem;border-radius:.8rem;border:2px solid #6366f1;font-size:1.4rem;font-weight:800;text-align:center;color:#111827;background:white;outline:none;box-shadow:0 0 0 3px rgba(99,102,241,.12);margin-bottom:.85rem;"
             @focus="$event.target.select()"
@@ -1601,7 +1725,7 @@ body.pos-keyboard-visible .pos-left::after {
             @if($paymentMethod === 'efectivo')
             <div style="background:#f0fdf4;border-radius:.8rem;padding:.85rem;margin-bottom:.9rem;" class="pm-monto">
                 <label style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;display:block;margin-bottom:.35rem;">Monto recibido</label>
-                <input id="amount-input" type="number"
+                <input id="amount-input" type="number" inputmode="numeric"
                     data-total="{{ (float) $this->getCartTotal() }}"
                     oninput="clearTimeout(window._vueltoT); const el=this; window._vueltoT=setTimeout(()=>{ const t=parseFloat(el.dataset.total)||0, m=parseFloat(el.value)||0, v=document.getElementById('vuelto-text'); if(!v) return; v.textContent='Gs. '+new Intl.NumberFormat('es-PY').format(Math.max(0,m-t)); v.style.color = m>=t ? '#16a34a' : '#dc2626'; }, 600)"
                     x-init="localAmount = {{ (float) $this->getCartTotal() }}; $nextTick(() => { $el.focus(); $el.select(); })"
@@ -1708,6 +1832,7 @@ function posApp() {
         localAmount: 0,
         calcAmount: 0,
         cartKey: '',
+        mobileCartOpen: false,
         scannerOpen: false,
         scannerStatus: '',
         scannerError: '',
@@ -1720,7 +1845,7 @@ function posApp() {
 
             // Persistencia del carrito en el navegador: sobrevive a recargas y cierres accidentales
             this.cartKey = this.$el.dataset.cartKey;
-            this.$watch('$wire.cart', () => this.persistCart());
+            this.$watch('$wire.cart', (c) => { this.persistCart(); if (!(c || []).length) this.mobileCartOpen = false; });
             this.$watch('$wire.clienteId', () => this.persistCart());
             this.$watch('$wire.depositoId', () => this.persistCart());
             const restoreTimer = setTimeout(() => this.restoreSavedCart(), 700);
@@ -1821,11 +1946,15 @@ function posApp() {
             // Fallback: detectar cambios en innerHeight
             on(window, 'resize', () => this.handleViewportChange());
 
-            // Activar pantalla completa automáticamente después de cargar
-            const fsTimer = setTimeout(() => {
-                try { if (!self.isFullscreen) self.toggleFullscreen(); } catch(e) { console.log('toggleFullscreen error:', e); }
-            }, 1000);
-            this._cleanups.push(() => clearTimeout(fsTimer));
+            // Modo "app": en pantallas chicas Ventas ocupa exactamente la pantalla, sin scroll de página.
+            // Ya no se activa la pantalla completa sola (provocaba parpadeos en celular y tablet).
+            document.body.classList.add('pos-app');
+
+            // Foco inicial en el buscador solo en escritorio/tablet grande (lector USB de códigos).
+            // En celular no se enfoca solo: el catálogo es la vista principal y no debe abrirse el teclado.
+            if (window.innerWidth > 767) {
+                this.$nextTick(() => this.$refs.search?.focus());
+            }
         },
 
         /* ─── Carrito guardado en el navegador ─── */
@@ -1868,7 +1997,8 @@ function posApp() {
             clearTimeout(this._restoreTimer);
             (this._cleanups || []).forEach(fn => fn());
             this._cleanups = [];
-            document.body.classList.remove('pos-fullscreen', 'pos-keyboard-visible');
+            clearTimeout(this._kbTimer);
+            document.body.classList.remove('pos-fullscreen', 'pos-keyboard-visible', 'pos-app');
             this.stopScanner();
         },
 
@@ -1987,17 +2117,21 @@ function posApp() {
         },
 
         handleViewportChange() {
-            const currentHeight = window.visualViewport?.height || window.innerHeight;
-            const heightRatio = currentHeight / (window.visualViewport?.scale || 1) / window.screen.height;
+            // Con debounce: la barra de direcciones del navegador móvil dispara muchos "resize" al hacer scroll
+            // y reacomodar el diseño en cada uno se veía como un parpadeo.
+            clearTimeout(this._kbTimer);
+            this._kbTimer = setTimeout(() => {
+                const h = window.visualViewport?.height || window.innerHeight;
+                const ratio = h / (window.visualViewport?.scale || 1) / window.screen.height;
+                // Solo cuenta como teclado abierto si hay un campo de texto enfocado y la altura cayó bastante
+                const escribiendo = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+                const abierto = escribiendo && ratio < 0.7;
 
-            // Si la altura visible es menos del 70% de la altura de pantalla, probablemente el teclado está abierto
-            if (heightRatio < 0.7 && !this.keyboardVisible) {
-                this.keyboardVisible = true;
-                document.body.classList.add('pos-keyboard-visible');
-            } else if (heightRatio >= 0.7 && this.keyboardVisible) {
-                this.keyboardVisible = false;
-                document.body.classList.remove('pos-keyboard-visible');
-            }
+                if (abierto !== this.keyboardVisible) {
+                    this.keyboardVisible = abierto;
+                    document.body.classList.toggle('pos-keyboard-visible', abierto);
+                }
+            }, 150);
         },
 
         arrowDown() {

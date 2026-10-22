@@ -53,6 +53,10 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => auth()->check() ? view('filament.components.fullscreen-button')->render() : ''
             )
             ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => auth()->check() ? view('filament.components.mobile-bottom-nav')->render() : ''
+            )
+            ->renderHook(
                 PanelsRenderHook::HEAD_START,
                 fn (): HtmlString => new HtmlString(
                     '<link rel="manifest" href="/manifest.json">' .

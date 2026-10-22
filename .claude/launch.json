@@ -6,6 +6,12 @@
       "runtimeExecutable": "php",
       "runtimeArgs": ["artisan", "serve", "--host=localhost", "--port=8000"],
       "port": 8000
+    },
+    {
+      "name": "Laravel Server (red local)",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["artisan", "serve", "--host=0.0.0.0", "--port=8000"],
+      "port": 8000
     }
   ]
 }

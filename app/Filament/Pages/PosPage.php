@@ -187,6 +187,7 @@ class PosPage extends Page
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
             )
+            ->whereRaw("TRIM(COALESCE(items.item, '')) <> ''")
             ->when(!$mostrarProductosSinStock, fn ($q) => $q->whereRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) > 0',
                 [$this->depositoId]
@@ -275,7 +276,9 @@ class PosPage extends Page
             ->selectRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
-            );
+            )
+            // Se ignoran filas sin código (basura en la base): no se pueden vender ni tienen foto
+            ->whereRaw("TRIM(COALESCE(items.item, '')) <> ''");
 
         // Si hay una categoría seleccionada, filtrar por ella
         if ($this->categoriaId !== null) {
