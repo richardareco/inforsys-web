@@ -1189,6 +1189,36 @@ body.pos-keyboard-visible .pos-left::after {
     .pos-cat { padding: .38rem .85rem; font-size: .74rem; }
 }
 
+/* Ventas en espera */
+.pos-hold-btn {
+    position: relative; flex-shrink: 0;
+    width: 2.1rem; height: 2.1rem; margin: .2rem .25rem .2rem 0;
+    border: none; border-radius: .65rem; cursor: pointer;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #f59e0b, #f97316); color: #fff;
+    box-shadow: 0 4px 10px -4px rgba(245, 158, 11, .7), inset 0 1px 0 rgba(255,255,255,.25);
+    transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+}
+.pos-hold-btn svg { width: 1.2rem; height: 1.2rem; }
+.pos-hold-btn:hover:not(:disabled) { filter: brightness(1.07); transform: translateY(-1px); }
+.pos-hold-btn:active:not(:disabled) { transform: scale(.94); }
+.pos-hold-btn:disabled { opacity: .7; cursor: not-allowed; box-shadow: none; filter: saturate(.6); }
+.pos-held-list { background: linear-gradient(135deg, #0ea5e9, #0369c4); box-shadow: 0 4px 10px -4px rgba(14, 165, 233, .7); }
+.pos-held-badge {
+    position: absolute; top: -.35rem; right: -.35rem; min-width: 1.05rem; height: 1.05rem; padding: 0 .25rem;
+    border-radius: 999px; background: #ef4444; color: #fff; font-size: .62rem; font-weight: 800;
+    display: grid; place-items: center; box-shadow: 0 0 0 2px #fff;
+}
+.held-item { display: flex; align-items: center; gap: .6rem; padding: .65rem .7rem; border: 1.5px solid #e5e7eb; border-radius: .9rem; margin-bottom: .5rem; }
+.held-item-info { flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.held-item-name { font-weight: 800; color: #111827; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.held-item-meta { font-size: .72rem; color: #6b7280; }
+.held-item-total { font-weight: 900; color: #0047AB; font-size: .9rem; white-space: nowrap; }
+.held-btn { border: none; border-radius: .7rem; padding: .5rem .75rem; font-weight: 800; font-size: .78rem; cursor: pointer; }
+.held-btn.rec { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.held-btn.rec:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+.held-btn.del { background: #fee2e2; color: #b91c1c; padding: .5rem .6rem; }
+
 /* Botón y modal del lector de código de barras */
 .pos-scan-btn {
     flex-shrink: 0;
@@ -1309,6 +1339,13 @@ body.pos-keyboard-visible .pos-left::after {
                     @keydown.enter.prevent="enter()"
                     @keydown.escape.prevent="clearSearch()"
                 />
+                <button type="button" class="pos-hold-btn" @click="holdSale()" :disabled="!($wire.cart || []).length" title="Guardar venta en espera y limpiar el carrito" aria-label="Guardar venta en espera">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3.75 2.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                </button>
+                <button type="button" class="pos-hold-btn pos-held-list" x-show="held.length" x-cloak @click="heldOpen = true" title="Recuperar una venta en espera" aria-label="Recuperar venta en espera">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 0 0-2.25 2.25v9a2.25 2.25 0 0 0 2.25 2.25h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25H15M9 12l3 3m0 0 3-3m-3 3V2.25"/></svg>
+                    <span class="pos-held-badge" x-text="held.length"></span>
+                </button>
                 <button type="button" class="pos-scan-btn" @click="openScanner()" title="Leer código de barras con la cámara" aria-label="Leer código de barras con la cámara">
                     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75V5.25A1.5 1.5 0 015.25 3.75h1.5M17.25 3.75h1.5a1.5 1.5 0 011.5 1.5v1.5M20.25 17.25v1.5a1.5 1.5 0 01-1.5 1.5h-1.5M6.75 20.25h-1.5a1.5 1.5 0 01-1.5-1.5v-1.5M7.5 8.25v7.5M10.5 8.25v7.5M13.5 8.25v7.5M16.5 8.25v7.5"/></svg>
                 </button>
@@ -1758,6 +1795,29 @@ body.pos-keyboard-visible .pos-left::after {
 </div>
 @endif
 
+{{-- ══════════════ MODAL: VENTAS EN ESPERA ══════════════ --}}
+<div class="modal-back" x-show="heldOpen" x-cloak @click.self="heldOpen = false" @keydown.escape.window="heldOpen = false">
+    <div class="modal-box" style="max-width:480px;" @click.stop>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
+            <p style="font-size:1.05rem;font-weight:900;color:#111827;">Ventas en espera</p>
+            <button type="button" @click="heldOpen = false" style="border:none;background:#f1f5f9;border-radius:.6rem;width:2rem;height:2rem;cursor:pointer;font-weight:800;color:#64748b;">✕</button>
+        </div>
+        <p x-show="($wire.cart || []).length" style="font-size:.75rem;color:#b45309;background:#fffbeb;border-radius:.6rem;padding:.5rem .7rem;margin-bottom:.7rem;">Hay una venta en curso: guardala en espera o cobrala antes de recuperar otra.</p>
+        <p x-show="!held.length" style="text-align:center;color:#9ca3af;padding:1rem;">No hay ventas en espera.</p>
+        <template x-for="h in held" :key="h.id">
+            <div class="held-item">
+                <div class="held-item-info">
+                    <div class="held-item-name" x-text="h.clienteName || 'Ocasional'"></div>
+                    <div class="held-item-meta" x-text="h.cart.length + ' producto(s) · ' + new Date(h.ts).toLocaleTimeString('es-PY', {hour: '2-digit', minute: '2-digit'})"></div>
+                    <div class="held-item-total" x-text="'Gs. ' + new Intl.NumberFormat('es-PY').format(h.total)"></div>
+                </div>
+                <button type="button" class="held-btn rec" :disabled="($wire.cart || []).length > 0" @click="recoverHeld(h.id)">Recuperar</button>
+                <button type="button" class="held-btn del" @click="deleteHeld(h.id)" aria-label="Eliminar">🗑</button>
+            </div>
+        </template>
+    </div>
+</div>
+
 {{-- ══════════════ MODAL: ¿IMPRIMIR TICKET? ══════════════ --}}
 @if($showPaymentModal && $lastInvoiceNumber)
 @php
@@ -1833,6 +1893,8 @@ function posApp() {
         calcAmount: 0,
         cartKey: '',
         mobileCartOpen: false,
+        held: [],
+        heldOpen: false,
         scannerOpen: false,
         scannerStatus: '',
         scannerError: '',
@@ -1845,6 +1907,7 @@ function posApp() {
 
             // Persistencia del carrito en el navegador: sobrevive a recargas y cierres accidentales
             this.cartKey = this.$el.dataset.cartKey;
+            this.loadHeld();
             this.$watch('$wire.cart', (c) => { this.persistCart(); if (!(c || []).length) this.mobileCartOpen = false; });
             this.$watch('$wire.clienteId', () => this.persistCart());
             this.$watch('$wire.depositoId', () => this.persistCart());
@@ -1955,6 +2018,52 @@ function posApp() {
             if (window.innerWidth > 767) {
                 this.$nextTick(() => this.$refs.search?.focus());
             }
+        },
+
+        /* ─── Ventas en espera (guardadas en este navegador) ─── */
+        heldKey() { return this.cartKey + ':held'; },
+        loadHeld() {
+            try {
+                const list = JSON.parse(localStorage.getItem(this.heldKey()) || '[]');
+                this.held = Array.isArray(list) ? list : [];
+            } catch (e) { this.held = []; }
+        },
+        saveHeld() {
+            try { localStorage.setItem(this.heldKey(), JSON.stringify(this.held)); } catch (e) {}
+        },
+        async holdSale() {
+            const cart = this.$wire.cart || [];
+            if (!cart.length) return;
+            const lines = JSON.parse(JSON.stringify(cart));
+            this.held.unshift({
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                ts: Date.now(),
+                cart: lines,
+                clienteId: this.$wire.clienteId ?? null,
+                clienteName: this.$wire.clienteName || 'Ocasional',
+                depositoId: this.$wire.depositoId ?? null,
+                total: lines.reduce((t, l) => t + (Number(l.precio) || 0) * (Number(l.qty) || 0), 0),
+            });
+            this.held = this.held.slice(0, 20);
+            this.saveHeld();
+            this.mobileCartOpen = false;
+            await this.$wire.parkCart();
+        },
+        async recoverHeld(id) {
+            if ((this.$wire.cart || []).length) return;
+            const h = this.held.find(x => x.id === id);
+            if (!h) return;
+            await this.$wire.restoreCart(h.cart, h.clienteId, h.depositoId);
+            if ((this.$wire.cart || []).length) {
+                this.held = this.held.filter(x => x.id !== id);
+                this.saveHeld();
+                this.heldOpen = false;
+            }
+        },
+        deleteHeld(id) {
+            this.held = this.held.filter(x => x.id !== id);
+            this.saveHeld();
+            if (!this.held.length) this.heldOpen = false;
         },
 
         /* ─── Carrito guardado en el navegador ─── */

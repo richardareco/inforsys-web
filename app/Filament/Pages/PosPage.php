@@ -507,6 +507,28 @@ class PosPage extends Page
             ->send();
     }
 
+    /**
+     * Deja la venta actual en espera (el navegador ya guardó una copia): limpia carrito y cliente.
+     */
+    public function parkCart(): void
+    {
+        $this->cart = [];
+
+        $ocasional = collect($this->clientes)->first(fn ($c) =>
+            stripos(trim($c->custname ?? ''), 'OCASIONAL') !== false
+        ) ?? ($this->clientes[0] ?? null);
+
+        if ($ocasional) {
+            $this->clienteId   = $ocasional->custnr;
+            $this->clienteName = $ocasional->custname;
+            $this->dispatch('clienteActualizado', clienteId: $ocasional->custnr, clienteName: $ocasional->custname, clienteRuc: $ocasional->ruc ?? '');
+        }
+
+        $this->showPaymentModal = false;
+
+        Notification::make()->title('Venta guardada en espera')->success()->send();
+    }
+
     public function updateQty(int $index, mixed $qty): void
     {
         if (!isset($this->cart[$index])) return;
