@@ -18,10 +18,14 @@ class HerramientasAgente
 
     public bool $derivado = false;
 
+    /** @var array<int, array{url: string, filename: string, caption: string}> PDFs a enviar después del texto */
+    public array $documentosPendientes = [];
+
     public function __construct(
         private CatalogoService $catalogo,
         private WaAgenteConfig $config,
         private WaConversacion $conversacion,
+        private VentaWhatsAppService $ventas,
     ) {}
 
     public static function definiciones(): array
@@ -67,8 +71,58 @@ class HerramientasAgente
                 'inputSchema' => ['type' => 'object'],
             ],
             [
+                'name'        => 'crear_cotizacion',
+                'description' => 'Crea una cotización con los productos y cantidades que el cliente quiere. El sistema valida stock y calcula precios y total; vos nunca calcules importes. Al crearla se envía automáticamente el PDF al cliente. Devuelve el detalle y el total para que se lo resumas.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'productos' => [
+                            'type'  => 'array',
+                            'items' => [
+                                'type'       => 'object',
+                                'properties' => [
+                                    'codigo'   => ['type' => 'string', 'description' => 'Código devuelto por buscar_productos.'],
+                                    'cantidad' => ['type' => 'number', 'description' => 'Cantidad pedida.'],
+                                ],
+                                'required' => ['codigo', 'cantidad'],
+                            ],
+                        ],
+                    ],
+                    'required' => ['productos'],
+                ],
+            ],
+            [
+                'name'        => 'preparar_pedido',
+                'description' => 'Arma el resumen de un pedido a partir de una cotización, con los datos de entrega y pago. NO registra el pedido todavía: después tenés que mostrarle el resumen completo al cliente y pedirle que confirme. Cuando el cliente responda que sí, recién ahí usá confirmar_pedido.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'cotizacion_id'     => ['type' => 'integer', 'description' => 'El campo id de la cotización creada.'],
+                        'nombre'            => ['type' => 'string', 'description' => 'Nombre completo del cliente.'],
+                        'entrega'           => ['type' => 'string', 'enum' => ['retiro', 'envio'], 'description' => 'retiro en el local o envio a domicilio.'],
+                        'direccion_entrega' => ['type' => 'string', 'description' => 'Obligatoria si es envio.'],
+                        'forma_pago'        => ['type' => 'string', 'enum' => ['efectivo', 'transferencia']],
+                        'factura'           => ['type' => 'boolean', 'description' => 'true si el cliente quiere factura.'],
+                        'ruc'               => ['type' => 'string', 'description' => 'RUC o cédula, obligatorio si quiere factura.'],
+                        'nota'              => ['type' => 'string', 'description' => 'Aclaración del cliente, opcional.'],
+                    ],
+                    'required' => ['cotizacion_id', 'nombre', 'entrega', 'forma_pago'],
+                ],
+            ],
+            [
+                'name'        => 'confirmar_pedido',
+                'description' => 'Registra el pedido definitivamente. Usala SOLO cuando el cliente, en un mensaje posterior al resumen que le mostraste, confirmó de forma explícita (por ejemplo "sí, confirmo"). Si no confirmó, el sistema lo rechaza.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'pedido_id' => ['type' => 'integer', 'description' => 'El campo id del pedido devuelto por preparar_pedido.'],
+                    ],
+                    'required' => ['pedido_id'],
+                ],
+            ],
+            [
                 'name'        => 'derivar_a_humano',
-                'description' => 'Pasa la conversación a un vendedor y pausa al agente. Usala cuando el cliente quiera comprar o pedir una cotización, pida hablar con una persona, tenga un reclamo, envíe un comprobante de pago, o cuando no puedas resolver su consulta con las herramientas.',
+                'description' => 'Pasa la conversación a un vendedor y pausa al agente. Usala cuando el cliente pida hablar con una persona, tenga un reclamo, envíe un comprobante de pago, pida algo que no podés resolver (descuentos, condiciones especiales, productos sin precio) o cuando las herramientas fallen.',
                 'inputSchema' => [
                     'type'       => 'object',
                     'properties' => [
@@ -89,11 +143,16 @@ class HerramientasAgente
                 'detalle_producto' => $this->detalle($input),
                 'enviar_fotos'     => $this->fotos($input),
                 'info_negocio'     => $this->infoNegocio(),
+                'crear_cotizacion' => $this->cotizar($input),
+                'preparar_pedido'  => $this->prepararPedido($input),
+                'confirmar_pedido' => $this->confirmarPedido($input),
                 'derivar_a_humano' => $this->derivar($input),
                 default            => throw new \InvalidArgumentException("Herramienta desconocida: {$nombre}"),
             };
 
             return ['content' => json_encode($resultado, JSON_UNESCAPED_UNICODE), 'is_error' => false];
+        } catch (ReglaDeNegocio $e) {
+            return ['content' => json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE), 'is_error' => true];
         } catch (Throwable $e) {
             report($e);
 
@@ -160,6 +219,72 @@ class HerramientasAgente
             'datos_transferencia' => $c->pago_transferencia ? ($c->datos_transferencia ?: null) : null,
             'nota'                => 'Los datos en null no están configurados: decile al cliente que lo consulte con un vendedor.',
         ];
+    }
+
+    private function cotizar(array $input): array
+    {
+        $cot = $this->ventas->crearCotizacion($this->conversacion, (array) ($input['productos'] ?? []));
+
+        $this->documentosPendientes[] = [
+            'url'      => $this->ventas->urlPdfCotizacion($cot),
+            'filename' => $cot->numero . '.pdf',
+            'caption'  => 'Cotización ' . $cot->numero,
+        ];
+
+        return VentaWhatsAppService::formato($cot) + [
+            'cotizacion_id' => $cot->id,
+            'nota' => 'El PDF se enviará al cliente automáticamente después de tu mensaje. Resumile los productos y el total y preguntale si quiere avanzar con el pedido.',
+        ];
+    }
+
+    private function prepararPedido(array $input): array
+    {
+        $pedido = $this->ventas->prepararPedido($this->conversacion, (int) ($input['cotizacion_id'] ?? 0), [
+            'nombre'            => $input['nombre'] ?? null,
+            'entrega'           => $input['entrega'] ?? null,
+            'direccion_entrega' => $input['direccion_entrega'] ?? null,
+            'forma_pago'        => $input['forma_pago'] ?? null,
+            'factura'           => $input['factura'] ?? false,
+            'ruc'               => $input['ruc'] ?? null,
+            'nota'              => $input['nota'] ?? null,
+        ]);
+
+        $resumen = VentaWhatsAppService::formato($pedido) + [
+            'pedido_id' => $pedido->id,
+            'estado'    => $pedido->estado,
+            'cliente'   => $pedido->nombre_cliente,
+            'entrega'   => $pedido->entrega_tipo === 'envio' ? 'Envío a: ' . $pedido->direccion_entrega : 'Retiro en el local',
+            'forma_pago' => $pedido->forma_pago,
+            'factura'   => $pedido->requiere_factura ? 'Sí, a nombre de RUC/CI ' . $pedido->ruc : 'No',
+        ];
+
+        if ($pedido->estado === 'borrador') {
+            $resumen['instruccion'] = 'Mostrale al cliente este resumen completo (productos, total, entrega, pago, factura) y pedile que confirme. NO llames a confirmar_pedido hasta que el cliente responda con un mensaje nuevo.';
+        } else {
+            $resumen['instruccion'] = 'Este pedido ya está registrado; no hace falta confirmarlo de nuevo.';
+        }
+
+        return $resumen;
+    }
+
+    private function confirmarPedido(array $input): array
+    {
+        $pedido = $this->ventas->confirmarPedido($this->conversacion, (int) ($input['pedido_id'] ?? 0));
+
+        $datos = [
+            'ok'       => true,
+            'pedido'   => $pedido->numero,
+            'estado'   => 'registrado, pendiente de aprobación de un vendedor',
+            'total'    => 'Gs. ' . number_format($pedido->total, 0, ',', '.'),
+            'instruccion' => 'Decile al cliente que su pedido quedó registrado con ese número y que un vendedor lo va a confirmar enseguida.',
+        ];
+
+        if ($pedido->forma_pago === 'transferencia') {
+            $datos['datos_transferencia'] = $this->config->datos_transferencia ?: null;
+            $datos['instruccion'] .= ' Pasale los datos de transferencia (si hay) y aclarale que el vendedor verificará el pago; no des el pago por confirmado.';
+        }
+
+        return $datos;
     }
 
     private function derivar(array $input): array

@@ -25,6 +25,12 @@ class EnvioWhatsApp
             fn () => $this->kapso->sendImage($linea->phone_number_id, $telefono, $url, $caption));
     }
 
+    public function documento(WaConversacion $conversacion, WaLinea $linea, string $telefono, string $url, string $filename, string $caption, string $autor = 'agente'): void
+    {
+        $this->registrar($conversacion, 'document', $caption, $url, $autor,
+            fn () => $this->kapso->sendDocument($linea->phone_number_id, $telefono, $url, $filename, $caption));
+    }
+
     private function registrar(WaConversacion $conversacion, string $tipo, string $texto, ?string $mediaUrl, string $autor, callable $envio): void
     {
         $msg = WaMensaje::create([

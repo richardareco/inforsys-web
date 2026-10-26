@@ -9,3 +9,7 @@ Route::post('/webhooks/kapso', [KapsoWebhookController::class, 'recibir'])->name
 Route::get('/wa/foto/{empresa}', [KapsoWebhookController::class, 'foto'])
     ->middleware('signed')
     ->name('wa.foto');
+
+Route::get('/wa/cotizacion/{cotizacion}', [\App\Http\Controllers\WaDocumentosController::class, 'cotizacion'])
+    ->middleware('signed')
+    ->name('wa.cotizacion.pdf');

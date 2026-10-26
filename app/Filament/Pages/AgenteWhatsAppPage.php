@@ -100,6 +100,8 @@ class AgenteWhatsAppPage extends Page implements HasForms
                         Textarea::make('datos_transferencia')->label('Datos para transferencia')->rows(3),
                         Textarea::make('tono')->label('Tono del agente')->rows(2),
                         Textarea::make('instrucciones')->label('Instrucciones adicionales')->rows(3),
+                        Textarea::make('cotizacion_pie')->label('Texto al pie de las cotizaciones')->rows(2)
+                            ->helperText('Por ejemplo la validez o condiciones (se imprime en el PDF). Si lo dejás vacío no se agrega nada.'),
                     ]),
             ])
             ->statePath('data');

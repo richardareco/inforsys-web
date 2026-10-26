@@ -29,6 +29,15 @@ class KapsoClient
         ]);
     }
 
+    public function sendDocument(string $phoneNumberId, string $to, string $link, string $filename, ?string $caption = null): ?string
+    {
+        return $this->send($phoneNumberId, [
+            'to'       => $to,
+            'type'     => 'document',
+            'document' => array_filter(['link' => $link, 'filename' => $filename, 'caption' => $caption]),
+        ]);
+    }
+
     private function send(string $phoneNumberId, array $payload): ?string
     {
         $key = config('kapso.api_key');
