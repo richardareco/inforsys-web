@@ -76,8 +76,16 @@ class AgenteIA
         $catalogoBase = new CatalogoService($empresa, $config);
         $herramientas = new HerramientasAgente($catalogoBase, $config, $conversacion, new VentaWhatsAppService($empresa, $config, $catalogoBase));
 
+        $this->reiniciarSiHaceMucho($conversacion);
+
         try {
-            $texto = $this->conversar($this->historial($conversacion), $this->instrucciones($empresa, $config), $herramientas);
+            $ventas = new VentaWhatsAppService($empresa, $config, $catalogoBase);
+            $texto = $this->conversar(
+                $this->historial($conversacion),
+                $this->instrucciones($empresa, $config),
+                $herramientas,
+                $this->estadoDelCliente($conversacion, $ventas),
+            );
         } catch (Throwable $e) {
             Log::error('WhatsApp: falló el agente en la conversación ' . $conversacion->id . ': ' . $e->getMessage());
             $this->envio->texto($conversacion, $linea, $telefono,
@@ -132,7 +140,54 @@ class AgenteIA
     }
 
     /** Ciclo del modelo: pide herramientas hasta que responde con texto. Devuelve el texto final. */
-    private function conversar(array $mensajes, string $sistema, HerramientasAgente $herramientas): string
+    /** Tras varias horas sin hablar, la conversación arranca de cero (el historial queda a la vista del vendedor). */
+    private function reiniciarSiHaceMucho(WaConversacion $conversacion): void
+    {
+        $ultimoCliente = WaMensaje::where('conversacion_id', $conversacion->id)->where('direccion', 'in')->latest('id')->first();
+        if (!$ultimoCliente) {
+            return;
+        }
+
+        $previo = WaMensaje::where('conversacion_id', $conversacion->id)->where('id', '<', $ultimoCliente->id)->latest('id')->first();
+
+        if ($previo && $previo->created_at->lt(now()->subHours((int) config('anthropic.horas_para_reiniciar'))) && (int) $conversacion->contexto_desde_id < $previo->id) {
+            $conversacion->update(['contexto_desde_id' => $previo->id]);
+        }
+    }
+
+    /** Lo que el sistema sabe del cliente ahora mismo (el modelo no recuerda los resultados de herramientas anteriores). */
+    private function estadoDelCliente(WaConversacion $conversacion, VentaWhatsAppService $ventas): string
+    {
+        $lineas = ['ESTADO ACTUAL DE ESTA CONVERSACIÓN (dato del sistema, más confiable que el historial)'];
+
+        $c = $conversacion->contacto;
+        $datos = array_filter(['nombre' => $c->nombre, 'dirección' => $c->direccion, 'RUC/CI' => $c->ruc]);
+        $lineas[] = $datos
+            ? 'Datos ya conocidos del cliente (no se los vuelvas a pedir, confirmalos si hace falta): ' . implode(', ', array_map(fn ($k, $v) => "{$k}: {$v}", array_keys($datos), $datos)) . '.'
+            : 'Todavía no conocés el nombre ni los datos del cliente.';
+
+        try {
+            $lista = $ventas->resumenLista($conversacion);
+            if ($lista['cantidad_de_productos'] > 0) {
+                $lineas[] = 'Lista en armado: ' . implode('; ', array_map(fn ($p) => "{$p['cantidad']} x {$p['nombre']} ({$p['subtotal']})", $lista['productos'])) . ". Total parcial {$lista['total']}.";
+            } else {
+                $lineas[] = 'La lista de productos del cliente está vacía.';
+            }
+        } catch (\Throwable) {
+            $lineas[] = 'La lista del cliente tiene un producto que cambió de precio o stock: usá ver_lista.';
+        }
+
+        $borrador = \App\Models\WaPedido::where('conversacion_id', $conversacion->id)->where('estado', 'borrador')->latest('id')->first();
+        if ($borrador) {
+            $lineas[] = 'Hay un pedido en preparación por Gs. ' . number_format($borrador->total, 0, ',', '.') . ': el resumen ya se le mostró. Si el cliente lo confirma, usá confirmar_pedido; si cambia algo, volvé a usar preparar_pedido.';
+        }
+
+        $lineas[] = 'No menciones pedidos o cotizaciones anteriores salvo que el cliente pregunte por ellos. Si ya hizo un pedido y quiere otro, armá uno nuevo con agregar_producto: no hace falta derivarlo a un vendedor.';
+
+        return implode("\n", $lineas);
+    }
+
+    private function conversar(array $mensajes, string $sistema, HerramientasAgente $herramientas, string $estado = ''): string
     {
         $cliente = new Client(apiKey: (string) config('anthropic.api_key'));
         $defs    = HerramientasAgente::definiciones();
@@ -142,7 +197,10 @@ class AgenteIA
             $respuesta = $cliente->messages->create(
                 model: (string) config('anthropic.model'),
                 maxTokens: (int) config('anthropic.max_tokens'),
-                system: [['type' => 'text', 'text' => $sistema, 'cacheControl' => ['type' => 'ephemeral']]],
+                system: array_values(array_filter([
+                    ['type' => 'text', 'text' => $sistema, 'cacheControl' => ['type' => 'ephemeral']],
+                    $estado !== '' ? ['type' => 'text', 'text' => $estado] : null,
+                ])),
                 tools: $defs,
                 thinking: ['type' => 'between_tools'],
                 outputConfig: ['effort' => (string) config('anthropic.effort')],
@@ -195,6 +253,7 @@ class AgenteIA
     private function historial(WaConversacion $conversacion): array
     {
         $filas = WaMensaje::where('conversacion_id', $conversacion->id)
+            ->when($conversacion->contexto_desde_id, fn ($q, $desde) => $q->where('id', '>', $desde))
             ->orderByDesc('id')->limit((int) config('anthropic.historial'))->get()->reverse();
 
         $turnos = [];

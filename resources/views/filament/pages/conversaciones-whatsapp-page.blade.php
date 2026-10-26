@@ -51,6 +51,7 @@
         .wa-msg.out.sistema { background: #fef3c7; color: #78350f; }
         .wa-msg.error { outline: 2px solid #ef4444; }
         .wa-msg img { max-width: 14rem; border-radius: .6rem; display: block; margin-bottom: .3rem; }
+        .wa-corte { align-self: center; font-size: .7rem; font-weight: 700; color: #6366f1; background: #eef2ff; border-radius: 999px; padding: .2rem .8rem; margin: .4rem 0; }
         .wa-quien { font-size: .62rem; font-weight: 800; text-transform: uppercase; opacity: .6; margin-bottom: .1rem; }
         .wa-aviso { padding: .5rem 1rem; background: #fffbeb; color: #92400e; font-size: .78rem; border-top: 1px solid #fde68a; }
         .wa-form { display: flex; gap: .5rem; padding: .7rem; background: #fff; border-top: 1px solid #e2e8f0; }
@@ -119,6 +120,9 @@
                             {{ ['agente' => 'Atiende el agente', 'humano' => 'Atiende un vendedor', 'pausado' => 'Agente pausado'][$actual->estado] ?? $actual->estado }}</span>
                     </div>
                     <div class="wa-acciones">
+                        <button type="button" class="wa-btn gris" wire:click="reiniciarContexto"
+                            wire:confirm="¿Reiniciar el contexto? El agente dejará de considerar los mensajes anteriores y empezará de cero (la conversación vuelve al agente)."
+                            title="El agente olvida lo anterior; el historial sigue visible acá">Reiniciar contexto</button>
                         @if($actual->estado === 'agente')
                             <button type="button" class="wa-btn azul" wire:click="tomarControl">Tomar control</button>
                             <button type="button" class="wa-btn gris" wire:click="pausarAgente">Pausar agente</button>
@@ -128,8 +132,12 @@
                     </div>
                 </div>
 
+                @php $corteId = $actual->contexto_desde_id ? $mensajes->firstWhere('id', '>', $actual->contexto_desde_id)?->id : null; @endphp
                 <div class="wa-msgs">
                     @foreach($mensajes as $m)
+                        @if($m->id === $corteId)
+                            <div class="wa-corte" wire:key="corte-{{ $m->id }}">El agente empieza de cero desde acá</div>
+                        @endif
                         <div class="wa-msg {{ $m->direccion }} {{ $m->autor === 'humano' ? 'humano' : '' }} {{ $m->autor === 'sistema' ? 'sistema' : '' }} {{ $m->estado === 'error' ? 'error' : '' }}" wire:key="m-{{ $m->id }}">
                             @if($m->direccion === 'out')
                                 <div class="wa-quien">{{ ['agente' => 'Agente IA', 'humano' => 'Vendedor', 'sistema' => 'Sistema'][$m->autor] ?? $m->autor }}</div>

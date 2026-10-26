@@ -14,6 +14,9 @@ return [
     // Mensajes previos de la conversación que se envían al modelo
     'historial'  => (int) env('ANTHROPIC_HISTORIAL', 20),
 
+    // Si el cliente vuelve a escribir tras tantas horas de silencio, el agente arranca la conversación de cero
+    'horas_para_reiniciar' => (int) env('ANTHROPIC_HORAS_REINICIO', 6),
+
     // Límite de respuestas del agente por conversación y hora (control de gasto)
     'max_respuestas_hora' => (int) env('ANTHROPIC_MAX_RESPUESTAS_HORA', 40),
 ];

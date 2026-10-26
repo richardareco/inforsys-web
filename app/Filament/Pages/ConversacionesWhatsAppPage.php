@@ -166,6 +166,29 @@ class ConversacionesWhatsAppPage extends Page
         $this->cambiarEstado('agente', 'La conversación volvió al agente.');
     }
 
+    /**
+     * El agente deja de usar los mensajes anteriores (siguen visibles acá), se vacía la lista del cliente,
+     * se descartan pedidos sin confirmar y la conversación vuelve al agente.
+     */
+    public function reiniciarContexto(): void
+    {
+        $conv = $this->actual;
+        if (!$conv) {
+            return;
+        }
+
+        $ultimo = (int) WaMensaje::where('conversacion_id', $conv->id)->max('id');
+
+        \App\Models\WaPedido::where('conversacion_id', $conv->id)->where('estado', 'borrador')->get()->each(function ($p) {
+            $p->cotizacion?->update(['estado' => 'cancelada']);
+            $p->delete();
+        });
+
+        $conv->update(['contexto_desde_id' => $ultimo ?: null, 'carrito' => null, 'carrito_at' => null, 'estado' => 'agente']);
+
+        Notification::make()->title('Contexto reiniciado')->body('El agente empieza de cero en esta conversación. Los mensajes anteriores siguen visibles.')->success()->send();
+    }
+
     public function enviar(EnvioWhatsApp $envio): void
     {
         $conv  = $this->actual;
