@@ -161,6 +161,10 @@ class UserResource extends Resource
                                         ->label('Gastos')
                                         ->default(false),
 
+                                    Checkbox::make('accesos.whatsapp')
+                                        ->label('Conversaciones de WhatsApp')
+                                        ->default(false),
+
                                     Checkbox::make('accesos.reportes')
                                         ->label('Informes')
                                         ->default(false),

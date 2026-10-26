@@ -39,12 +39,20 @@ class EnvioWhatsApp
 
         try {
             $id = $envio();
-            if ($id) {
-                $msg->update(['kapso_message_id' => $id]);
-            }
         } catch (Throwable $e) {
             Log::warning('WhatsApp: no se pudo enviar el mensaje: ' . $e->getMessage());
-            $msg->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 500)]);
+            WaMensaje::whereKey($msg->id)->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 500)]);
+
+            return;
+        }
+
+        // El mensaje ya salió: guardar su id es opcional y no debe tumbar el flujo
+        try {
+            if ($id) {
+                WaMensaje::whereKey($msg->id)->update(['kapso_message_id' => $id]);
+            }
+        } catch (Throwable $e) {
+            Log::notice('WhatsApp: no se pudo guardar el id del mensaje enviado: ' . $e->getMessage());
         }
     }
 }
