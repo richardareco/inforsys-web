@@ -113,6 +113,8 @@ class AgenteWhatsAppPage extends Page implements HasForms
                         Toggle::make('pago_efectivo')->label('Acepta efectivo'),
                         Toggle::make('pago_transferencia')->label('Acepta transferencia'),
                         Textarea::make('datos_transferencia')->label('Datos para transferencia')->rows(3),
+                        Toggle::make('confirmacion_unica')->label('Confirmar el pedido una sola vez')->columnSpanFull()
+                            ->helperText('Activado: el agente no hace preguntas de confirmación de más; cuando tiene todos los datos muestra el resumen y, si el cliente dice que sí, registra el pedido sin volver a preguntar.'),
                         Textarea::make('tono')->label('Tono del agente')->rows(2),
                         Textarea::make('instrucciones')->label('Instrucciones adicionales')->rows(3),
                         Textarea::make('cotizacion_pie')->label('Texto al pie de las cotizaciones')->rows(2)

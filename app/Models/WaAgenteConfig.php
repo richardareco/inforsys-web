@@ -12,7 +12,7 @@ class WaAgenteConfig extends Model
     protected $fillable = [
         'empresa_id', 'activo', 'modo', 'agente_nombre', 'agente_avatar', 'depositos', 'mensaje_bienvenida', 'horarios', 'ubicacion',
         'entrega', 'pago_efectivo', 'pago_transferencia', 'datos_transferencia', 'tono',
-        'instrucciones', 'regla_mayorista', 'mayorista_activo', 'mayorista_min_unidades', 'cotizacion_pie', 'max_productos', 'max_fotos',
+        'instrucciones', 'regla_mayorista', 'mayorista_activo', 'mayorista_min_unidades', 'confirmacion_unica', 'cotizacion_pie', 'max_productos', 'max_fotos',
     ];
 
     protected $casts = [
@@ -20,6 +20,7 @@ class WaAgenteConfig extends Model
         'depositos'          => 'array',
         'pago_efectivo'      => 'boolean',
         'mayorista_activo'   => 'boolean',
+        'confirmacion_unica' => 'boolean',
         'pago_transferencia' => 'boolean',
     ];
 
