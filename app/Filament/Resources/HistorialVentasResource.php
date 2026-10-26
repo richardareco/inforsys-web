@@ -33,9 +33,9 @@ class HistorialVentasResource extends Resource
 
     protected static ?string $model           = Venta::class;
     protected static ?string $navigationIcon  = 'heroicon-o-document-text';
-    protected static ?string $navigationLabel = 'Historial de Ventas';
+    protected static ?string $navigationLabel = 'Ventas realizadas';
     protected static ?string $modelLabel      = 'Venta';
-    protected static ?string $pluralModelLabel = 'Historial de Ventas';
+    protected static ?string $pluralModelLabel = 'Ventas realizadas';
     protected static ?string $navigationGroup = 'Ventas';
     protected static ?int    $navigationSort  = 2;
 

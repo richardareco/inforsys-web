@@ -15,7 +15,7 @@ class Modulos
     public const LISTA = [
         'dashboard'        => ['Dashboard', 'Principal', 'Resumen de ventas, gráficos y ranking'],
         'ventas'           => ['Ventas (POS)', 'Ventas', 'Punto de venta'],
-        'historial_ventas' => ['Historial de ventas', 'Ventas', 'Consultar e imprimir ventas hechas'],
+        'historial_ventas' => ['Ventas realizadas', 'Ventas', 'Consultar e imprimir ventas hechas'],
         'presupuestos'     => ['Presupuestos', 'Ventas', 'Crear y consultar presupuestos'],
         'whatsapp'         => ['WhatsApp: conversaciones, pedidos y cotizaciones', 'Ventas', 'Atender chats y gestionar pedidos del agente'],
         'ecommerce'        => ['Tienda online (catálogo web)', 'E-commerce', 'Configurar el catálogo público y qué datos se muestran'],
