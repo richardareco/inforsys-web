@@ -2,6 +2,7 @@
 
 namespace App\Services\WhatsApp;
 
+use App\Models\EcomConfig;
 use App\Models\WaAgenteConfig;
 use App\Models\WaConversacion;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +65,16 @@ class HerramientasAgente
                         'codigos' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Códigos de producto devueltos por buscar_productos.'],
                     ],
                     'required' => ['codigos'],
+                ],
+            ],
+            [
+                'name'        => 'enlace_tienda',
+                'description' => 'Devuelve el enlace de la tienda online de la empresa. Si pasás el código de un producto que consultó el cliente, el enlace lleva directo a TODA la categoría de ese producto (con fotos y precios), para que vea más opciones. Usala solo si el cliente aceptó ver más opciones. Pasale el enlace tal cual, sin modificarlo.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'codigo' => ['type' => 'string', 'description' => 'Código del producto por el que consultó (opcional). Sin código devuelve el enlace general de la tienda.'],
+                    ],
                 ],
             ],
             [
@@ -155,6 +166,7 @@ class HerramientasAgente
                 'buscar_productos' => $this->buscar($input),
                 'detalle_producto' => $this->detalle($input),
                 'enviar_fotos'     => $this->fotos($input),
+                'enlace_tienda'    => $this->enlaceTienda($input),
                 'info_negocio'     => $this->infoNegocio(),
                 'agregar_producto'   => $this->agregar($input),
                 'quitar_producto'    => $this->quitar($input),
@@ -217,6 +229,38 @@ class HerramientasAgente
         $this->fotosPendientes = array_slice($this->fotosPendientes, 0, max(1, (int) $this->config->max_fotos));
 
         return ['se_enviaran' => $enviadas, 'sin_foto' => $sinFoto];
+    }
+
+    private function enlaceTienda(array $input): array
+    {
+        $tienda = EcomConfig::with('empresa')->where('empresa_id', $this->conversacion->empresa_id)->where('activo', true)->first();
+        if (!$tienda) {
+            return ['disponible' => false, 'nota' => 'La tienda online no está habilitada. No ofrezcas ni inventes enlaces; ofrecé buscar otras opciones por acá.'];
+        }
+
+        $general = $tienda->urlPublica();
+        $codigo  = trim((string) ($input['codigo'] ?? ''));
+        if ($codigo === '') {
+            return ['disponible' => true, 'enlace' => $general, 'nota' => 'Enlace general de la tienda.'];
+        }
+
+        $p = $this->catalogo->detalle($codigo);
+        $web = new \App\Services\Tienda\CatalogoTienda($tienda);
+        $cat = $p ? $web->categoriaPublicada((string) $p['categoria']) : null;
+        $pubProducto = $p ? $web->producto($codigo) : null;
+
+        if (!$cat) {
+            return ['disponible' => true, 'enlace' => $general, 'nota' => 'La categoría de ese producto no está publicada en la tienda: se envía el enlace general.'];
+        }
+
+        return [
+            'disponible' => true,
+            'categoria' => $cat['nombre'],
+            'productos_en_la_categoria' => $cat['total'],
+            'enlace' => $general . '?categoria=' . urlencode($cat['codigo']),
+            'enlace_del_producto' => $pubProducto ? $general . '/producto/' . rawurlencode($codigo) : null,
+            'nota' => 'Decile que ahí ve todas las opciones de esa categoría con fotos y precios.',
+        ];
     }
 
     private function infoNegocio(): array

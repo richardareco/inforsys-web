@@ -182,6 +182,11 @@ class AgenteIA
             $lineas[] = 'Hay un pedido en preparación por Gs. ' . number_format($borrador->total, 0, ',', '.') . ': el resumen ya se le mostró. Si el cliente lo confirma, usá confirmar_pedido; si cambia algo, volvé a usar preparar_pedido.';
         }
 
+        $tienda = \App\Models\EcomConfig::where('empresa_id', $conversacion->empresa_id)->where('activo', true)->exists();
+        $lineas[] = $tienda
+            ? 'La tienda online está DISPONIBLE: después de presentar productos preguntá si quiere ver más opciones de ese tipo (ver reglas) y, si acepta, usá enlace_tienda.'
+            : 'La tienda online NO está habilitada: no ofrezcas ver más opciones en la web ni inventes enlaces.';
+
         $lineas[] = 'No menciones pedidos o cotizaciones anteriores salvo que el cliente pregunte por ellos. Si ya hizo un pedido y quiere otro, armá uno nuevo con agregar_producto: no hace falta derivarlo a un vendedor.';
 
         return implode("\n", $lineas);
@@ -296,6 +301,7 @@ class AgenteIA
             '- Si un producto trae precio_mayorista, informá también ese precio y su condición (condicion_mayorista) tal como vienen. Si no trae esos campos, no ofrezcas precio mayorista. El precio mayorista se aplica solo si el cliente pide la cantidad mínima: el sistema lo calcula en la cotización.',
             '- Si el cliente busca algo, usá buscar_productos. Si no encontrás nada, proponé términos parecidos o alternativas del resultado de otra búsqueda.',
             '- Al presentar productos que tengan foto, o si el cliente pide verlos, usá enviar_fotos con hasta 3 códigos.',
+            '- MÁS OPCIONES: cuando el estado diga que la tienda online está disponible, después de presentar un producto cerrá con una pregunta corta, por ejemplo "¿Querés ver más opciones de este tipo de producto?". Si el cliente dice que sí (o pide más modelos, colores u opciones), usá enlace_tienda con el código del producto que consultó y pasale el enlace tal cual, aclarando que ahí ve toda la categoría con fotos y precios. No repitas la pregunta si ya la hiciste o si dijo que no, y no la hagas cuando ya está armando una cotización o un pedido.',
             '- Si hay stock decí que está disponible; si no, que no hay por ahora. Podés indicar la cantidad solo si te la piden.',
             '',
             'COTIZACIONES Y PEDIDOS',

@@ -94,6 +94,18 @@ class CatalogoTienda
         return new LengthAwarePaginator($filas, $total, $porPagina, $pagina, ['path' => $rutaBase]);
     }
 
+    /** Datos de una categoría si está publicada en la tienda (existe, no está oculta y tiene productos). */
+    public function categoriaPublicada(string $grupnr): ?array
+    {
+        foreach ($this->categorias() as $c) {
+            if ($c['codigo'] === $grupnr) {
+                return $c;
+            }
+        }
+
+        return null;
+    }
+
     public function producto(string $codigo): ?array
     {
         $r = $this->base()->where('items.item', $codigo)->first();

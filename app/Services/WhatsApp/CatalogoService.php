@@ -21,8 +21,11 @@ class CatalogoService
 
     private function db()
     {
-        DB::purge('delphi');
-        config(['database.connections.delphi.database' => $this->empresa->db_name]);
+        // Solo se reconecta si la conexión apunta a otra base (evita reconectar en cada consulta)
+        if (config('database.connections.delphi.database') !== $this->empresa->db_name) {
+            DB::purge('delphi');
+            config(['database.connections.delphi.database' => $this->empresa->db_name]);
+        }
 
         return DB::connection('delphi');
     }
