@@ -5,6 +5,14 @@
     $descripcionSeo = $descripcionPagina ?? ($t->seo_descripcion ?: ($t->eslogan ?: 'Catálogo online de ' . $nombre));
     $wa = $t->enlaceWhatsapp('Hola, quiero consultar por sus productos.');
     $ig = $t->instagram ? 'https://instagram.com/' . ltrim(preg_replace('#^https?://(www\.)?instagram\.com/#i', '', $t->instagram), '@/') : null;
+    $anuncios = $t->lineasAnuncio();
+    if ($anuncios) {
+        $tramo = collect($anuncios)->map(fn ($a) => e($a))->implode('<i class="sep">✦</i>');
+        $ancho = max(300, mb_strlen(implode(' ✦ ', $anuncios)) * 8.5 + 80);   // ancho aproximado de un tramo en px
+        $repite = (int) max(1, ceil(2400 / $ancho));
+        $mitad = str_repeat('<span class="tramo">' . $tramo . '<i class="sep">✦</i></span>', $repite);
+        $segundos = (int) max(22, round($ancho * $repite / 55));                  // ~55 px por segundo
+    }
     $fb = $t->facebook ? (str_starts_with($t->facebook, 'http') ? $t->facebook : 'https://facebook.com/' . ltrim($t->facebook, '/')) : null;
 @endphp
 <!doctype html>
@@ -28,6 +36,17 @@
         a { color: inherit; text-decoration: none; }
         img { max-width: 100%; display: block; }
         .wrap { width: min(1240px, 100% - 2rem); margin-inline: auto; }
+
+        /* Barra de anuncios (marquee) */
+        .anuncio { background: {{ $t->anuncioFondo() }}; color: {{ $t->anuncioTexto() }}; overflow: hidden; font-size: .85rem; font-weight: 600; letter-spacing: .01em; }
+        .anuncio-pista { display: flex; width: max-content; padding: .55rem 0; animation: anuncio-mover {{ $segundos ?? 30 }}s linear infinite; }
+        .anuncio:hover .anuncio-pista, .anuncio:focus-within .anuncio-pista { animation-play-state: paused; }
+        .anuncio .mitad { display: flex; flex-shrink: 0; white-space: nowrap; }
+        .anuncio .tramo { display: inline-flex; align-items: center; }
+        .anuncio .sep { font-style: normal; opacity: .55; margin: 0 1.6rem; font-size: .7em; }
+        @keyframes anuncio-mover { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @media (max-width: 720px) { .anuncio { font-size: .78rem; } .anuncio-pista { animation-duration: {{ (int) (($segundos ?? 30) * 1.25) }}s; } }
+        @media (prefers-reduced-motion: reduce) { .anuncio-pista { animation: none; width: auto; overflow-x: auto; } .anuncio .mitad + .mitad { display: none; } }
 
         /* Encabezado */
         .hd { position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bd); }
@@ -121,6 +140,14 @@
     </style>
 </head>
 <body>
+    @if($anuncios)
+        <div class="anuncio" role="region" aria-label="Anuncios">
+            <div class="anuncio-pista">
+                <div class="mitad">{!! $mitad !!}</div>
+                <div class="mitad" aria-hidden="true">{!! $mitad !!}</div>
+            </div>
+        </div>
+    @endif
     <header class="hd">
         <div class="wrap hd-in">
             <a class="marca" href="{{ $base }}">

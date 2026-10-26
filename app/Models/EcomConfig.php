@@ -12,7 +12,7 @@ class EcomConfig extends Model
     protected $table = 'ecom_config';
 
     protected $fillable = [
-        'empresa_id', 'activo', 'slug', 'nombre', 'eslogan', 'texto_inicio', 'logo', 'portada', 'color',
+        'empresa_id', 'activo', 'slug', 'nombre', 'eslogan', 'texto_inicio', 'logo', 'portada', 'color', 'anuncio_activo', 'anuncios', 'anuncio_fondo', 'anuncio_color_texto',
         'whatsapp', 'instagram', 'facebook', 'direccion', 'horarios',
         'mostrar_precios', 'mostrar_mayorista', 'mayorista_min_unidades', 'mostrar_stock', 'mostrar_sin_stock',
         'categorias_ocultas', 'depositos', 'por_pagina', 'mensaje_whatsapp', 'seo_titulo', 'seo_descripcion',
@@ -20,6 +20,7 @@ class EcomConfig extends Model
 
     protected $casts = [
         'activo'             => 'boolean',
+        'anuncio_activo'     => 'boolean',
         'mostrar_precios'    => 'boolean',
         'mostrar_mayorista'  => 'boolean',
         'mostrar_stock'      => 'boolean',
@@ -61,10 +62,36 @@ class EcomConfig extends Model
         return $n === '' ? null : 'https://wa.me/' . $n . ($texto ? '?text=' . rawurlencode($texto) : '');
     }
 
+    /** Mensajes de la barra de anuncios (uno por línea, sin vacíos). */
+    public function lineasAnuncio(): array
+    {
+        if (!$this->anuncio_activo) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(fn ($l) => trim($l), preg_split('/\R/u', (string) $this->anuncios) ?: []), fn ($l) => $l !== ''));
+    }
+
+    public function anuncioFondo(): string
+    {
+        return $this->anuncio_fondo ?: (string) $this->color;
+    }
+
+    public function anuncioTexto(): string
+    {
+        return $this->anuncio_color_texto ?: static::textoSobre($this->anuncioFondo());
+    }
+
     /** Color de texto legible sobre el color de la marca. */
     public function colorTexto(): string
     {
-        $hex = ltrim((string) $this->color, '#');
+        return static::textoSobre((string) $this->color);
+    }
+
+    /** Blanco u oscuro, el que mejor se lea sobre el fondo indicado. */
+    public static function textoSobre(string $color): string
+    {
+        $hex = ltrim($color, '#');
         if (strlen($hex) === 3) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }

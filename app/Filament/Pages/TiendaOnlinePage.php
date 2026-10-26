@@ -148,6 +148,20 @@ class TiendaOnlinePage extends Page implements HasForms
                 ColorPicker::make('color')->label('Color de la marca'),
             ]),
 
+            Section::make('Barra de anuncios')
+                ->description('Una franja arriba de la tienda con mensajes que se desplazan de derecha a izquierda (promociones, envíos, novedades).')
+                ->columns(2)->schema([
+                    Toggle::make('anuncio_activo')->label('Mostrar la barra de anuncios')->live()->columnSpanFull(),
+                    Textarea::make('anuncios')->label('Mensajes (uno por línea)')->rows(4)->columnSpanFull()
+                        ->placeholder("🚚 Envíos a todo el país\n💳 Pagá por transferencia o efectivo\n🔥 Precios mayoristas desde 6 unidades")
+                        ->visible(fn ($get) => (bool) $get('anuncio_activo'))->required(fn ($get) => (bool) $get('anuncio_activo'))
+                        ->validationMessages(['required' => 'Escribí al menos un mensaje para la barra.']),
+                    ColorPicker::make('anuncio_fondo')->label('Color de fondo')->helperText('Vacío: usa el color de la marca.')
+                        ->visible(fn ($get) => (bool) $get('anuncio_activo')),
+                    ColorPicker::make('anuncio_color_texto')->label('Color del texto')->helperText('Vacío: se elige solo para que se lea bien.')
+                        ->visible(fn ($get) => (bool) $get('anuncio_activo')),
+                ]),
+
             Section::make('Contacto')->columns(2)->schema([
                 TextInput::make('whatsapp')->label('WhatsApp')->placeholder('+595 981 123456')->maxLength(30)
                     ->helperText('Los clientes te escriben desde los botones de la tienda.'),
