@@ -13,7 +13,7 @@ class WaPedido extends Model
     protected $fillable = [
         'empresa_id', 'conversacion_id', 'contacto_id', 'cotizacion_id', 'estado', 'nombre_cliente', 'telefono',
         'entrega_tipo', 'direccion_entrega', 'forma_pago', 'requiere_factura', 'ruc', 'observacion', 'total',
-        'preparado_mensaje_id', 'confirmado_at', 'gestionado_por', 'gestionado_at', 'nota_interna',
+        'preparado_mensaje_id', 'confirmado_at', 'venta_invnr', 'cliente_delphi', 'pagado_at', 'anulado_at', 'gestionado_por', 'gestionado_at', 'nota_interna',
     ];
 
     protected $casts = [
@@ -21,11 +21,18 @@ class WaPedido extends Model
         'requiere_factura' => 'boolean',
         'confirmado_at'    => 'datetime',
         'gestionado_at'    => 'datetime',
+        'pagado_at'        => 'datetime',
+        'anulado_at'       => 'datetime',
     ];
 
     public function getNumeroAttribute(): string
     {
         return 'PED-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function empresa(): BelongsTo
+    {
+        return $this->belongsTo(Empresa::class);
     }
 
     public function items(): HasMany

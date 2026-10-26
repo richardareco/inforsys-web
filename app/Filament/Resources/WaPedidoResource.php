@@ -4,9 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Pages\ConversacionesWhatsAppPage;
 use App\Filament\Resources\WaPedidoResource\Pages;
+use App\Models\Empresa;
 use App\Models\WaMensaje;
 use App\Models\WaPedido;
 use App\Services\WhatsApp\EnvioWhatsApp;
+use App\Services\WhatsApp\ReglaDeNegocio;
+use App\Services\WhatsApp\VentaDelphiService;
 use App\Traits\CheckUserAcceso;
 use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\Grid;
@@ -77,13 +80,23 @@ class WaPedidoResource extends Resource
         return $user?->isSuperAdmin() ? $query : $query->whereRaw('1 = 0');
     }
 
+    /** Estados del panel: pendiente → pagado | anulado (borrador = el cliente no llegó a confirmar). */
     private static function colorEstado(string $estado): string
     {
         return match ($estado) {
-            'pendiente' => 'warning',
-            'aprobado', 'convertido' => 'success',
-            'rechazado', 'cancelado' => 'danger',
-            default => 'gray', // borrador: el cliente vio el resumen pero no confirmó
+            'pendiente', 'procesando' => 'warning',
+            'pagado' => 'success',
+            'anulado' => 'danger',
+            default => 'gray',
+        };
+    }
+
+    public static function nombreEstado(string $estado): string
+    {
+        return match ($estado) {
+            'borrador' => 'Sin confirmar',
+            'procesando' => 'Procesando',
+            default => ucfirst($estado),
         };
     }
 
@@ -111,60 +124,84 @@ class WaPedidoResource extends Resource
         return true;
     }
 
-    public static function aprobar(WaPedido $pedido): void
+    /** Marca el pedido como pagado y genera la venta en el sistema. */
+    public static function pagar(WaPedido $pedido): void
     {
-        if ($pedido->estado !== 'pendiente') {
+        try {
+            $empresa = Empresa::findOrFail($pedido->empresa_id);
+            $invnr   = (new VentaDelphiService($empresa))->pagar($pedido, Auth::user());
+        } catch (ReglaDeNegocio $e) {
+            Notification::make()->title('No se pudo generar la venta')->body($e->getMessage())->danger()->send();
+
+            return;
+        } catch (\Throwable $e) {
+            report($e);
+            Notification::make()->title('Error al generar la venta')->body($e->getMessage())->danger()->send();
+
             return;
         }
-        $pedido->update(['estado' => 'aprobado', 'gestionado_por' => Auth::id(), 'gestionado_at' => now()]);
 
-        $enviado = self::avisarCliente($pedido, "¡Tu pedido {$pedido->numero} fue confirmado por nuestro equipo! Total: " . self::gs($pedido->total) . '. Gracias por tu compra.');
-        Notification::make()->title('Pedido aprobado')
-            ->body($enviado ? 'Se le avisó al cliente por WhatsApp.' : 'No se pudo avisar al cliente (pasaron más de 24 horas): escribile desde otro medio.')
+        $pedido->refresh();
+        $enviado = self::avisarCliente($pedido, "¡Recibimos tu pago! Tu pedido {$pedido->numero} por " . self::gs($pedido->total) . ' está confirmado. Gracias por tu compra.');
+
+        Notification::make()->title("Pedido pagado · venta {$invnr} registrada")
+            ->body(($enviado ? 'Se le avisó al cliente por WhatsApp. ' : 'No se pudo avisar al cliente por WhatsApp (pasaron más de 24 horas). ') . 'Se descontó el stock.')
             ->success()->send();
     }
 
-    public static function rechazar(WaPedido $pedido, string $motivo): void
+    public static function anular(WaPedido $pedido, string $motivo): void
     {
-        if ($pedido->estado !== 'pendiente') {
+        try {
+            $empresa = Empresa::findOrFail($pedido->empresa_id);
+            (new VentaDelphiService($empresa))->anular($pedido, Auth::user(), $motivo);
+        } catch (ReglaDeNegocio $e) {
+            Notification::make()->title('No se pudo anular')->body($e->getMessage())->danger()->send();
+
             return;
         }
-        $pedido->update([
-            'estado' => 'rechazado', 'gestionado_por' => Auth::id(), 'gestionado_at' => now(), 'nota_interna' => $motivo,
-        ]);
 
-        $enviado = self::avisarCliente($pedido, "Lamentablemente no pudimos confirmar tu pedido {$pedido->numero}: {$motivo}. Si querés, escribinos y vemos otra alternativa.");
-        Notification::make()->title('Pedido rechazado')
-            ->body($enviado ? 'Se le avisó al cliente por WhatsApp.' : 'No se pudo avisar al cliente (pasaron más de 24 horas).')
-            ->warning()->send();
+        $pedido->refresh();
+        $enviado = $pedido->confirmado_at
+            ? self::avisarCliente($pedido, "Lamentablemente no pudimos confirmar tu pedido {$pedido->numero}: {$motivo}. Si querés, escribinos y vemos otra alternativa.")
+            : false;
+
+        Notification::make()->title('Pedido anulado')
+            ->body($enviado ? 'Se le avisó al cliente por WhatsApp.' : 'No se envió aviso al cliente.')->warning()->send();
     }
 
-    private static function accionAprobar(): \Filament\Actions\Action
+    private static function textoPagar(WaPedido $p): string
     {
-        return \Filament\Actions\Action::make('aprobar')
-            ->label('Aprobar')->icon('heroicon-o-check-circle')->color('success')
-            ->requiresConfirmation()->modalDescription('Se le avisará al cliente que su pedido fue confirmado.')
+        $caja = ($p->empresa?->modulo_caja_enabled ?? true)
+            ? ' y se registrará el cobro de ' . self::gs($p->total) . ' (' . $p->forma_pago . ') en caja'
+            : '';
+
+        return 'Se generará la venta en el sistema, se descontará el stock' . $caja . '. El cliente recibirá un aviso por WhatsApp. Esta acción no se puede deshacer desde acá.';
+    }
+
+    private static function accionPagar(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('pagar')
+            ->label('Marcar como pagado')->icon('heroicon-o-banknotes')->color('success')
+            ->requiresConfirmation()
+            ->modalHeading(fn (WaPedido $record) => "¿Marcar {$record->numero} como pagado?")
+            ->modalDescription(fn (WaPedido $record) => self::textoPagar($record))
+            ->modalSubmitActionLabel('Sí, generar la venta')
             ->visible(fn (WaPedido $record) => $record->estado === 'pendiente')
-            ->action(fn (WaPedido $record) => self::aprobar($record));
+            ->action(fn (WaPedido $record) => self::pagar($record));
     }
 
-    private static function accionRechazar(): \Filament\Actions\Action
+    private static function accionAnular(): \Filament\Actions\Action
     {
-        return \Filament\Actions\Action::make('rechazar')
-            ->label('Rechazar')->icon('heroicon-o-x-circle')->color('danger')
+        return \Filament\Actions\Action::make('anular')
+            ->label('Anular')->icon('heroicon-o-x-circle')->color('danger')
             ->form([Textarea::make('motivo')->label('Motivo (se le envía al cliente)')->required()->maxLength(200)])
-            ->visible(fn (WaPedido $record) => $record->estado === 'pendiente')
-            ->action(fn (WaPedido $record, array $data) => self::rechazar($record, $data['motivo']));
+            ->visible(fn (WaPedido $record) => in_array($record->estado, ['pendiente', 'borrador'], true))
+            ->action(fn (WaPedido $record, array $data) => self::anular($record, $data['motivo']));
     }
 
     public static function accionesCabecera(): array
     {
-        return [self::accionAprobar(), self::accionRechazar()];
-    }
-
-    public static function nombreEstado(string $estado): string
-    {
-        return $estado === 'borrador' ? 'Sin confirmar' : ucfirst($estado);
+        return [self::accionPagar(), self::accionAnular()];
     }
 
     public static function table(Table $table): Table
@@ -178,26 +215,25 @@ class WaPedidoResource extends Resource
                 Tables\Columns\TextColumn::make('entrega_tipo')->label('Entrega')->formatStateUsing(fn ($state) => $state === 'envio' ? 'Envío' : 'Retiro')->badge()->color('gray'),
                 Tables\Columns\TextColumn::make('forma_pago')->label('Pago')->formatStateUsing(fn ($state) => ucfirst((string) $state)),
                 Tables\Columns\TextColumn::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->alignEnd()->sortable(),
-                Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => self::nombreEstado((string) $state)),
-            ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('estado')->options([
-                    'borrador' => 'Sin confirmar', 'pendiente' => 'Pendiente', 'aprobado' => 'Aprobado', 'rechazado' => 'Rechazado', 'cancelado' => 'Cancelado', 'convertido' => 'Convertido en venta',
-                ]),
+                Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => self::nombreEstado((string) $state))
+                    ->description(fn (WaPedido $r) => $r->venta_invnr ? 'Venta ' . $r->venta_invnr : null),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()->label('Ver'),
-                Tables\Actions\Action::make('aprobar')->label('Aprobar')->icon('heroicon-o-check-circle')->color('success')
-                    ->requiresConfirmation()->modalDescription('Se le avisará al cliente que su pedido fue confirmado.')
+                Tables\Actions\Action::make('pagar')->label('Pagado')->icon('heroicon-o-banknotes')->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (WaPedido $record) => "¿Marcar {$record->numero} como pagado?")
+                    ->modalDescription(fn (WaPedido $record) => self::textoPagar($record))
+                    ->modalSubmitActionLabel('Sí, generar la venta')
                     ->visible(fn (WaPedido $record) => $record->estado === 'pendiente')
-                    ->action(fn (WaPedido $record) => self::aprobar($record)),
-                Tables\Actions\Action::make('rechazar')->label('Rechazar')->icon('heroicon-o-x-circle')->color('danger')
+                    ->action(fn (WaPedido $record) => self::pagar($record)),
+                Tables\Actions\Action::make('anular')->label('Anular')->icon('heroicon-o-x-circle')->color('danger')
                     ->form([Textarea::make('motivo')->label('Motivo (se le envía al cliente)')->required()->maxLength(200)])
-                    ->visible(fn (WaPedido $record) => $record->estado === 'pendiente')
-                    ->action(fn (WaPedido $record, array $data) => self::rechazar($record, $data['motivo'])),
+                    ->visible(fn (WaPedido $record) => in_array($record->estado, ['pendiente', 'borrador'], true))
+                    ->action(fn (WaPedido $record, array $data) => self::anular($record, $data['motivo'])),
             ])
-            ->emptyStateHeading('Todavía no hay pedidos')
-            ->emptyStateDescription('Cuando un cliente confirme un pedido por WhatsApp va a aparecer acá.')
+            ->emptyStateHeading('No hay pedidos en este período')
+            ->emptyStateDescription('Cambiá el período o el estado para ver otros pedidos.')
             ->poll('15s');
     }
 
@@ -211,7 +247,7 @@ class WaPedidoResource extends Resource
                     TextEntry::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->weight('bold'),
                     TextEntry::make('nombre_cliente')->label('Cliente'),
                     TextEntry::make('telefono')->label('Teléfono')->formatStateUsing(fn ($state) => '+' . $state),
-                    TextEntry::make('confirmado_at')->label('Confirmado por el cliente')->dateTime('d/m/Y H:i'),
+                    TextEntry::make('confirmado_at')->label('Confirmado por el cliente')->dateTime('d/m/Y H:i')->placeholder('—'),
                     TextEntry::make('entrega_tipo')->label('Entrega')->formatStateUsing(fn ($state) => $state === 'envio' ? 'Envío a domicilio' : 'Retiro en el local'),
                     TextEntry::make('direccion_entrega')->label('Dirección')->placeholder('—'),
                     TextEntry::make('forma_pago')->label('Forma de pago')->formatStateUsing(fn ($state) => ucfirst((string) $state)),
@@ -230,9 +266,11 @@ class WaPedidoResource extends Resource
                 ]),
             ]),
             Section::make('Gestión')->schema([
+                TextEntry::make('venta_invnr')->label('Venta generada')->placeholder('—'),
+                TextEntry::make('pagado_at')->label('Pagado el')->dateTime('d/m/Y H:i')->placeholder('—'),
+                TextEntry::make('anulado_at')->label('Anulado el')->dateTime('d/m/Y H:i')->placeholder('—'),
                 TextEntry::make('gestor.name')->label('Gestionado por')->placeholder('—'),
-                TextEntry::make('gestionado_at')->label('Fecha')->dateTime('d/m/Y H:i')->placeholder('—'),
-                TextEntry::make('nota_interna')->label('Motivo / nota interna')->placeholder('—'),
+                TextEntry::make('nota_interna')->label('Motivo de anulación')->placeholder('—'),
             ])->columns(3),
         ]);
     }
