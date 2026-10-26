@@ -13,3 +13,7 @@ Route::get('/wa/foto/{empresa}', [KapsoWebhookController::class, 'foto'])
 Route::get('/wa/cotizacion/{cotizacion}', [\App\Http\Controllers\WaDocumentosController::class, 'cotizacion'])
     ->middleware('signed')
     ->name('wa.cotizacion.pdf');
+
+Route::get('/wa/pedido/{pedido}', [\App\Http\Controllers\WaDocumentosController::class, 'pedido'])
+    ->middleware('signed')
+    ->name('wa.pedido.pdf');

@@ -23,6 +23,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 
 class WaPedidoResource extends Resource
 {
@@ -106,7 +107,7 @@ class WaPedidoResource extends Resource
     }
 
     /** Avisa al cliente por WhatsApp si todavía está dentro de las 24 h. Devuelve si se envió. */
-    public static function avisarCliente(WaPedido $pedido, string $texto): bool
+    public static function avisarCliente(WaPedido $pedido, string $texto, bool $conComprobante = false): bool
     {
         $conv = $pedido->conversacion()->with(['linea', 'contacto'])->first();
         if (!$conv || !$conv->linea) {
@@ -119,9 +120,24 @@ class WaPedidoResource extends Resource
             return false;
         }
 
-        app(EnvioWhatsApp::class)->texto($conv, $conv->linea, $conv->contacto->telefono, $texto, 'humano');
+        $envio = app(EnvioWhatsApp::class);
+        $envio->texto($conv, $conv->linea, $conv->contacto->telefono, $texto, 'humano');
+
+        if ($conComprobante) {
+            try {
+                $envio->documento($conv, $conv->linea, $conv->contacto->telefono, self::urlComprobante($pedido, (int) config('kapso.foto_url_minutos')), $pedido->numero . '.pdf', "Comprobante de tu pedido {$pedido->numero} (pagado)", 'humano');
+            } catch (\Throwable $e) {
+                report($e); // el aviso ya salió; el vendedor puede descargar el PDF desde el panel
+            }
+        }
 
         return true;
+    }
+
+    /** Enlace firmado y temporal al PDF del pedido pagado. */
+    public static function urlComprobante(WaPedido $pedido, int $minutos = 60): string
+    {
+        return URL::temporarySignedRoute('wa.pedido.pdf', now()->addMinutes($minutos), ['pedido' => $pedido->id]);
     }
 
     /** Marca el pedido como pagado y genera la venta en el sistema. */
@@ -142,7 +158,7 @@ class WaPedidoResource extends Resource
         }
 
         $pedido->refresh();
-        $enviado = self::avisarCliente($pedido, "¡Recibimos tu pago! Tu pedido {$pedido->numero} por " . self::gs($pedido->total) . ' está confirmado. Gracias por tu compra.');
+        $enviado = self::avisarCliente($pedido, "¡Recibimos tu pago! Tu pedido {$pedido->numero} por " . self::gs($pedido->total) . ' está confirmado. Gracias por tu compra. Te enviamos el comprobante en PDF.', true);
 
         Notification::make()->title("Pedido pagado · venta {$invnr} registrada")
             ->body(($enviado ? 'Se le avisó al cliente por WhatsApp. ' : 'No se pudo avisar al cliente por WhatsApp (pasaron más de 24 horas). ') . 'Se descontó el stock.')
@@ -175,7 +191,7 @@ class WaPedidoResource extends Resource
             ? ' y se registrará el cobro de ' . self::gs($p->total) . ' (' . $p->forma_pago . ') en caja'
             : '';
 
-        return 'Se generará la venta en el sistema, se descontará el stock' . $caja . '. El cliente recibirá un aviso por WhatsApp. Esta acción no se puede deshacer desde acá.';
+        return 'Se generará la venta en el sistema, se descontará el stock' . $caja . '. El cliente recibirá un aviso por WhatsApp con el comprobante del pedido en PDF. Esta acción no se puede deshacer desde acá.';
     }
 
     private static function accionPagar(): \Filament\Actions\Action
@@ -190,6 +206,14 @@ class WaPedidoResource extends Resource
             ->action(fn (WaPedido $record) => self::pagar($record));
     }
 
+    private static function accionComprobante(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('comprobante')
+            ->label('Comprobante PDF')->icon('heroicon-o-document-text')->color('gray')
+            ->url(fn (WaPedido $record) => self::urlComprobante($record), shouldOpenInNewTab: true)
+            ->visible(fn (WaPedido $record) => $record->estado === 'pagado');
+    }
+
     private static function accionAnular(): \Filament\Actions\Action
     {
         return \Filament\Actions\Action::make('anular')
@@ -201,7 +225,7 @@ class WaPedidoResource extends Resource
 
     public static function accionesCabecera(): array
     {
-        return [self::accionPagar(), self::accionAnular()];
+        return [self::accionPagar(), self::accionComprobante(), self::accionAnular()];
     }
 
     public static function table(Table $table): Table
@@ -229,6 +253,9 @@ class WaPedidoResource extends Resource
                     ->modalSubmitActionLabel('Sí, generar la venta')
                     ->visible(fn (WaPedido $record) => $record->estado === 'pendiente')
                     ->action(fn (WaPedido $record) => self::pagar($record)),
+                Tables\Actions\Action::make('comprobante')->label('PDF')->icon('heroicon-o-document-text')->color('gray')
+                    ->url(fn (WaPedido $record) => self::urlComprobante($record), shouldOpenInNewTab: true)
+                    ->visible(fn (WaPedido $record) => $record->estado === 'pagado'),
                 Tables\Actions\Action::make('anular')->label('Anular')->icon('heroicon-o-x-circle')->color('danger')
                     ->form([Textarea::make('motivo')->label('Motivo (se le envía al cliente)')->required()->maxLength(200)])
                     ->visible(fn (WaPedido $record) => in_array($record->estado, ['pendiente', 'borrador'], true))
