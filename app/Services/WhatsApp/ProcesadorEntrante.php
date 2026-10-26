@@ -137,7 +137,7 @@ class ProcesadorEntrante
         foreach ($productos as $i => $p) {
             $precio = $p['precio'] > 0 ? 'Gs. ' . number_format($p['precio'], 0, ',', '.') : 'Precio a consultar';
             $stock  = $p['stock'] > 0 ? 'Disponible (' . rtrim(rtrim(number_format($p['stock'], 3, ',', '.'), '0'), ',') . ' u.)' : 'Sin stock';
-            $lineas[] = ($i + 1) . ') ' . $p['nombre'] . "\n   " . $precio . ' · ' . $stock;
+            $lineas[] = ($i + 1) . ') ' . $p['nombre'] . "\n   Cód. " . $p['codigo'] . ' · ' . $precio . ' · ' . $stock;
         }
         $this->enviarTexto($conversacion, $linea, $telefono, implode("\n", $lineas));
 
@@ -149,8 +149,7 @@ class ProcesadorEntrante
             if (!$p['tiene_foto']) {
                 continue;
             }
-            $caption = $p['nombre'] . ($p['precio'] > 0 ? ' - Gs. ' . number_format($p['precio'], 0, ',', '.') : '');
-            $this->enviarImagen($conversacion, $linea, $telefono, $catalogo->fotoUrl($p['codigo']), $caption);
+            $this->enviarImagen($conversacion, $linea, $telefono, $catalogo->fotoUrl($p['codigo']), $catalogo->ficha($p));
             $fotos++;
         }
     }

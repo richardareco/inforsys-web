@@ -85,8 +85,17 @@ class AgenteWhatsAppPage extends Page implements HasForms
                             ->helperText('Sin seleccionar ninguno se suma el stock de todos los depósitos.'),
                         TextInput::make('max_productos')->label('Máximo de productos por respuesta')->numeric()->minValue(1)->maxValue(10)->default(5),
                         TextInput::make('max_fotos')->label('Máximo de fotos por respuesta')->numeric()->minValue(0)->maxValue(5)->default(3),
-                        Textarea::make('regla_mayorista')->label('Regla de precio mayorista')->rows(2)
-                            ->helperText('Se define más adelante. Por ahora el agente informa solo el precio normal.'),
+                        Toggle::make('mayorista_activo')->label('Ofrecer precio mayorista')->live()
+                            ->helperText('El precio mayorista es el campo "precio1" del producto. Solo se muestra si el producto lo tiene cargado y es menor al precio normal.'),
+                        TextInput::make('mayorista_min_unidades')->label('Se aplica desde (unidades del mismo producto)')
+                            ->numeric()->minValue(2)->maxValue(100000)->integer()
+                            ->required(fn ($get) => (bool) $get('mayorista_activo'))
+                            ->validationMessages(['required' => 'Indicá desde cuántas unidades se aplica el precio mayorista.'])
+                            ->visible(fn ($get) => (bool) $get('mayorista_activo'))
+                            ->helperText('Ejemplo: 6 = el cliente paga el precio mayorista cuando pide 6 o más unidades de un mismo producto.'),
+                        Textarea::make('regla_mayorista')->label('Aclaración sobre el precio mayorista (opcional)')->rows(2)
+                            ->visible(fn ($get) => (bool) $get('mayorista_activo'))
+                            ->helperText('Texto libre que el agente puede mencionar, por ejemplo condiciones de pago para mayoristas.'),
                     ]),
 
                 Section::make('Información del negocio')
@@ -135,6 +144,9 @@ class AgenteWhatsAppPage extends Page implements HasForms
         }
 
         $data['depositos'] = array_values($data['depositos'] ?? []);
+        if (empty($data['mayorista_activo'])) {
+            $data['mayorista_min_unidades'] = null;
+        }
         WaAgenteConfig::updateOrCreate(['empresa_id' => $empresaId], $data);
 
         $linea = WaLinea::where('empresa_id', $empresaId)->first();

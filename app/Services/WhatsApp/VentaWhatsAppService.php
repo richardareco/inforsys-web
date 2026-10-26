@@ -45,6 +45,97 @@ class VentaWhatsAppService
         });
     }
 
+    private const VIGENCIA_LISTA_HORAS = 48;
+
+    /** @return array<string, float> código => cantidad de los productos que el cliente va pidiendo */
+    private function lista(WaConversacion $conv): array
+    {
+        if (!$conv->carrito || !$conv->carrito_at || $conv->carrito_at->lt(now()->subHours(self::VIGENCIA_LISTA_HORAS))) {
+            return [];
+        }
+
+        return array_map('floatval', $conv->carrito);
+    }
+
+    private function guardarLista(WaConversacion $conv, array $lista): void
+    {
+        $conv->update(['carrito' => $lista ?: null, 'carrito_at' => $lista ? now() : null]);
+    }
+
+    private function lineasDeLista(array $lista): array
+    {
+        $out = [];
+        foreach ($lista as $codigo => $cantidad) {
+            $out[] = ['codigo' => (string) $codigo, 'cantidad' => $cantidad];
+        }
+
+        return $out;
+    }
+
+    /** Detalle y total de lo que lleva pedido el cliente hasta ahora (precios y stock de este momento). */
+    public function resumenLista(WaConversacion $conv): array
+    {
+        $lista = $this->lista($conv);
+        if (!$lista) {
+            return ['productos' => [], 'total_gs' => 0, 'total' => 'Gs. 0', 'cantidad_de_productos' => 0];
+        }
+
+        $lineas = $this->validarLineas($this->lineasDeLista($lista));
+
+        return [
+            'cantidad_de_productos' => count($lineas),
+            'productos' => array_map(fn ($l) => [
+                'codigo'   => $l['item'],
+                'nombre'   => $l['descr'],
+                'cantidad' => $l['cantidad'],
+                'precio'   => 'Gs. ' . number_format($l['precio'], 0, ',', '.'),
+                'subtotal' => 'Gs. ' . number_format($l['subtotal'], 0, ',', '.'),
+            ], $lineas),
+            'total_gs' => (int) array_sum(array_column($lineas, 'subtotal')),
+            'total'    => 'Gs. ' . number_format(array_sum(array_column($lineas, 'subtotal')), 0, ',', '.'),
+        ];
+    }
+
+    /** Suma (o reemplaza) la cantidad de un producto en la lista, validando stock y precio. */
+    public function agregarALista(WaConversacion $conv, string $codigo, float $cantidad, bool $reemplazar = false): array
+    {
+        $codigo = trim($codigo);
+        $lista  = $this->lista($conv);
+        $nueva  = $lista;
+        $nueva[$codigo] = $reemplazar ? $cantidad : ($lista[$codigo] ?? 0) + $cantidad;
+
+        $this->validarLineas($this->lineasDeLista($nueva)); // lanza ReglaDeNegocio si no corresponde
+        $this->guardarLista($conv, $nueva);
+
+        return $this->resumenLista($conv->fresh());
+    }
+
+    public function quitarDeLista(WaConversacion $conv, string $codigo): array
+    {
+        $lista = $this->lista($conv);
+        if (!array_key_exists(trim($codigo), $lista)) {
+            throw new ReglaDeNegocio('Ese producto no está en la lista del cliente.');
+        }
+        unset($lista[trim($codigo)]);
+        $this->guardarLista($conv, $lista);
+
+        return $this->resumenLista($conv->fresh());
+    }
+
+    /** Crea la cotización con todo lo que el cliente fue pidiendo y vacía la lista. */
+    public function generarCotizacion(WaConversacion $conv): WaCotizacion
+    {
+        $lista = $this->lista($conv);
+        if (!$lista) {
+            throw new ReglaDeNegocio('Todavía no hay productos en la lista del cliente. Agregá los que pida con agregar_producto.');
+        }
+
+        $cot = $this->crearCotizacion($conv, $this->lineasDeLista($lista));
+        $this->guardarLista($conv, []);
+
+        return $cot;
+    }
+
     /**
      * Arma el resumen del pedido (estado borrador). No es definitivo: el cliente debe confirmar
      * con un mensaje posterior y recién ahí se llama a confirmarPedido().
@@ -219,7 +310,7 @@ class VentaWhatsAppService
                 throw new ReglaDeNegocio("No hay stock suficiente de {$p['nombre']}: disponible {$disp}, pedido {$cantidad}.");
             }
 
-            $precio = round($p['precio']);
+            $precio = $this->catalogo->precioPara($p, $cantidad);
             $resultado[] = [
                 'item'     => (string) $p['codigo'],
                 'descr'    => $p['nombre'],

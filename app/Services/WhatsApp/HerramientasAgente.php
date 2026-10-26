@@ -71,25 +71,36 @@ class HerramientasAgente
                 'inputSchema' => ['type' => 'object'],
             ],
             [
-                'name'        => 'crear_cotizacion',
-                'description' => 'Crea una cotización con los productos y cantidades que el cliente quiere. El sistema valida stock y calcula precios y total; vos nunca calcules importes. Al crearla se envía automáticamente el PDF al cliente. Devuelve el detalle y el total para que se lo resumas.',
+                'name'        => 'agregar_producto',
+                'description' => 'Agrega un producto a la lista de la cotización en armado del cliente (no genera el PDF). Usala cada vez que el cliente pide un producto con su cantidad. El sistema valida stock, aplica el precio que corresponde por cantidad y devuelve la lista completa con el total parcial. Si el producto ya estaba, suma la cantidad (o la reemplaza con reemplazar=true).',
                 'inputSchema' => [
                     'type'       => 'object',
                     'properties' => [
-                        'productos' => [
-                            'type'  => 'array',
-                            'items' => [
-                                'type'       => 'object',
-                                'properties' => [
-                                    'codigo'   => ['type' => 'string', 'description' => 'Código devuelto por buscar_productos.'],
-                                    'cantidad' => ['type' => 'number', 'description' => 'Cantidad pedida.'],
-                                ],
-                                'required' => ['codigo', 'cantidad'],
-                            ],
-                        ],
+                        'codigo'     => ['type' => 'string', 'description' => 'Código devuelto por buscar_productos.'],
+                        'cantidad'   => ['type' => 'number', 'description' => 'Cantidad pedida (1 si no la aclara).'],
+                        'reemplazar' => ['type' => 'boolean', 'description' => 'true para fijar esa cantidad en vez de sumarla.'],
                     ],
-                    'required' => ['productos'],
+                    'required' => ['codigo', 'cantidad'],
                 ],
+            ],
+            [
+                'name'        => 'quitar_producto',
+                'description' => 'Quita un producto de la lista de la cotización en armado.',
+                'inputSchema' => [
+                    'type'       => 'object',
+                    'properties' => ['codigo' => ['type' => 'string']],
+                    'required'   => ['codigo'],
+                ],
+            ],
+            [
+                'name'        => 'ver_lista',
+                'description' => 'Muestra la lista actual de la cotización en armado, con cantidades, precios y total parcial.',
+                'inputSchema' => ['type' => 'object'],
+            ],
+            [
+                'name'        => 'generar_cotizacion',
+                'description' => 'Genera la cotización con TODOS los productos de la lista y le envía el PDF al cliente. Usala solo cuando el cliente ya terminó de pedir (le preguntaste si necesita algo más y dijo que no). Vacía la lista. Devuelve el detalle y el total.',
+                'inputSchema' => ['type' => 'object'],
             ],
             [
                 'name'        => 'preparar_pedido',
@@ -143,7 +154,10 @@ class HerramientasAgente
                 'detalle_producto' => $this->detalle($input),
                 'enviar_fotos'     => $this->fotos($input),
                 'info_negocio'     => $this->infoNegocio(),
-                'crear_cotizacion' => $this->cotizar($input),
+                'agregar_producto'   => $this->agregar($input),
+                'quitar_producto'    => $this->quitar($input),
+                'ver_lista'          => $this->ventas->resumenLista($this->conversacion->fresh()),
+                'generar_cotizacion' => $this->cotizar(),
                 'preparar_pedido'  => $this->prepararPedido($input),
                 'confirmar_pedido' => $this->confirmarPedido($input),
                 'derivar_a_humano' => $this->derivar($input),
@@ -221,9 +235,24 @@ class HerramientasAgente
         ];
     }
 
-    private function cotizar(array $input): array
+    private function agregar(array $input): array
     {
-        $cot = $this->ventas->crearCotizacion($this->conversacion, (array) ($input['productos'] ?? []));
+        $cantidad = (float) ($input['cantidad'] ?? 1);
+        $lista = $this->ventas->agregarALista(
+            $this->conversacion, (string) ($input['codigo'] ?? ''), $cantidad > 0 ? $cantidad : 1, (bool) ($input['reemplazar'] ?? false)
+        );
+
+        return $lista + ['nota' => 'Todavía NO se generó el PDF. Seguí agregando lo que pida y, cuando termine, preguntale si necesita algo más antes de generar la cotización.'];
+    }
+
+    private function quitar(array $input): array
+    {
+        return $this->ventas->quitarDeLista($this->conversacion, (string) ($input['codigo'] ?? ''));
+    }
+
+    private function cotizar(): array
+    {
+        $cot = $this->ventas->generarCotizacion($this->conversacion);
 
         $this->documentosPendientes[] = [
             'url'      => $this->ventas->urlPdfCotizacion($cot),
@@ -299,8 +328,13 @@ class HerramientasAgente
     private function publico(array $p): array
     {
         $stock = (float) $p['stock'];
+        $may   = $this->catalogo->mayorista($p);
 
-        return [
+        return ($may ? [
+            'precio_mayorista'            => 'Gs. ' . number_format($may['precio'], 0, ',', '.'),
+            'mayorista_desde_unidades'    => $may['desde'],
+            'condicion_mayorista'         => 'Precio mayorista comprando desde ' . $may['desde'] . ' unidades del mismo producto',
+        ] : []) + [
             'codigo'             => $p['codigo'],
             'nombre'             => $p['nombre'],
             'precio_gs'          => $p['precio'] > 0 ? (int) round($p['precio']) : null,

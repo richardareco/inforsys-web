@@ -104,6 +104,47 @@ class CatalogoService
         ];
     }
 
+    /**
+     * Precio mayorista (items.precio1) si el negocio lo tiene activado, el producto lo tiene cargado
+     * y es menor al normal. Devuelve null cuando no corresponde mostrarlo ni aplicarlo.
+     *
+     * @return array{precio: float, desde: int}|null
+     */
+    public function mayorista(array $p): ?array
+    {
+        $min = (int) ($this->config?->mayorista_min_unidades ?? 0);
+
+        if (!($this->config?->mayorista_activo ?? false) || $min < 2) {
+            return null;
+        }
+
+        $mayor = (float) $p['precio_mayorista'];
+
+        return ($mayor > 0 && $mayor < (float) $p['precio']) ? ['precio' => round($mayor), 'desde' => $min] : null;
+    }
+
+    /** Precio unitario que corresponde según la cantidad pedida. */
+    public function precioPara(array $p, float $cantidad): float
+    {
+        $m = $this->mayorista($p);
+
+        return round($m && $cantidad >= $m['desde'] ? $m['precio'] : $p['precio']);
+    }
+
+    /** Texto de la ficha de un producto: código, descripción y precios (también para el pie de la foto). */
+    public function ficha(array $p): string
+    {
+        $gs = fn ($v) => 'Gs. ' . number_format($v, 0, ',', '.');
+
+        $lineas = ['Cód. ' . $p['codigo'], $p['nombre'], $p['precio'] > 0 ? 'Precio: ' . $gs($p['precio']) : 'Precio a consultar'];
+
+        if ($m = $this->mayorista($p)) {
+            $lineas[] = 'Mayorista: ' . $gs($m['precio']) . ' c/u comprando desde ' . $m['desde'] . ' unidades';
+        }
+
+        return implode("\n", $lineas);
+    }
+
     public function fotoBinaria(string $codigo): ?string
     {
         $img = $this->db()->table('itemsimage')->where('item', $codigo)->value('image');

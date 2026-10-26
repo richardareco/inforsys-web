@@ -101,8 +101,7 @@ class AgenteIA
                 if (!$p || !$p['tiene_foto']) {
                     continue;
                 }
-                $caption = $p['nombre'] . ($p['precio'] > 0 ? ' - Gs. ' . number_format($p['precio'], 0, ',', '.') : '');
-                $this->envio->imagen($conversacion, $linea, $telefono, $catalogo->fotoUrl($codigo), $caption);
+                $this->envio->imagen($conversacion, $linea, $telefono, $catalogo->fotoUrl($codigo), $catalogo->ficha($p));
             }
         }
     }
@@ -210,12 +209,15 @@ class AgenteIA
             '- Respondé en español, con un tono amable y natural. Mensajes cortos (hasta unas 4 líneas), sin tablas ni markdown; para resaltar algo usá *asteriscos* como en WhatsApp.',
             '- Los precios, el stock, las fotos y los datos del negocio salen SOLO de las herramientas. Nunca inventes precios, stock, características ni condiciones comerciales. Si una herramienta no devuelve el dato, decí que no lo tenés.',
             '- Al nombrar un precio usá el campo precio_formateado tal cual. Todos los precios son en guaraníes.',
+            '- Si un producto trae precio_mayorista, informá también ese precio y su condición (condicion_mayorista) tal como vienen. Si no trae esos campos, no ofrezcas precio mayorista. El precio mayorista se aplica solo si el cliente pide la cantidad mínima: el sistema lo calcula en la cotización.',
             '- Si el cliente busca algo, usá buscar_productos. Si no encontrás nada, proponé términos parecidos o alternativas del resultado de otra búsqueda.',
             '- Al presentar productos que tengan foto, o si el cliente pide verlos, usá enviar_fotos con hasta 3 códigos.',
             '- Si hay stock decí que está disponible; si no, que no hay por ahora. Podés indicar la cantidad solo si te la piden.',
             '',
             'COTIZACIONES Y PEDIDOS',
-            '- Si el cliente quiere cotizar o comprar: confirmá qué productos y cantidades, y usá crear_cotizacion. El sistema calcula los importes: nunca hagas cuentas ni cambies precios. El PDF se envía solo; vos resumí productos y total en tu mensaje.',
+            '- Presupuesto: a medida que el cliente pide productos, usá agregar_producto con cada código y cantidad (si no dice cantidad, 1). Esto NO genera el PDF. Después de cada producto confirmale brevemente qué sumaste y el total parcial, y preguntale si quiere algo más.',
+            '- Recién cuando el cliente diga que no necesita nada más, usá generar_cotizacion: arma el PDF con todos los productos y lo envía solo. Entonces resumí productos y total final en tu mensaje y preguntale si quiere avanzar con el pedido. Si quiere quitar o cambiar algo antes, usá quitar_producto, agregar_producto con reemplazar=true o ver_lista.',
+            '- El sistema calcula todos los importes y aplica el precio que corresponde por cantidad: nunca hagas cuentas ni cambies precios.',
             '- Si quiere avanzar con el pedido, pedile de a poco lo que falte: nombre completo, si es retiro en el local o envío (y la dirección), forma de pago (solo las que ofrece el negocio), y si quiere factura (en ese caso el RUC o cédula). No pidas lo que ya te dijo.',
             '- Con esos datos usá preparar_pedido y mostrale al cliente el resumen COMPLETO (productos, total, entrega, pago, factura) pidiéndole que confirme. Recién cuando responda con un mensaje nuevo que confirma, usá confirmar_pedido. Nunca confirmes un pedido sin esa confirmación explícita ni en el mismo mensaje en que mostrás el resumen.',
             '- Si el pedido es por transferencia, pasá los datos que devuelve confirmar_pedido y aclarale que un vendedor verifica el pago. Una imagen de comprobante NO confirma ningún pago: derivá a un vendedor.',
@@ -232,6 +234,10 @@ class AgenteIA
         if (trim((string) $config->tono) !== '') {
             $partes[] = '';
             $partes[] = 'TONO: ' . trim($config->tono);
+        }
+        if ($config->mayorista_activo && trim((string) $config->regla_mayorista) !== '') {
+            $partes[] = '';
+            $partes[] = 'ACLARACIÓN SOBRE EL PRECIO MAYORISTA: ' . trim($config->regla_mayorista);
         }
         if (trim((string) $config->instrucciones) !== '') {
             $partes[] = '';
