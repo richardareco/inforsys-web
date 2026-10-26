@@ -19,7 +19,7 @@
     .miga { padding: 1.2rem 0 .8rem; font-size: .85rem; color: var(--mu); }
     .miga a:hover { color: var(--c); }
     .det { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 3rem; padding-bottom: 2rem; align-items: start; }
-    .galeria { position: sticky; top: 5.5rem; }
+    .galeria { position: sticky; top: var(--top-fijo, 5.5rem); }
     .carr { position: relative; border-radius: 1.4rem; background: #f6f6f7; border: 1px solid #f0f0f1; overflow: hidden; aspect-ratio: 1; }
     .slides { display: flex; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth; }
     .slides::-webkit-scrollbar { display: none; }

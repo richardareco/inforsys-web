@@ -29,7 +29,7 @@
     @isset($imagenSocial)<meta property="og:image" content="{{ url($imagenSocial) }}">@endisset
     @if($t->logo)<link rel="icon" href="{{ $t->urlArchivo($t->logo) }}">@endif
     <style>
-        :root { --c: {{ $t->color }}; --ct: {{ $t->colorTexto() }}; --tx: #111827; --mu: #6b7280; --bd: #e5e7eb; --bg: #fafafa; }
+        :root { --top-fijo: {{ $anuncios ? '8.6rem' : '5.5rem' }}; --c: {{ $t->color }}; --ct: {{ $t->colorTexto() }}; --tx: #111827; --mu: #6b7280; --bd: #e5e7eb; --bg: #fafafa; }
         * { box-sizing: border-box; margin: 0; }
         html { scroll-behavior: smooth; }
         body { font-family: Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--tx); background: #fff; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -49,7 +49,8 @@
         @media (prefers-reduced-motion: reduce) { .anuncio-pista { animation: none; width: auto; overflow-x: auto; } .anuncio .mitad + .mitad { display: none; } }
 
         /* Encabezado */
-        .hd { position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bd); }
+        .fijo { position: sticky; top: 0; z-index: 30; }   /* barra de anuncios + encabezado: quedan fijos al hacer scroll */
+        .hd { position: relative; background: rgba(255, 255, 255, .92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--bd); }
         .hd-in { display: flex; align-items: center; gap: 1rem; height: 4.2rem; }
         .marca { display: flex; align-items: center; gap: .6rem; font-weight: 800; font-size: 1.15rem; letter-spacing: -.02em; flex-shrink: 0; }
         .marca img { height: 2.4rem; width: auto; max-width: 9rem; object-fit: contain; }
@@ -127,6 +128,8 @@
         @media (max-width: 720px) {
             .hd-in { height: auto; padding: .7rem 0; flex-wrap: wrap; gap: .6rem; }
             .busca { order: 3; flex-basis: 100%; max-width: none; }
+            .fijo.compacto .busca { display: none; }   /* al bajar, el buscador se oculta para dejar más lugar al contenido */
+            .fijo.compacto .hd-in { padding: .5rem 0; }
             .hd .btn.wa span { display: none; }
             .hd .btn.wa { padding: 0; width: 2.7rem; }
             .hero { min-height: 13rem; border-radius: 1.2rem; }
@@ -140,6 +143,7 @@
     </style>
 </head>
 <body>
+    <div class="fijo">
     @if($anuncios)
         <div class="anuncio" role="region" aria-label="Anuncios">
             <div class="anuncio-pista">
@@ -165,6 +169,7 @@
             @endif
         </div>
     </header>
+    </div>
 
     @yield('contenido')
 
@@ -198,6 +203,18 @@
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.25-1.38A9.9 9.9 0 1 0 12.04 2Zm5.8 14.1c-.25.7-1.45 1.34-2 1.4-.5.07-1.13.1-1.82-.12a16.5 16.5 0 0 1-1.65-.6c-2.9-1.25-4.78-4.15-4.92-4.35-.14-.2-1.17-1.56-1.17-2.97s.74-2.1 1-2.4c.27-.28.58-.35.78-.35h.56c.18 0 .42-.07.65.5.25.6.84 2.05.9 2.2.08.14.12.32.02.5-.1.2-.15.32-.3.5l-.45.5c-.15.15-.3.3-.13.6.18.3.77 1.27 1.65 2.05 1.13 1 2.08 1.3 2.38 1.45.3.14.47.12.65-.07.18-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.28.1 1.75.83 2.05.97.3.15.5.22.57.35.07.12.07.7-.18 1.4Z"/></svg>
         </a>
     @endif
+    <script>
+    (function () {
+        // En el celular, el buscador se esconde al bajar y vuelve al subir (con margen para que no parpadee)
+        var f = document.querySelector('.fijo'); if (!f) return;
+        var compacto = false;
+        window.addEventListener('scroll', function () {
+            var y = window.scrollY;
+            if (!compacto && y > 160) { compacto = true; f.classList.add('compacto'); }
+            else if (compacto && y < 60) { compacto = false; f.classList.remove('compacto'); }
+        }, { passive: true });
+    })();
+    </script>
     @yield('scripts')
 </body>
 </html>
