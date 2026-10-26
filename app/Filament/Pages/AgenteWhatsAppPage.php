@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\WaAgenteConfig;
 use App\Models\WaLinea;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -71,6 +72,11 @@ class AgenteWhatsAppPage extends Page implements HasForms
                         Toggle::make('activo')->label('Agente activo')
                             ->helperText('Si está apagado, los mensajes se guardan pero no se responden.'),
                         TextInput::make('phone_number_id')->label('Phone number ID de Kapso')->maxLength(40),
+                        TextInput::make('agente_nombre')->label('Nombre del agente')->maxLength(60)->placeholder('Asistente IA')
+                            ->helperText('Cómo se muestra el agente en el panel de Conversaciones.'),
+                        FileUpload::make('agente_avatar')->label('Foto del agente')->image()->avatar()
+                            ->disk('public')->directory('wa-agente')->maxSize(2048)
+                            ->helperText('Opcional. Si no subís una, se usa el ícono del agente por defecto.'),
                         Select::make('modo')->label('Modo de respuesta')->native(false)->options([
                             'basico' => 'Básico: busca productos y responde con precio, stock y fotos (sin IA)',
                             'agente' => 'Agente con IA: conversa de forma natural, consulta productos y deriva a un vendedor',

@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 
 class ConversacionesWhatsAppPage extends Page
@@ -69,6 +70,33 @@ class ConversacionesWhatsAppPage extends Page
         }
 
         return $user?->isSuperAdmin() ? $query : $query->whereRaw('1 = 0');
+    }
+
+    /** Conteos para las tarjetas de arriba (mismo criterio que los filtros de la lista). */
+    #[Computed]
+    public function resumenEstados(): array
+    {
+        $ultimaEntrante = "(select direccion from wa_mensajes where conversacion_id = wa_conversaciones.id order by id desc limit 1) = 'in'";
+
+        return [
+            'agente' => self::consultaBase()->where('estado', 'agente')->count(),
+            'humano' => self::consultaBase()->where('estado', '!=', 'agente')->count(),
+            'atencion' => self::consultaBase()->where('estado', '!=', 'agente')->whereRaw($ultimaEntrante)->count(),
+            'hoy' => self::consultaBase()->where('ultimo_mensaje_at', '>=', today())->count(),
+        ];
+    }
+
+    /** Nombre e imagen con que se muestra al agente de IA. */
+    #[Computed]
+    public function agente(): array
+    {
+        $config = \App\Models\WaAgenteConfig::where('empresa_id', Auth::user()?->empresa_id)->first();
+        $avatar = $config?->agente_avatar;
+
+        return [
+            'nombre' => trim((string) $config?->agente_nombre) ?: 'Asistente IA',
+            'avatar' => $avatar ? Storage::disk('public')->url($avatar) : '/images/agente-ia.svg',
+        ];
     }
 
     #[Computed]
