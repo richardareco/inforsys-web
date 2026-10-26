@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Models\WaAgenteConfig;
 use App\Models\WaConversacion;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -104,11 +105,10 @@ class HerramientasAgente
             ],
             [
                 'name'        => 'preparar_pedido',
-                'description' => 'Arma el resumen de un pedido a partir de una cotización, con los datos de entrega y pago. NO registra el pedido todavía: después tenés que mostrarle el resumen completo al cliente y pedirle que confirme. Cuando el cliente responda que sí, recién ahí usá confirmar_pedido.',
+                'description' => 'Arma el resumen del pedido con TODOS los productos de la lista del cliente (o con la última cotización si la lista está vacía), más los datos de entrega y pago. No hace falta pasar ningún número. NO registra el pedido todavía: después tenés que mostrarle el resumen completo al cliente y pedirle que confirme. Cuando el cliente responda que sí en un mensaje nuevo, recién ahí usá confirmar_pedido.',
                 'inputSchema' => [
                     'type'       => 'object',
                     'properties' => [
-                        'cotizacion_id'     => ['type' => 'integer', 'description' => 'El campo id de la cotización creada.'],
                         'nombre'            => ['type' => 'string', 'description' => 'Nombre completo del cliente.'],
                         'entrega'           => ['type' => 'string', 'enum' => ['retiro', 'envio'], 'description' => 'retiro en el local o envio a domicilio.'],
                         'direccion_entrega' => ['type' => 'string', 'description' => 'Obligatoria si es envio.'],
@@ -117,19 +117,13 @@ class HerramientasAgente
                         'ruc'               => ['type' => 'string', 'description' => 'RUC o cédula, obligatorio si quiere factura.'],
                         'nota'              => ['type' => 'string', 'description' => 'Aclaración del cliente, opcional.'],
                     ],
-                    'required' => ['cotizacion_id', 'nombre', 'entrega', 'forma_pago'],
+                    'required' => ['nombre', 'entrega', 'forma_pago'],
                 ],
             ],
             [
                 'name'        => 'confirmar_pedido',
-                'description' => 'Registra el pedido definitivamente. Usala SOLO cuando el cliente, en un mensaje posterior al resumen que le mostraste, confirmó de forma explícita (por ejemplo "sí, confirmo"). Si no confirmó, el sistema lo rechaza.',
-                'inputSchema' => [
-                    'type'       => 'object',
-                    'properties' => [
-                        'pedido_id' => ['type' => 'integer', 'description' => 'El campo id del pedido devuelto por preparar_pedido.'],
-                    ],
-                    'required' => ['pedido_id'],
-                ],
+                'description' => 'Registra definitivamente el pedido que se estaba preparando en esta conversación (no necesita parámetros). Usala SOLO cuando el cliente, en un mensaje posterior al resumen que le mostraste, confirmó de forma explícita (por ejemplo "sí, confirmo"). Si no confirmó, el sistema lo rechaza. Solo el número PED-xxxxxx que devuelve esta herramienta es válido: nunca inventes uno.',
+                'inputSchema' => ['type' => 'object'],
             ],
             [
                 'name'        => 'derivar_a_humano',
@@ -147,6 +141,14 @@ class HerramientasAgente
 
     /** @return array{content: string, is_error: bool} */
     public function ejecutar(string $nombre, array $input): array
+    {
+        $r = $this->ejecutarSinLog($nombre, $input);
+        Log::info('WhatsApp herramienta', ['conversacion' => $this->conversacion->id, 'tool' => $nombre, 'error' => $r['is_error'], 'resultado' => mb_substr($r['content'], 0, 160)]);
+
+        return $r;
+    }
+
+    private function ejecutarSinLog(string $nombre, array $input): array
     {
         try {
             $resultado = match ($nombre) {
@@ -268,7 +270,7 @@ class HerramientasAgente
 
     private function prepararPedido(array $input): array
     {
-        $pedido = $this->ventas->prepararPedido($this->conversacion, (int) ($input['cotizacion_id'] ?? 0), [
+        $pedido = $this->ventas->prepararPedido($this->conversacion, ((int) ($input['cotizacion_id'] ?? 0)) ?: null, [
             'nombre'            => $input['nombre'] ?? null,
             'entrega'           => $input['entrega'] ?? null,
             'direccion_entrega' => $input['direccion_entrega'] ?? null,
@@ -298,7 +300,7 @@ class HerramientasAgente
 
     private function confirmarPedido(array $input): array
     {
-        $pedido = $this->ventas->confirmarPedido($this->conversacion, (int) ($input['pedido_id'] ?? 0));
+        $pedido = $this->ventas->confirmarPedido($this->conversacion, ((int) ($input['pedido_id'] ?? 0)) ?: null);
 
         $datos = [
             'ok'       => true,

@@ -64,11 +64,11 @@ class WaPedidoResource extends Resource
         return 'warning';
     }
 
-    /** Solo los pedidos de la empresa del usuario; los borradores (sin confirmar) no se muestran. */
+    /** Solo los pedidos de la empresa del usuario (incluye los que el cliente dejó sin confirmar). */
     public static function getEloquentQuery(): Builder
     {
         $user  = Auth::user();
-        $query = parent::getEloquentQuery()->where('estado', '!=', 'borrador');
+        $query = parent::getEloquentQuery();
 
         if ($user?->empresa_id) {
             return $query->where('empresa_id', $user->empresa_id);
@@ -83,7 +83,7 @@ class WaPedidoResource extends Resource
             'pendiente' => 'warning',
             'aprobado', 'convertido' => 'success',
             'rechazado', 'cancelado' => 'danger',
-            default => 'gray',
+            default => 'gray', // borrador: el cliente vio el resumen pero no confirmó
         };
     }
 
@@ -162,6 +162,11 @@ class WaPedidoResource extends Resource
         return [self::accionAprobar(), self::accionRechazar()];
     }
 
+    public static function nombreEstado(string $estado): string
+    {
+        return $estado === 'borrador' ? 'Sin confirmar' : ucfirst($estado);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -173,11 +178,11 @@ class WaPedidoResource extends Resource
                 Tables\Columns\TextColumn::make('entrega_tipo')->label('Entrega')->formatStateUsing(fn ($state) => $state === 'envio' ? 'Envío' : 'Retiro')->badge()->color('gray'),
                 Tables\Columns\TextColumn::make('forma_pago')->label('Pago')->formatStateUsing(fn ($state) => ucfirst((string) $state)),
                 Tables\Columns\TextColumn::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->alignEnd()->sortable(),
-                Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => ucfirst((string) $state)),
+                Tables\Columns\TextColumn::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => self::nombreEstado((string) $state)),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('estado')->options([
-                    'pendiente' => 'Pendiente', 'aprobado' => 'Aprobado', 'rechazado' => 'Rechazado', 'cancelado' => 'Cancelado', 'convertido' => 'Convertido en venta',
+                    'borrador' => 'Sin confirmar', 'pendiente' => 'Pendiente', 'aprobado' => 'Aprobado', 'rechazado' => 'Rechazado', 'cancelado' => 'Cancelado', 'convertido' => 'Convertido en venta',
                 ]),
             ])
             ->actions([
@@ -202,7 +207,7 @@ class WaPedidoResource extends Resource
             Section::make('Pedido')->schema([
                 Grid::make(3)->schema([
                     TextEntry::make('id')->label('Número')->formatStateUsing(fn ($state) => 'PED-' . str_pad((string) $state, 6, '0', STR_PAD_LEFT))->weight('bold'),
-                    TextEntry::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => ucfirst((string) $state)),
+                    TextEntry::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => self::nombreEstado((string) $state)),
                     TextEntry::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->weight('bold'),
                     TextEntry::make('nombre_cliente')->label('Cliente'),
                     TextEntry::make('telefono')->label('Teléfono')->formatStateUsing(fn ($state) => '+' . $state),

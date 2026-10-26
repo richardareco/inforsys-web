@@ -140,14 +140,9 @@ class VentaWhatsAppService
      * Arma el resumen del pedido (estado borrador). No es definitivo: el cliente debe confirmar
      * con un mensaje posterior y recién ahí se llama a confirmarPedido().
      */
-    public function prepararPedido(WaConversacion $conv, int $cotizacionId, array $datos): WaPedido
+    public function prepararPedido(WaConversacion $conv, ?int $cotizacionId, array $datos): WaPedido
     {
-        $cot = WaCotizacion::with('items')->where('empresa_id', $this->empresa->id)
-            ->where('conversacion_id', $conv->id)->find($cotizacionId);
-
-        if (!$cot) {
-            throw new ReglaDeNegocio('No encuentro esa cotización en esta conversación.');
-        }
+        $cot = $this->cotizacionParaPedido($conv, $cotizacionId);
 
         $existente = WaPedido::where('cotizacion_id', $cot->id)->first();
         if ($existente && $existente->estado !== 'borrador') {
@@ -215,14 +210,57 @@ class VentaWhatsAppService
         });
     }
 
-    /** Confirma el pedido: exige que el cliente haya escrito DESPUÉS de ver el resumen. */
-    public function confirmarPedido(WaConversacion $conv, int $pedidoId): WaPedido
+    /**
+     * Cotización que respalda el pedido: la indicada, o los productos que el cliente fue pidiendo
+     * (se arma una cotización interna, sin enviar PDF), o la última cotización generada.
+     */
+    private function cotizacionParaPedido(WaConversacion $conv, ?int $cotizacionId): WaCotizacion
     {
-        $pedido = WaPedido::with('items')->where('empresa_id', $this->empresa->id)
-            ->where('conversacion_id', $conv->id)->find($pedidoId);
+        if ($cotizacionId) {
+            $cot = WaCotizacion::with('items')->where('empresa_id', $this->empresa->id)
+                ->where('conversacion_id', $conv->id)->find($cotizacionId);
+
+            if ($cot) {
+                return $cot;
+            }
+        }
+
+        // Pedidos todavía sin confirmar: se descartan para no dejar restos si el cliente cambió algo
+        $descartar = fn () => WaPedido::where('conversacion_id', $conv->id)->where('estado', 'borrador')->get()->each(function (WaPedido $p) {
+            $p->cotizacion?->update(['estado' => 'cancelada']);
+            $p->delete();
+        });
+
+        if ($this->lista($conv)) {
+            $descartar();
+
+            return $this->crearCotizacion($conv, $this->lineasDeLista($this->lista($conv)));
+        }
+
+        $ultima = WaCotizacion::with('items')->where('empresa_id', $this->empresa->id)->where('conversacion_id', $conv->id)
+            ->where('estado', 'enviada')->where('created_at', '>=', now()->subHours(self::VIGENCIA_LISTA_HORAS))
+            ->latest('id')->first();
+
+        if ($ultima) {
+            return $ultima;
+        }
+
+        throw new ReglaDeNegocio('Todavía no hay productos para el pedido. Agregá lo que pida el cliente con agregar_producto.');
+    }
+
+    /** Confirma el pedido: exige que el cliente haya escrito DESPUÉS de ver el resumen. */
+    public function confirmarPedido(WaConversacion $conv, ?int $pedidoId = null): WaPedido
+    {
+        $consulta = WaPedido::with('items')->where('empresa_id', $this->empresa->id)->where('conversacion_id', $conv->id);
+
+        // Sin número: el sistema usa el pedido que se estaba preparando en esta conversación
+        $pedido = $pedidoId
+            ? (clone $consulta)->find($pedidoId)
+            : ((clone $consulta)->where('estado', 'borrador')->latest('id')->first()
+                ?? (clone $consulta)->where('confirmado_at', '>=', now()->subHours(2))->latest('id')->first());
 
         if (!$pedido) {
-            throw new ReglaDeNegocio('No encuentro ese pedido en esta conversación.');
+            throw new ReglaDeNegocio('No hay un pedido en preparación en esta conversación. Armalo primero con preparar_pedido.');
         }
 
         if ($pedido->estado !== 'borrador') {
@@ -241,6 +279,7 @@ class VentaWhatsAppService
         return DB::transaction(function () use ($pedido, $conv) {
             $pedido->update(['estado' => 'pendiente', 'confirmado_at' => now()]);
             $pedido->cotizacion?->update(['estado' => 'aceptada']);
+            $this->guardarLista($conv, []); // el pedido ya incluye lo que el cliente fue pidiendo
 
             // Los datos del cliente quedan guardados para próximas compras
             $conv->contacto->update(array_filter([

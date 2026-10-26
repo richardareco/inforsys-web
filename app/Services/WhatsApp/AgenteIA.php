@@ -86,6 +86,8 @@ class AgenteIA
             return;
         }
 
+        $texto = $this->sinPedidosInventados($texto, $conversacion);
+
         if (trim($texto) !== '') {
             $this->envio->texto($conversacion, $linea, $telefono, trim($texto));
         }
@@ -104,6 +106,29 @@ class AgenteIA
                 $this->envio->imagen($conversacion, $linea, $telefono, $catalogo->fotoUrl($codigo), $catalogo->ficha($p));
             }
         }
+    }
+
+    /**
+     * Si el modelo menciona un número de pedido (PED-000123) que no existe confirmado en esta
+     * conversación, no se lo mostramos al cliente: se deriva a un vendedor.
+     */
+    private function sinPedidosInventados(string $texto, WaConversacion $conversacion): string
+    {
+        if (!preg_match_all('/PED-(\d{1,8})/i', $texto, $m)) {
+            return $texto;
+        }
+
+        foreach (array_unique($m[1]) as $id) {
+            $existe = \App\Models\WaPedido::where('conversacion_id', $conversacion->id)->where('estado', '!=', 'borrador')->whereKey((int) $id)->exists();
+            if (!$existe) {
+                Log::warning('WhatsApp: el agente mencionó un pedido inexistente (PED-' . $id . ') en la conversación ' . $conversacion->id);
+                $conversacion->update(['estado' => 'humano']);
+
+                return 'Tuve un inconveniente al registrar tu pedido. Ya avisé a un vendedor para que lo revise y te confirme enseguida.';
+            }
+        }
+
+        return $texto;
     }
 
     /** Ciclo del modelo: pide herramientas hasta que responde con texto. Devuelve el texto final. */
@@ -218,8 +243,10 @@ class AgenteIA
             '- Presupuesto: a medida que el cliente pide productos, usá agregar_producto con cada código y cantidad (si no dice cantidad, 1). Esto NO genera el PDF. Después de cada producto confirmale brevemente qué sumaste y el total parcial, y preguntale si quiere algo más.',
             '- Recién cuando el cliente diga que no necesita nada más, usá generar_cotizacion: arma el PDF con todos los productos y lo envía solo. Entonces resumí productos y total final en tu mensaje y preguntale si quiere avanzar con el pedido. Si quiere quitar o cambiar algo antes, usá quitar_producto, agregar_producto con reemplazar=true o ver_lista.',
             '- El sistema calcula todos los importes y aplica el precio que corresponde por cantidad: nunca hagas cuentas ni cambies precios.',
-            '- Si quiere avanzar con el pedido, pedile de a poco lo que falte: nombre completo, si es retiro en el local o envío (y la dirección), forma de pago (solo las que ofrece el negocio), y si quiere factura (en ese caso el RUC o cédula). No pidas lo que ya te dijo.',
-            '- Con esos datos usá preparar_pedido y mostrale al cliente el resumen COMPLETO (productos, total, entrega, pago, factura) pidiéndole que confirme. Recién cuando responda con un mensaje nuevo que confirma, usá confirmar_pedido. Nunca confirmes un pedido sin esa confirmación explícita ni en el mismo mensaje en que mostrás el resumen.',
+            '- PEDIDO: funciona igual que la cotización. Si el cliente dice que quiere comprar o hacer un pedido, usá agregar_producto con cada producto y cantidad que pida, confirmándole lo que va sumando y preguntándole si quiere algo más. No generes el PDF de cotización salvo que él pida cotización o presupuesto.',
+            '- Cuando el cliente termine de elegir, pedile de a poco lo que falte: nombre completo, si es retiro en el local o envío (y la dirección), forma de pago (solo las que ofrece el negocio), y si quiere factura (en ese caso el RUC o cédula). No pidas lo que ya te dijo.',
+            '- Con esos datos usá preparar_pedido (toma solo todos los productos de la lista, no pasa ningún número) y mostrale al cliente el resumen COMPLETO (productos, total, entrega, pago, factura) pidiéndole que confirme. Cuando responda con un mensaje nuevo que confirma, usá confirmar_pedido (sin parámetros). Nunca confirmes un pedido sin esa confirmación explícita ni en el mismo mensaje en que mostrás el resumen.',
+            '- NUNCA le digas al cliente que su pedido quedó registrado, ni le des un número de pedido, si confirmar_pedido no lo devolvió en esta misma respuesta. Si falla, explicale qué falta.',
             '- Si el pedido es por transferencia, pasá los datos que devuelve confirmar_pedido y aclarale que un vendedor verifica el pago. Una imagen de comprobante NO confirma ningún pago: derivá a un vendedor.',
             '- Si una herramienta rechaza algo (stock insuficiente, precio cambiado, dato faltante), explicáselo al cliente con sus palabras y ofrecé una alternativa.',
             '- No ofrezcas descuentos, promociones ni condiciones especiales: si los pide, usá derivar_a_humano.',
