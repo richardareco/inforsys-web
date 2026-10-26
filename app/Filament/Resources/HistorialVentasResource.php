@@ -20,6 +20,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms\Components\DatePicker;
 use App\Traits\CheckUserAcceso;
+use App\Models\Empresa;
+use App\Models\WaPedido;
+use App\Support\Modulos;
+use Filament\Tables\Columns\Summarizers\Count;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Illuminate\Support\Carbon;
 
 class HistorialVentasResource extends Resource
 {
@@ -47,13 +53,66 @@ class HistorialVentasResource extends Resource
                 'saldo',
                 'acredito',
                 'pernr',
-                DB::connection('delphi')->raw(
-                    '(SELECT custname FROM cliente WHERE cliente.custnr = invo1.custnr LIMIT 1) as custname'
-                )
+                'hora',
+                DB::connection('delphi')->raw('(SELECT custname FROM cliente WHERE cliente.custnr = invo1.custnr LIMIT 1) as custname'),
+                DB::connection('delphi')->raw('(SELECT pername FROM personal WHERE personal.pernr = invo1.pernr LIMIT 1) as vendedor'),
+                DB::connection('delphi')->raw("(SELECT COALESCE(SUM(paygs),0) FROM cajareg WHERE cajareg.cajanr = invo1.cajanr AND invo1.cajanr <> '') as pago_efectivo"),
+                DB::connection('delphi')->raw("(SELECT COALESCE(SUM(payTR),0) FROM cajareg WHERE cajareg.cajanr = invo1.cajanr AND invo1.cajanr <> '') as pago_transf"),
+                DB::connection('delphi')->raw("(SELECT COALESCE(SUM(paytj),0) FROM cajareg WHERE cajareg.cajanr = invo1.cajanr AND invo1.cajanr <> '') as pago_tarjeta")
             )
             ->where('flag', '4')
             ->orderByDesc('fecha')
             ->orderByDesc('invnr');
+    }
+
+    private const ORIGENES = [
+        'pos'     => 'Punto de venta',
+        'agente'  => 'Agente IA',
+        'tienda'  => 'Tienda web',
+    ];
+
+    /**
+     * Ventas que nacieron de un pedido de WhatsApp: invnr => [id del pedido, origen]. Se deduce de los pedidos del
+     * agente (base local), así no hace falta ningún campo nuevo en invo1 ni tocar la base del cliente; toda venta que
+     * no vino de un pedido es del punto de venta.
+     *
+     * @return array<string, array{id: int, origen: string}>
+     */
+    public static function ventasDeWhatsApp(): array
+    {
+        static $cache = [];
+
+        $empresaId = auth()->user()?->empresa_id
+            ?: Empresa::where('db_name', config('database.connections.delphi.database'))->value('id');
+        if (!$empresaId) {
+            return [];
+        }
+
+        return $cache[$empresaId] ??= WaPedido::where('empresa_id', $empresaId)->whereNotNull('venta_invnr')->where('estado', 'pagado')
+            ->get(['id', 'venta_invnr', 'origen'])
+            ->mapWithKeys(fn ($p) => [(string) $p->venta_invnr => ['id' => $p->id, 'origen' => $p->origen === 'tienda_web' ? 'tienda' : 'agente']])
+            ->all();
+    }
+
+    public static function origenDe($record): string
+    {
+        return self::ventasDeWhatsApp()[(string) $record->invnr]['origen'] ?? 'pos';
+    }
+
+    private static function gs($v): string
+    {
+        return 'Gs. ' . number_format((float) $v, 0, ',', '.');
+    }
+
+    private static function formaPago($r): string
+    {
+        $partes = [];
+        if ((float) $r->pago_efectivo > 0) $partes[] = 'Efectivo';
+        if ((float) $r->pago_transf > 0)   $partes[] = 'Transferencia';
+        if ((float) $r->pago_tarjeta > 0)  $partes[] = 'Tarjeta';
+        if ((float) $r->acredito > 0)      $partes[] = 'Crédito';
+
+        return $partes ? implode(' + ', $partes) : '—';
     }
 
     public static function table(Table $table): Table
@@ -70,7 +129,16 @@ class HistorialVentasResource extends Resource
                 TextColumn::make('fecha')
                     ->label('Fecha')
                     ->date('d/m/Y')
+                    ->description(fn ($record) => $record->hora ? substr((string) $record->hora, 0, 5) : null)
                     ->sortable(),
+
+                TextColumn::make('origen')
+                    ->label('Origen')
+                    ->badge()
+                    ->getStateUsing(fn ($record) => self::origenDe($record))
+                    ->formatStateUsing(fn ($state) => self::ORIGENES[$state] ?? $state)
+                    ->color(fn ($state) => match ($state) { 'agente' => 'success', 'tienda' => 'info', default => 'gray' })
+                    ->icon(fn ($state) => match ($state) { 'agente' => 'heroicon-o-chat-bubble-left-right', 'tienda' => 'heroicon-o-shopping-bag', default => 'heroicon-o-computer-desktop' }),
 
                 TextColumn::make('nro_factura')
                     ->label('Factura')
@@ -91,7 +159,22 @@ class HistorialVentasResource extends Resource
                     ->label('Total')
                     ->formatStateUsing(fn ($state) => 'Gs. ' . number_format($state, 0, ',', '.'))
                     ->alignRight()
-                    ->sortable(),
+                    ->sortable()
+                    ->summarize([
+                        Count::make()->label('Ventas'),
+                        Sum::make()->label('Total vendido')->formatStateUsing(fn ($state) => self::gs($state)),
+                    ]),
+
+                TextColumn::make('vendedor')
+                    ->label('Vendedor')
+                    ->placeholder('—')
+                    ->limit(20)
+                    ->toggleable(),
+
+                TextColumn::make('forma_pago')
+                    ->label('Pago')
+                    ->getStateUsing(fn ($record) => self::formaPago($record))
+                    ->toggleable(),
 
                 TextColumn::make('saldo')
                     ->label('Saldo')
@@ -124,6 +207,51 @@ class HistorialVentasResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('periodo')
+                    ->label('Período')
+                    ->options(['hoy' => 'Hoy', 'ayer' => 'Ayer', 'semana' => 'Esta semana', 'mes' => 'Este mes', 'mes_pasado' => 'Mes pasado'])
+                    ->default('mes')
+                    ->query(function (Builder $query, array $data) {
+                        $hoy = Carbon::today();
+                        match ($data['value'] ?? null) {
+                            'hoy'        => $query->whereDate('fecha', $hoy),
+                            'ayer'       => $query->whereDate('fecha', $hoy->copy()->subDay()),
+                            'semana'     => $query->whereBetween('fecha', [$hoy->copy()->startOfWeek()->toDateString(), $hoy->toDateString()]),
+                            'mes'        => $query->whereBetween('fecha', [$hoy->copy()->startOfMonth()->toDateString(), $hoy->toDateString()]),
+                            'mes_pasado' => $query->whereBetween('fecha', [$hoy->copy()->subMonthNoOverflow()->startOfMonth()->toDateString(), $hoy->copy()->subMonthNoOverflow()->endOfMonth()->toDateString()]),
+                            default      => null,
+                        };
+                    }),
+
+                SelectFilter::make('origen')
+                    ->label('Origen de la venta')
+                    ->options(self::ORIGENES)
+                    ->query(function (Builder $query, array $data) {
+                        $valor = $data['value'] ?? null;
+                        if (!$valor) return;
+                        $wa = self::ventasDeWhatsApp();
+                        if ($valor === 'pos') {
+                            if ($wa) $query->whereNotIn('invnr', array_map('strval', array_keys($wa)));
+                            return;
+                        }
+                        $ids = array_keys(array_filter($wa, fn ($v) => $v['origen'] === $valor));
+                        $ids ? $query->whereIn('invnr', array_map('strval', $ids)) : $query->whereRaw('1 = 0');
+                    }),
+
+                SelectFilter::make('vendedor')
+                    ->label('Vendedor')
+                    ->options(fn () => DB::connection('delphi')->table('personal')->orderBy('pername')->pluck('pername', 'pernr')->all())
+                    ->query(fn (Builder $query, array $data) => ($data['value'] ?? null) ? $query->where('pernr', $data['value']) : null),
+
+                SelectFilter::make('pago')
+                    ->label('Forma de pago')
+                    ->options(['efectivo' => 'Efectivo', 'transferencia' => 'Transferencia', 'tarjeta' => 'Tarjeta'])
+                    ->query(function (Builder $query, array $data) {
+                        $col = ['efectivo' => 'paygs', 'transferencia' => 'payTR', 'tarjeta' => 'paytj'][$data['value'] ?? ''] ?? null;
+                        if (!$col) return;
+                        $query->whereExists(fn ($q) => $q->select(DB::raw(1))->from('cajareg')->whereColumn('cajareg.cajanr', 'invo1.cajanr')->where("cajareg.$col", '>', 0));
+                    }),
+
                 Filter::make('fecha')
                     ->form([
                         DatePicker::make('desde')->label('Desde')->native(false),
@@ -195,6 +323,24 @@ class HistorialVentasResource extends Resource
     {
         return $infolist
             ->schema([
+                Section::make('Origen de la venta')
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('origen_venta')->label('Origen')->badge()
+                            ->getStateUsing(fn ($record) => self::origenDe($record))
+                            ->formatStateUsing(fn ($state) => self::ORIGENES[$state] ?? $state)
+                            ->color(fn ($state) => match ($state) { 'agente' => 'success', 'tienda' => 'info', default => 'gray' }),
+                        TextEntry::make('pedido_wa')->label('Pedido de WhatsApp')
+                            ->getStateUsing(fn ($record) => ($p = self::ventasDeWhatsApp()[(string) $record->invnr] ?? null) ? 'PED-' . str_pad((string) $p['id'], 6, '0', STR_PAD_LEFT) : null)
+                            ->placeholder('No viene de un pedido')
+                            ->url(function ($record) {
+                                $p = self::ventasDeWhatsApp()[(string) $record->invnr] ?? null;
+
+                                return ($p && Modulos::permite(auth()->user(), 'whatsapp')) ? WaPedidoResource::getUrl('view', ['record' => $p['id']]) : null;
+                            }),
+                        TextEntry::make('vendedor')->label('Vendedor')->placeholder('—'),
+                    ]),
+
                 Section::make('Datos de la Venta')
                     ->columns(4)
                     ->schema([
@@ -204,6 +350,8 @@ class HistorialVentasResource extends Resource
                         TextEntry::make('cajanr')->label('Caja Nro.')->placeholder('—'),
                         TextEntry::make('custname')->label('Cliente'),
                         TextEntry::make('custnr')->label('Cód. Cliente'),
+                        TextEntry::make('hora')->label('Hora')->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : '—'),
+                        TextEntry::make('forma_pago')->label('Forma de pago')->getStateUsing(fn ($record) => self::formaPago($record)),
                         TextEntry::make('total')
                             ->label('Total')
                             ->formatStateUsing(fn ($state) => 'Gs. ' . number_format($state, 0, ',', '.')),
