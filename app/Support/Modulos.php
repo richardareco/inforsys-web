@@ -18,6 +18,7 @@ class Modulos
         'historial_ventas' => ['Historial de ventas', 'Ventas', 'Consultar e imprimir ventas hechas'],
         'presupuestos'     => ['Presupuestos', 'Ventas', 'Crear y consultar presupuestos'],
         'whatsapp'         => ['WhatsApp: conversaciones, pedidos y cotizaciones', 'Ventas', 'Atender chats y gestionar pedidos del agente'],
+        'ecommerce'        => ['Tienda online (catálogo web)', 'E-commerce', 'Configurar el catálogo público y qué datos se muestran'],
         'clientes'         => ['Clientes', 'Catálogo', 'Alta y consulta de clientes'],
         'productos'        => ['Productos / Ítems', 'Catálogo', 'Consulta y edición de productos'],
         'cierre_caja'      => ['Cierre de caja', 'Caja', 'Resumen y cierre diario de caja'],
@@ -88,6 +89,7 @@ class Modulos
             ['cierre_caja', \App\Filament\Pages\CierreCajaPage::class],
             ['reportes', \App\Filament\Pages\Informes\InformeVentasPage::class],
             ['metas', \App\Filament\Resources\MetaResource::class],
+            ['ecommerce', \App\Filament\Pages\TiendaOnlinePage::class],
             ['agente_whatsapp', \App\Filament\Pages\AgenteWhatsAppPage::class],
             ['configuraciones', \App\Filament\Pages\ConfiguracionesVentasPage::class],
         ]);

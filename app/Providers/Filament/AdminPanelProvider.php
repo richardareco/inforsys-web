@@ -411,6 +411,7 @@ html:not(.dark) .fi-topbar nav {
             )
             ->navigationGroups([
                 'Ventas',
+                'E-commerce',
                 'Caja',
                 'Informes',
                 'Configuración',

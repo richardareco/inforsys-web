@@ -39,3 +39,19 @@ Route::middleware(['auth'])->group(function () {
     })
         ->name('filament.admin.resources.items.edit');
 });
+
+// ── Tienda online pública: sin sesión ni cookies (no genera una sesión por cada visita) ──
+Route::prefix('tienda/{slug}')
+    ->withoutMiddleware([
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        \App\Http\Middleware\SetDelphiConnection::class,
+    ])
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\TiendaController::class, 'inicio'])->name('tienda.inicio');
+        Route::get('/producto/{codigo}', [\App\Http\Controllers\TiendaController::class, 'producto'])->where('codigo', '[^/]+')->name('tienda.producto');
+        Route::get('/foto/{codigo}/{nro?}', [\App\Http\Controllers\TiendaController::class, 'foto'])->where('codigo', '[^/]+')->where('nro', '[0-9]+')->name('tienda.foto');
+    });
