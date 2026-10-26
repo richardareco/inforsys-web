@@ -196,6 +196,14 @@
         .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
         .toast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .toast button { background: none; border: 0; color: #86efac; font-weight: 800; cursor: pointer; white-space: nowrap; }
+        .cart-bar { display: none; }
+        @media (max-width: 720px) {
+            .cart-bar.on { display: flex; position: fixed; left: .75rem; right: .75rem; bottom: calc(.75rem + env(safe-area-inset-bottom)); z-index: 60; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem 1.1rem; border: 0; border-radius: 999px; background: var(--c); color: var(--ct); font: inherit; font-weight: 800; font-size: 1rem; box-shadow: 0 6px 20px rgba(0,0,0,.28); cursor: pointer; }
+            .cart-bar .cb-n { display: inline-flex; align-items: center; gap: .5rem; }
+            .cart-bar .cb-n i { font-style: normal; min-width: 1.5rem; height: 1.5rem; padding: 0 .35rem; border-radius: 999px; background: var(--ct); color: var(--c); font-size: .8rem; display: grid; place-items: center; }
+            body.con-barra { padding-bottom: 5rem; } body.con-barra .flota { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+            body.con-barra .toast { bottom: 5.2rem; }
+        }
         @media (max-width: 720px) { .add { width: 2.4rem; height: 2.4rem; font-size: 1.45rem; right: .5rem; bottom: .5rem; } }
         @yield('estilos')
     </style>
@@ -286,6 +294,7 @@
             <div class="drawer-b" id="cart-lista"></div>
             <div class="drawer-f" id="cart-pie"></div>
         </aside>
+        <button type="button" class="cart-bar" id="cart-bar" data-cart-open aria-label="Ver carrito"><span class="cb-n"><i id="cb-n">0</i> Ver carrito</span><span id="cb-t"></span></button>
         <div class="toast" id="toast" role="status"><span id="toast-t"></span><button type="button" id="toast-ver">Ver carrito</button></div>
     <script>
     (function () {
@@ -347,6 +356,12 @@
         function dibujar() {
             var n = totalUnidades(), badge = $('#cart-num');
             if (badge) { badge.textContent = n > 99 ? '99+' : n; badge.hidden = n === 0; }
+            var barra = $('#cart-bar');
+            if (barra) {
+                $('#cb-n').textContent = n > 99 ? '99+' : n;
+                $('#cb-t').textContent = (CFG.precios && total() > 0) ? gs(total()) : '';
+                barra.classList.toggle('on', n > 0); document.body.classList.toggle('con-barra', n > 0);
+            }
             var cuerpo = $('#cart-lista'), pie = $('#cart-pie'); if (!cuerpo) return;
             cuerpo.textContent = ''; pie.textContent = '';
             var items = lista();
