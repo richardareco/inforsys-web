@@ -80,11 +80,13 @@ class AgenteIA
 
         try {
             $ventas = new VentaWhatsAppService($empresa, $config, $catalogoBase);
+            $notaWeb = $this->cargarPedidoWeb($conversacion, $ventas);
+            $estado  = $this->estadoDelCliente($conversacion, $ventas) . ($notaWeb ? "\n\n" . $notaWeb : '');
             $texto = $this->conversar(
                 $this->historial($conversacion),
                 $this->instrucciones($empresa, $config),
                 $herramientas,
-                $this->estadoDelCliente($conversacion, $ventas),
+                $estado,
             );
         } catch (Throwable $e) {
             Log::error('WhatsApp: falló el agente en la conversación ' . $conversacion->id . ': ' . $e->getMessage());
@@ -140,6 +142,36 @@ class AgenteIA
     }
 
     /** Ciclo del modelo: pide herramientas hasta que responde con texto. Devuelve el texto final. */
+    /**
+     * Si el último mensaje del cliente es el carrito de la tienda web, lo carga en su lista (con precios y stock del
+     * sistema) y devuelve una nota para el agente. Los importes escritos en el mensaje se ignoran.
+     */
+    private function cargarPedidoWeb(WaConversacion $conversacion, VentaWhatsAppService $ventas): ?string
+    {
+        $ultimo = WaMensaje::where('conversacion_id', $conversacion->id)->where('direccion', 'in')->latest('id')->first();
+        $items  = ($ultimo && $ultimo->tipo === 'text') ? PedidoWeb::interpretar((string) $ultimo->texto) : null;
+        if (!$items) {
+            return null;
+        }
+
+        $r = $ventas->cargarPedidoWeb($conversacion, $items);
+        $conversacion->refresh();
+
+        $lineas = array_map(fn ($p) => "- {$p['cantidad']} x {$p['nombre']} (Cód. {$p['codigo']}): {$p['precio']} c/u = {$p['subtotal']}", $r['resumen']['productos']);
+
+        $nota = [
+            'PEDIDO DESDE LA TIENDA WEB: el cliente acaba de enviar su carrito. Ya está cargado en su lista con los precios y el stock REALES del sistema (ignorá los importes que escribió en su mensaje):',
+            $lineas ? implode("\n", $lineas) : '- (no se pudo cargar ningún producto)',
+            'Total según el sistema: ' . $r['resumen']['total'] . '.',
+        ];
+        if ($r['problemas']) {
+            $nota[] = 'NO se pudieron cargar: ' . implode(' | ', $r['problemas']);
+        }
+        $nota[] = 'Qué hacer ahora: saludalo, confirmale el detalle (productos, cantidades y total del sistema) y avisale si algo no se pudo cargar, ofreciendo alternativas. Después seguí con el pedido pidiendo solo lo que falte (nombre, retiro o envío con dirección, forma de pago, factura) y usá preparar_pedido. No vuelvas a cargar los productos ni lo hagas empezar de cero; no generes cotización en PDF salvo que la pida.';
+
+        return implode("\n", $nota);
+    }
+
     /** Tras varias horas sin hablar, la conversación arranca de cero (el historial queda a la vista del vendedor). */
     private function reiniciarSiHaceMucho(WaConversacion $conversacion): void
     {
@@ -308,6 +340,7 @@ class AgenteIA
             '- Presupuesto: a medida que el cliente pide productos, usá agregar_producto con cada código y cantidad (si no dice cantidad, 1). Esto NO genera el PDF. Después de cada producto confirmale brevemente qué sumaste y el total parcial, y preguntale si quiere algo más.',
             '- Recién cuando el cliente diga que no necesita nada más, usá generar_cotizacion: arma el PDF con todos los productos y lo envía solo. Entonces resumí productos y total final en tu mensaje y preguntale si quiere avanzar con el pedido. Si quiere quitar o cambiar algo antes, usá quitar_producto, agregar_producto con reemplazar=true o ver_lista.',
             '- El sistema calcula todos los importes y aplica el precio que corresponde por cantidad: nunca hagas cuentas ni cambies precios.',
+            '- Si el estado dice "PEDIDO DESDE LA TIENDA WEB", el cliente armó su carrito en la tienda online y ya está cargado en su lista: seguí esa nota (no le pidas que repita los productos y usá siempre los precios y el total del sistema).',
             '- PEDIDO: funciona igual que la cotización. Si el cliente dice que quiere comprar o hacer un pedido, usá agregar_producto con cada producto y cantidad que pida, confirmándole lo que va sumando y preguntándole si quiere algo más. No generes el PDF de cotización salvo que él pida cotización o presupuesto.',
             '- Cuando el cliente termine de elegir, pedile de a poco lo que falte: nombre completo, si es retiro en el local o envío (y la dirección), forma de pago (solo las que ofrece el negocio), y si quiere factura (en ese caso el RUC o cédula). No pidas lo que ya te dijo.',
             '- Con esos datos usá preparar_pedido (toma solo todos los productos de la lista, no pasa ningún número) y mostrale al cliente el resumen COMPLETO (productos, total, entrega, pago, factura) pidiéndole que confirme. Cuando responda con un mensaje nuevo que confirma, usá confirmar_pedido (sin parámetros). Nunca confirmes un pedido sin esa confirmación explícita ni en el mismo mensaje en que mostrás el resumen.',

@@ -14,7 +14,7 @@ class EcomConfig extends Model
     protected $fillable = [
         'empresa_id', 'activo', 'slug', 'nombre', 'eslogan', 'texto_inicio', 'logo', 'portada', 'color', 'anuncio_activo', 'anuncios', 'anuncio_fondo', 'anuncio_color_texto',
         'whatsapp', 'instagram', 'facebook', 'direccion', 'horarios',
-        'mostrar_precios', 'mostrar_mayorista', 'mayorista_min_unidades', 'mostrar_stock', 'mostrar_sin_stock',
+        'mostrar_precios', 'mostrar_mayorista', 'mayorista_min_unidades', 'mostrar_stock', 'mostrar_sin_stock', 'carrito_activo',
         'categorias_ocultas', 'depositos', 'por_pagina', 'mensaje_whatsapp', 'seo_titulo', 'seo_descripcion',
     ];
 
@@ -25,9 +25,33 @@ class EcomConfig extends Model
         'mostrar_mayorista'  => 'boolean',
         'mostrar_stock'      => 'boolean',
         'mostrar_sin_stock'  => 'boolean',
+        'carrito_activo'     => 'boolean',
         'categorias_ocultas' => 'array',
         'depositos'          => 'array',
     ];
+
+    /** Solo se aceptan colores hexadecimales: cualquier otro valor se descarta. */
+    private static function hexSeguro(?string $v): ?string
+    {
+        $v = trim((string) $v);
+
+        return preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $v) ? $v : null;
+    }
+
+    public function getColorAttribute($v): string
+    {
+        return self::hexSeguro($v) ?? '#4f46e5';
+    }
+
+    public function getAnuncioFondoAttribute($v): ?string
+    {
+        return self::hexSeguro($v);
+    }
+
+    public function getAnuncioColorTextoAttribute($v): ?string
+    {
+        return self::hexSeguro($v);
+    }
 
     public function empresa(): BelongsTo
     {
@@ -60,6 +84,12 @@ class EcomConfig extends Model
         $n = $this->whatsappDigitos();
 
         return $n === '' ? null : 'https://wa.me/' . $n . ($texto ? '?text=' . rawurlencode($texto) : '');
+    }
+
+    /** El carrito solo tiene sentido si hay un WhatsApp al que enviar el pedido. */
+    public function carritoDisponible(): bool
+    {
+        return $this->carrito_activo && $this->whatsappDigitos() !== '';
     }
 
     /** Mensajes de la barra de anuncios (uno por línea, sin vacíos). */

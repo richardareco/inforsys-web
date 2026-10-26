@@ -59,7 +59,45 @@ class VentaWhatsAppService
 
     private function guardarLista(WaConversacion $conv, array $lista): void
     {
-        $conv->update(['carrito' => $lista ?: null, 'carrito_at' => $lista ? now() : null]);
+        $conv->update(['carrito' => $lista ?: null, 'carrito_at' => $lista ? now() : null] + ($lista ? [] : ['carrito_origen' => null]));
+    }
+
+    /** Pedidos todavía sin confirmar de la conversación: se descartan para no dejar restos. */
+    private function descartarBorradores(WaConversacion $conv): void
+    {
+        WaPedido::where('conversacion_id', $conv->id)->where('estado', 'borrador')->get()->each(function (WaPedido $p) {
+            $p->cotizacion?->update(['estado' => 'cancelada']);
+            $p->delete();
+        });
+    }
+
+    /**
+     * Carga en la lista del cliente los productos de un pedido de la tienda web, con los precios y el stock
+     * del sistema. Reemplaza la lista anterior. Un producto con problema no frena a los demás.
+     *
+     * @param array<int, array{codigo: string, cantidad: float}> $items
+     * @return array{resumen: array, problemas: array<int, string>}
+     */
+    public function cargarPedidoWeb(WaConversacion $conv, array $items): array
+    {
+        $this->descartarBorradores($conv);
+        $this->guardarLista($conv, []);
+
+        $problemas = [];
+        foreach ($items as $it) {
+            try {
+                $this->agregarALista($conv->fresh(), (string) $it['codigo'], (float) $it['cantidad']);
+            } catch (ReglaDeNegocio $e) {
+                $problemas[] = $e->getMessage();
+            }
+        }
+
+        $conv = $conv->fresh();
+        if ($this->lista($conv)) {
+            $conv->update(['carrito_origen' => 'tienda_web']);
+        }
+
+        return ['resumen' => $this->resumenLista($conv->fresh()), 'problemas' => $problemas];
     }
 
     private function lineasDeLista(array $lista): array
@@ -188,6 +226,7 @@ class VentaWhatsAppService
                 'conversacion_id'      => $conv->id,
                 'contacto_id'          => $conv->contacto_id,
                 'estado'               => 'borrador',
+                'origen'               => $conv->carrito_origen === 'tienda_web' ? 'tienda_web' : 'chat',
                 'nombre_cliente'       => $nombre,
                 'telefono'             => $conv->contacto->telefono,
                 'entrega_tipo'         => $entrega,
@@ -225,14 +264,8 @@ class VentaWhatsAppService
             }
         }
 
-        // Pedidos todavía sin confirmar: se descartan para no dejar restos si el cliente cambió algo
-        $descartar = fn () => WaPedido::where('conversacion_id', $conv->id)->where('estado', 'borrador')->get()->each(function (WaPedido $p) {
-            $p->cotizacion?->update(['estado' => 'cancelada']);
-            $p->delete();
-        });
-
         if ($this->lista($conv)) {
-            $descartar();
+            $this->descartarBorradores($conv);   // si el cliente cambió algo, no quedan resúmenes viejos
 
             return $this->crearCotizacion($conv, $this->lineasDeLista($this->lista($conv)));
         }

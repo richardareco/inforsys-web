@@ -1,6 +1,7 @@
 @extends('tienda.layout', ['tituloPagina' => $categoriaNombre ?: ($q ? 'Búsqueda: ' . $q : '')])
 
 @php
+    $carritoOn = $t->carritoDisponible();
     $base = '/tienda/' . $t->slug;
     $gs = fn ($v) => 'Gs. ' . number_format($v, 0, ',', '.');
     $href = fn (array $extra = []) => $base . '?' . http_build_query(array_filter(array_merge(['categoria' => $categoria, 'q' => $q, 'orden' => $orden === 'nombre' ? null : $orden], $extra), fn ($v) => $v !== null && $v !== ''));
@@ -45,9 +46,10 @@
 
         <div class="grid">
             @forelse($productos as $p)
-                @php $may = $catalogo->mayorista($p); $agotado = $p['stock'] <= 0; @endphp
-                <a class="card" href="{{ $base }}/producto/{{ rawurlencode($p['codigo']) }}">
-                    <div class="foto">
+                @php $may = $catalogo->mayorista($p); $agotado = $p['stock'] <= 0; $enlace = $base . '/producto/' . rawurlencode($p['codigo']); @endphp
+                <div class="card">
+                    <div class="fotowrap">
+                    <a class="foto" href="{{ $enlace }}">
                         @if($p['tiene_foto'])
                             <img src="{{ $base }}/foto/{{ rawurlencode($p['codigo']) }}" alt="{{ $p['nombre'] }}" loading="lazy">
                         @else
@@ -55,8 +57,12 @@
                         @endif
                         @if($t->mostrar_stock && $agotado)<span class="etq agot">Agotado</span>@endif
                         @if($p['fotos'] > 1)<span class="etq fotos">{{ $p['fotos'] }} fotos</span>@endif
+                    </a>
+                    @if($carritoOn && !$agotado)
+                        <button type="button" class="add" data-add data-codigo="{{ $p['codigo'] }}" data-nombre="{{ $p['nombre'] }}" data-precio="{{ $t->mostrar_precios ? $p['precio'] : 0 }}" data-mayor="{{ ($t->mostrar_precios && $may) ? $may['precio'] : 0 }}" data-foto="{{ $p['tiene_foto'] ? 1 : 0 }}" aria-label="Agregar {{ $p['nombre'] }} al carrito">+</button>
+                    @endif
                     </div>
-                    <div class="info">
+                    <a class="info" href="{{ $enlace }}">
                         <div class="cat">{{ $p['categoria'] }}</div>
                         <h3>{{ $p['nombre'] }}</h3>
                         @if($t->mostrar_precios && $p['precio'] > 0)
@@ -65,8 +71,8 @@
                         @else
                             <div class="precio consulta">Consultar precio</div>
                         @endif
-                    </div>
-                </a>
+                    </a>
+                </div>
             @empty
                 <div class="vacio"><b>No encontramos productos</b>{{ $q ? 'Probá con otra búsqueda o ' : '' }}<a href="{{ $base }}" style="color:var(--c);font-weight:600;">ver todo el catálogo</a></div>
             @endforelse

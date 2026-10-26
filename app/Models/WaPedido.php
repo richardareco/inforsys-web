@@ -11,7 +11,7 @@ class WaPedido extends Model
     protected $table = 'wa_pedidos';
 
     protected $fillable = [
-        'empresa_id', 'conversacion_id', 'contacto_id', 'cotizacion_id', 'estado', 'nombre_cliente', 'telefono',
+        'empresa_id', 'conversacion_id', 'contacto_id', 'cotizacion_id', 'estado', 'origen', 'nombre_cliente', 'telefono',
         'entrega_tipo', 'direccion_entrega', 'forma_pago', 'requiere_factura', 'ruc', 'observacion', 'total',
         'preparado_mensaje_id', 'confirmado_at', 'venta_invnr', 'cliente_delphi', 'pagado_at', 'anulado_at', 'gestionado_por', 'gestionado_at', 'nota_interna',
     ];

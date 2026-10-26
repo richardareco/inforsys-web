@@ -50,8 +50,14 @@ Route::prefix('tienda/{slug}')
         \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
         \App\Http\Middleware\SetDelphiConnection::class,
     ])
+    ->where(['slug' => '[a-z0-9]+(?:-[a-z0-9]+)*'])
+    ->middleware(\App\Http\Middleware\SeguridadTienda::class)
     ->group(function () {
-        Route::get('/', [\App\Http\Controllers\TiendaController::class, 'inicio'])->name('tienda.inicio');
-        Route::get('/producto/{codigo}', [\App\Http\Controllers\TiendaController::class, 'producto'])->where('codigo', '[^/]+')->name('tienda.producto');
-        Route::get('/foto/{codigo}/{nro?}', [\App\Http\Controllers\TiendaController::class, 'foto'])->where('codigo', '[^/]+')->where('nro', '[0-9]+')->name('tienda.foto');
+        Route::middleware('throttle:tienda')->group(function () {
+            Route::get('/', [\App\Http\Controllers\TiendaController::class, 'inicio'])->name('tienda.inicio');
+            Route::get('/carrito', [\App\Http\Controllers\TiendaController::class, 'carrito'])->name('tienda.carrito');
+            Route::get('/producto/{codigo}', [\App\Http\Controllers\TiendaController::class, 'producto'])->where('codigo', '[^/]{1,60}')->name('tienda.producto');
+        });
+        Route::get('/foto/{codigo}/{nro?}', [\App\Http\Controllers\TiendaController::class, 'foto'])->middleware('throttle:tienda-fotos')
+            ->where('codigo', '[^/]{1,60}')->where('nro', '[0-9]{1,10}')->name('tienda.foto');
     });

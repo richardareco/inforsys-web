@@ -113,6 +113,13 @@ class ProcesadorEntrante
             return;
         }
 
+        // Sin agente: el pedido de la tienda web igual se recibe y queda para un vendedor
+        if (PedidoWeb::interpretar($texto) !== null) {
+            $conversacion->update(['estado' => 'humano']);
+            $this->enviarTexto($conversacion, $linea, $telefono, '¡Gracias! Recibimos tu pedido de la tienda web. Un vendedor te va a contactar en breve para confirmarlo.');
+            return;
+        }
+
         if ($tipo !== 'text' || trim($texto) === '') {
             $this->enviarTexto($conversacion, $linea, $telefono, 'Por ahora solo puedo leer mensajes de texto. Escribime qué producto buscás.');
             return;

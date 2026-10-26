@@ -142,8 +142,8 @@ class TiendaOnlinePage extends Page implements HasForms
                 TextInput::make('eslogan')->label('Frase destacada')->maxLength(160)->placeholder('Ej: Todo para tu belleza'),
                 Textarea::make('texto_inicio')->label('Texto de presentación')->rows(3)->columnSpanFull()
                     ->helperText('Se muestra en la portada y en el pie de la tienda.'),
-                FileUpload::make('logo')->label('Logo')->image()->disk('public')->directory('tienda')->maxSize(2048),
-                FileUpload::make('portada')->label('Imagen de portada')->image()->disk('public')->directory('tienda')->maxSize(4096)
+                FileUpload::make('logo')->label('Logo')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])->disk('public')->directory('tienda')->maxSize(2048),
+                FileUpload::make('portada')->label('Imagen de portada')->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])->disk('public')->directory('tienda')->maxSize(4096)
                     ->helperText('Se recomienda una imagen horizontal (por ejemplo 1600 × 600).'),
                 ColorPicker::make('color')->label('Color de la marca'),
             ]),
@@ -172,6 +172,8 @@ class TiendaOnlinePage extends Page implements HasForms
             ]),
 
             Section::make('Qué se muestra en el catálogo')->columns(2)->schema([
+                Toggle::make('carrito_activo')->label('Carrito de compras')->columnSpanFull()
+                    ->helperText('Los clientes arman su pedido en la tienda y lo envían por WhatsApp. Necesita el WhatsApp cargado en Contacto. Apagado: queda solo el botón “Consultar por WhatsApp” de cada producto.'),
                 Toggle::make('mostrar_precios')->label('Mostrar precios')->helperText('Apagado: se muestra “Consultar precio”.'),
                 Toggle::make('mostrar_stock')->label('Mostrar disponibilidad')->helperText('Etiqueta “Agotado” y estado “Disponible”.'),
                 Toggle::make('mostrar_sin_stock')->label('Listar productos sin stock')->helperText('Apagado: solo se ven los que tienen stock.'),

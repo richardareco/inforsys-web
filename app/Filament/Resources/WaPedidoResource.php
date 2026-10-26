@@ -212,6 +212,8 @@ class WaPedidoResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('Pedido')->formatStateUsing(fn ($state) => 'PED-' . str_pad((string) $state, 6, '0', STR_PAD_LEFT))->weight('bold')->searchable(),
                 Tables\Columns\TextColumn::make('created_at')->label('Fecha')->dateTime('d/m/Y H:i')->sortable(),
                 Tables\Columns\TextColumn::make('nombre_cliente')->label('Cliente')->searchable()->description(fn (WaPedido $r) => '+' . $r->telefono),
+                Tables\Columns\TextColumn::make('origen')->label('Origen')->badge()->color(fn ($state) => $state === 'tienda_web' ? 'info' : 'gray')
+                    ->formatStateUsing(fn ($state) => $state === 'tienda_web' ? 'Tienda web' : 'Chat'),
                 Tables\Columns\TextColumn::make('entrega_tipo')->label('Entrega')->formatStateUsing(fn ($state) => $state === 'envio' ? 'Envío' : 'Retiro')->badge()->color('gray'),
                 Tables\Columns\TextColumn::make('forma_pago')->label('Pago')->formatStateUsing(fn ($state) => ucfirst((string) $state)),
                 Tables\Columns\TextColumn::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->alignEnd()->sortable(),
@@ -246,6 +248,7 @@ class WaPedidoResource extends Resource
                     TextEntry::make('estado')->label('Estado')->badge()->color(fn ($state) => self::colorEstado((string) $state))->formatStateUsing(fn ($state) => self::nombreEstado((string) $state)),
                     TextEntry::make('total')->label('Total')->formatStateUsing(fn ($state) => self::gs($state))->weight('bold'),
                     TextEntry::make('nombre_cliente')->label('Cliente'),
+                    TextEntry::make('origen')->label('Origen')->formatStateUsing(fn ($state) => $state === 'tienda_web' ? 'Carrito de la tienda web' : 'Chat con el agente'),
                     TextEntry::make('telefono')->label('Teléfono')->formatStateUsing(fn ($state) => '+' . $state),
                     TextEntry::make('confirmado_at')->label('Confirmado por el cliente')->dateTime('d/m/Y H:i')->placeholder('—'),
                     TextEntry::make('entrega_tipo')->label('Entrega')->formatStateUsing(fn ($state) => $state === 'envio' ? 'Envío a domicilio' : 'Retiro en el local'),

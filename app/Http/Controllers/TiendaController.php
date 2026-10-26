@@ -6,6 +6,8 @@ use App\Models\EcomConfig;
 use App\Services\Tienda\CatalogoTienda;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /** Tienda online pública (sin sesión): catálogo de productos con categoría. */
 class TiendaController extends Controller
@@ -20,7 +22,26 @@ class TiendaController extends Controller
         return response()->view('tienda.no-disponible', [], 404);
     }
 
+    /** Cualquier falla se registra internamente y el visitante solo ve un aviso genérico (nunca detalles técnicos). */
+    private function protegido(callable $accion)
+    {
+        try {
+            return $accion();
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            Log::error('Tienda pública: ' . $e->getMessage());
+
+            return response()->view('tienda.no-disponible', [], 503);
+        }
+    }
+
     public function inicio(Request $request, string $slug)
+    {
+        return $this->protegido(fn () => $this->inicioInterno($request, $slug));
+    }
+
+    private function inicioInterno(Request $request, string $slug)
     {
         $t = $this->config($slug);
         if (!$t) {
@@ -28,10 +49,10 @@ class TiendaController extends Controller
         }
 
         $catalogo  = new CatalogoTienda($t);
-        $categoria = trim((string) $request->query('categoria', ''));
-        $q         = trim((string) $request->query('q', ''));
+        $categoria = mb_substr(trim((string) $request->query('categoria', '')), 0, 20);
+        $q         = mb_substr(trim((string) $request->query('q', '')), 0, 80);
         $orden     = in_array($request->query('orden'), ['precio_asc', 'precio_desc', 'recientes'], true) ? $request->query('orden') : 'nombre';
-        $pagina    = max(1, (int) $request->query('page', 1));
+        $pagina    = min(5000, max(1, (int) $request->query('page', 1)));
 
         $categorias = $catalogo->categorias();
         $productos  = $catalogo->productos($categoria ?: null, $q ?: null, $orden, $pagina, $t->urlPublica())
@@ -47,6 +68,11 @@ class TiendaController extends Controller
     }
 
     public function producto(string $slug, string $codigo)
+    {
+        return $this->protegido(fn () => $this->productoInterno($slug, $codigo));
+    }
+
+    private function productoInterno(string $slug, string $codigo)
     {
         $t = $this->config($slug);
         if (!$t) {
@@ -65,7 +91,28 @@ class TiendaController extends Controller
         ]);
     }
 
+    /** Precios y disponibilidad actuales de los productos del carrito (JSON público, sin datos internos). */
+    public function carrito(Request $request, string $slug)
+    {
+        return $this->protegido(function () use ($request, $slug) {
+            $t = $this->config($slug);
+            if (!$t || !$t->carritoDisponible()) {
+                return response()->json(['items' => (object) []], 404);
+            }
+
+            $codigos = array_slice(explode(',', mb_substr((string) $request->query('c', ''), 0, 1500)), 0, 30);
+
+            return response()->json(['items' => (object) (new CatalogoTienda($t))->porCodigos($codigos)])
+                ->header('Cache-Control', 'private, max-age=15');
+        });
+    }
+
     public function foto(Request $request, string $slug, string $codigo, ?string $nro = null)
+    {
+        return $this->protegido(fn () => $this->fotoInterna($request, $slug, $codigo, $nro));
+    }
+
+    private function fotoInterna(Request $request, string $slug, string $codigo, ?string $nro = null)
     {
         $t = $this->config($slug);
         $binario = $t ? (new CatalogoTienda($t))->foto($codigo, $nro !== null ? (int) $nro : null) : null;

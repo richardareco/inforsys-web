@@ -13,6 +13,7 @@
     $mensaje = str_replace(['{producto}', '{codigo}'], [$p['nombre'], $p['codigo']], $plantilla);
     $linkWa = $t->enlaceWhatsapp($mensaje . ' ' . url($base . '/producto/' . rawurlencode($p['codigo'])));
     $tienePrecio = $t->mostrar_precios && $p['precio'] > 0;
+    $carritoOn = $t->carritoDisponible();
 @endphp
 
 @section('estilos')
@@ -106,8 +107,14 @@
             @if($p['descripcion'] !== '')<p class="desc">{{ $p['descripcion'] }}</p>@endif
 
             <div class="acc">
+                @if($carritoOn && !$agotado)
+                    <div class="paso paso-g" aria-label="Cantidad">
+                        <button type="button" data-paso="-1" aria-label="Menos">−</button><span id="cant">1</span><button type="button" data-paso="1" aria-label="Más">+</button>
+                    </div>
+                    <button type="button" class="btn" data-add data-qty="#cant" data-codigo="{{ $p['codigo'] }}" data-nombre="{{ $p['nombre'] }}" data-precio="{{ $t->mostrar_precios ? $p['precio'] : 0 }}" data-mayor="{{ ($t->mostrar_precios && $may) ? $may['precio'] : 0 }}" data-foto="{{ $p['tiene_foto'] ? 1 : 0 }}">Agregar al carrito</button>
+                @endif
                 @if($linkWa)
-                    <a class="btn wa" href="{{ $linkWa }}" target="_blank" rel="noopener">
+                    <a class="btn {{ $carritoOn ? 'sec' : 'wa' }}" href="{{ $linkWa }}" target="_blank" rel="noopener">
                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.25-1.38A9.9 9.9 0 1 0 12.04 2Zm5.8 14.1c-.25.7-1.45 1.34-2 1.4-.5.07-1.13.1-1.82-.12a16.5 16.5 0 0 1-1.65-.6c-2.9-1.25-4.78-4.15-4.92-4.35-.14-.2-1.17-1.56-1.17-2.97s.74-2.1 1-2.4c.27-.28.58-.35.78-.35h.56c.18 0 .42-.07.65.5.25.6.84 2.05.9 2.2.08.14.12.32.02.5-.1.2-.15.32-.3.5l-.45.5c-.15.15-.3.3-.13.6.18.3.77 1.27 1.65 2.05 1.13 1 2.08 1.3 2.38 1.45.3.14.47.12.65-.07.18-.2.75-.87.95-1.17.2-.3.4-.25.67-.15.28.1 1.75.83 2.05.97.3.15.5.22.57.35.07.12.07.7-.18 1.4Z"/></svg>
                         Consultar por WhatsApp
                     </a>
@@ -123,15 +130,21 @@
             <h2>También te puede interesar</h2>
             <div class="grid">
                 @foreach($relacionados as $r)
-                    <a class="card" href="{{ $base }}/producto/{{ rawurlencode($r['codigo']) }}">
-                        <div class="foto">
+                    @php $enlaceR = $base . '/producto/' . rawurlencode($r['codigo']); $mayR = $catalogo->mayorista($r); @endphp
+                    <div class="card">
+                        <div class="fotowrap">
+                        <a class="foto" href="{{ $enlaceR }}">
                             @if($r['tiene_foto'])<img src="{{ $base }}/foto/{{ rawurlencode($r['codigo']) }}" alt="{{ $r['nombre'] }}" loading="lazy">@else<div class="sin-foto"><svg fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.16-5.16a2.25 2.25 0 0 1 3.18 0l5.16 5.16M3.75 21h16.5A1.5 1.5 0 0 0 21.75 19.5V4.5A1.5 1.5 0 0 0 20.25 3H3.75A1.5 1.5 0 0 0 2.25 4.5v15A1.5 1.5 0 0 0 3.75 21Z"/></svg></div>@endif
                             @if($t->mostrar_stock && $r['stock'] <= 0)<span class="etq agot">Agotado</span>@endif
+                        </a>
+                        @if($carritoOn && $r['stock'] > 0)
+                            <button type="button" class="add" data-add data-codigo="{{ $r['codigo'] }}" data-nombre="{{ $r['nombre'] }}" data-precio="{{ $t->mostrar_precios ? $r['precio'] : 0 }}" data-mayor="{{ ($t->mostrar_precios && $mayR) ? $mayR['precio'] : 0 }}" data-foto="{{ $r['tiene_foto'] ? 1 : 0 }}" aria-label="Agregar {{ $r['nombre'] }} al carrito">+</button>
+                        @endif
                         </div>
-                        <div class="info"><h3>{{ $r['nombre'] }}</h3>
+                        <a class="info" href="{{ $enlaceR }}"><h3>{{ $r['nombre'] }}</h3>
                             @if($t->mostrar_precios && $r['precio'] > 0)<div class="precio">{{ $gs($r['precio']) }}</div>@else<div class="precio consulta">Consultar precio</div>@endif
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 @endforeach
             </div>
         </section>

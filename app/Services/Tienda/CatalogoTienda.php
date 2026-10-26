@@ -121,6 +121,35 @@ class CatalogoTienda
             ->map(fn ($r) => $this->formatear($r))->all();
     }
 
+    /**
+     * Datos públicos al día de varios productos (para refrescar un carrito guardado en el navegador).
+     * Solo productos publicados; la disponibilidad es un sí/no, nunca la cantidad.
+     *
+     * @param array<int, string> $codigos
+     * @return array<string, array{nombre: string, precio: float, mayor: float, disponible: bool}>
+     */
+    public function porCodigos(array $codigos): array
+    {
+        $codigos = array_values(array_unique(array_filter(array_map(fn ($c) => mb_substr(trim((string) $c), 0, 60), $codigos))));
+        if (!$codigos) {
+            return [];
+        }
+
+        $salida = [];
+        foreach ($this->base()->whereIn('items.item', $codigos)->get() as $r) {
+            $p = $this->formatear($r);
+            $m = $this->mayorista($p);
+            $salida[$p['codigo']] = [
+                'nombre'     => $p['nombre'],
+                'precio'     => $this->config->mostrar_precios ? $p['precio'] : 0.0,
+                'mayor'      => ($this->config->mostrar_precios && $m) ? $m['precio'] : 0.0,
+                'disponible' => $p['stock'] > 0,
+            ];
+        }
+
+        return $salida;
+    }
+
     /** Identificadores (itemsimage.nro) de todas las fotos del producto, en orden. */
     public function fotoIds(string $codigo): array
     {
