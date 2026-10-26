@@ -26,6 +26,16 @@ class Dashboard extends BaseDashboard
 
     protected static ?string $title = 'Dashboard';
 
+    public static function canAccess(): bool
+    {
+        return \App\Support\Modulos::permite(Auth::user(), 'dashboard');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
     public function getHeading(): string
     {
         $user  = Auth::user();

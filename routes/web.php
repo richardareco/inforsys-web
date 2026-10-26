@@ -26,8 +26,16 @@ Route::middleware(['auth'])->group(function () {
         ->name('item-image.show');
 
     // Rutas para Productos - manejadas mediante un helper para evitar conflicto Filament
-    Route::get('/admin/items/create', fn() => app(\App\Filament\Resources\ItemResource\Pages\CreateItem::class)->render())
+    Route::get('/admin/items/create', function () {
+        abort_unless(\App\Filament\Resources\ItemResource::canAccess(), 403);
+
+        return app(\App\Filament\Resources\ItemResource\Pages\CreateItem::class)->render();
+    })
         ->name('filament.admin.resources.items.create');
-    Route::get('/admin/items/{record}/edit', fn($record) => app(\App\Filament\Resources\ItemResource\Pages\EditItem::class)->render())
+    Route::get('/admin/items/{record}/edit', function ($record) {
+        abort_unless(\App\Filament\Resources\ItemResource::canAccess(), 403);
+
+        return app(\App\Filament\Resources\ItemResource\Pages\EditItem::class)->render();
+    })
         ->name('filament.admin.resources.items.edit');
 });

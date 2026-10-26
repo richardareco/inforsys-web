@@ -248,7 +248,7 @@ class PresupuestoResource extends Resource
     public static function canAccess(): bool
     {
         // Presupuestos requiere acceso a ventas por ahora
-        return auth()->user()?->accesos['ventas'] ?? false;
+        return \App\Support\Modulos::permite(auth()->user(), 'presupuestos');
     }
 
     public static function shouldRegisterNavigation(): bool

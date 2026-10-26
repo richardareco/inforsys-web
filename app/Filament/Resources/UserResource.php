@@ -38,6 +38,11 @@ class UserResource extends Resource
         return Auth::check() && Auth::user()->isSuperAdmin();
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
@@ -117,67 +122,23 @@ class UserResource extends Resource
                         ]),
 
                     Tab::make('Accesos')
-                        ->schema([
-                            Section::make('Módulos Disponibles')
-                                ->description('Selecciona qué módulos puede acceder este usuario')
-                                ->schema([
-                                    Checkbox::make('accesos.dashboard')
-                                        ->label('Dashboard')
-                                        ->default(true),
-
-                                    Checkbox::make('accesos.ventas')
-                                        ->label('Ventas (POS)')
-                                        ->default(true),
-
-                                    Checkbox::make('accesos.clientes')
-                                        ->label('Clientes')
-                                        ->default(true),
-
-                                    Checkbox::make('accesos.productos')
-                                        ->label('Productos / Ítems')
-                                        ->default(true),
-
-                                    Checkbox::make('accesos.historial_ventas')
-                                        ->label('Historial de Ventas')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.cierre_caja')
-                                        ->label('Cierre de Caja')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.cuentas_cobrar')
-                                        ->label('Cuentas por Cobrar')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.proveedores')
-                                        ->label('Proveedores')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.compras')
-                                        ->label('Compras')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.gastos')
-                                        ->label('Gastos')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.whatsapp')
-                                        ->label('Conversaciones de WhatsApp')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.reportes')
-                                        ->label('Informes')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.configuraciones')
-                                        ->label('Configuraciones')
-                                        ->default(false),
-
-                                    Checkbox::make('accesos.usuarios')
-                                        ->label('Usuarios')
-                                        ->default(false),
-                                ])->columns(2),
-                        ]),
+                        ->schema(array_merge(
+                            [
+                                Section::make('Cómo funcionan los accesos')
+                                    ->description('Cada casilla habilita un módulo: aparece en el menú y se puede abrir. Lo que no esté marcado queda oculto y bloqueado para este usuario. El superadministrador siempre tiene todo; Usuarios y Empresas son solo del superadministrador.')
+                                    ->schema([])->collapsible()->collapsed(),
+                            ],
+                            collect(\App\Support\Modulos::porGrupo())->map(
+                                fn (array $modulos, string $grupo) => Section::make($grupo)
+                                    ->schema(collect($modulos)->map(
+                                        fn (array $m, string $clave) => Checkbox::make('accesos.' . $clave)
+                                            ->label($m[0])
+                                            ->helperText($m[2])
+                                            ->default(in_array($clave, \App\Support\Modulos::sugeridos('vendedor'), true))
+                                    )->values()->all())
+                                    ->columns(2)
+                            )->values()->all()
+                        )),
                 ]),
         ]);
     }

@@ -31,6 +31,11 @@ class EmpresaResource extends Resource
         return Auth::check() && Auth::user()->isSuperAdmin();
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

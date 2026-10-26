@@ -5,7 +5,7 @@
     $items = [];
 
     // Inicio = Dashboard (vendedores y cajeros no lo usan: entran directo al POS)
-    if ($esSuper || (!in_array($user->role, ['vendedor', 'cajero']) && ($accesos['dashboard'] ?? false))) {
+    if (\App\Filament\Pages\Dashboard::canAccess()) {
         $items[] = ['Inicio', route('filament.admin.pages.dashboard'), request()->routeIs('filament.admin.pages.dashboard'), 'home'];
     }
     if (\App\Filament\Pages\PosPage::canAccess()) {

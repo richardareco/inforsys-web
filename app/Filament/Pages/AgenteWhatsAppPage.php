@@ -37,7 +37,7 @@ class AgenteWhatsAppPage extends Page implements HasForms
     {
         $user = Auth::user();
 
-        return $user && ($user->isSuperAdmin() || $user->isAdministrador()) && $user->empresa_id;
+        return $user && $user->empresa_id && \App\Support\Modulos::permite($user, 'agente_whatsapp');
     }
 
     public static function shouldRegisterNavigation(): bool

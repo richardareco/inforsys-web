@@ -10,6 +10,12 @@ class PresupuestoCrearPage extends Page
 {
     protected static string  $view           = 'filament.pages.presupuesto-crear';
     protected static bool    $shouldRegisterNavigation = false;
+
+    public static function canAccess(): bool
+    {
+        return \App\Support\Modulos::permite(auth()->user(), 'presupuestos');
+    }
+
     protected static ?string $title          = 'Nuevo Presupuesto';
     protected static ?string $slug           = 'presupuesto/crear';
 

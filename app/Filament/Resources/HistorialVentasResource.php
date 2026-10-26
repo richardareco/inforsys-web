@@ -271,8 +271,7 @@ class HistorialVentasResource extends Resource
             return true;
         }
 
-        // Si tiene acceso a 'ventas' también tiene acceso a historial de ventas
-        return $user->accesos['ventas'] ?? false;
+        return $user->accesos['historial_ventas'] ?? false;
     }
 
     public static function shouldRegisterNavigation(): bool

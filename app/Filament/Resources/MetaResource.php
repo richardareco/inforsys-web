@@ -29,7 +29,7 @@ class MetaResource extends Resource
 
     public static function canAccess(): bool
     {
-        return in_array(Auth::user()?->role, ['superadmin', 'administrador']);
+        return \App\Support\Modulos::permite(Auth::user(), 'metas');
     }
 
     public static function shouldRegisterNavigation(): bool
