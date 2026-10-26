@@ -72,8 +72,9 @@ class AgenteWhatsAppPage extends Page implements HasForms
                             ->helperText('Si está apagado, los mensajes se guardan pero no se responden.'),
                         TextInput::make('phone_number_id')->label('Phone number ID de Kapso')->maxLength(40),
                         Select::make('modo')->label('Modo de respuesta')->native(false)->options([
-                            'basico' => 'Básico: busca productos y responde con precio, stock y fotos',
-                        ])->helperText('El modo con inteligencia artificial se habilita en la próxima etapa.'),
+                            'basico' => 'Básico: busca productos y responde con precio, stock y fotos (sin IA)',
+                            'agente' => 'Agente con IA: conversa de forma natural, consulta productos y deriva a un vendedor',
+                        ])->helperText('El modo con IA necesita ANTHROPIC_API_KEY en el .env del servidor.'),
                     ]),
 
                 Section::make('Productos')

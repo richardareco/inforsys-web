@@ -21,7 +21,7 @@ use Throwable;
  */
 class ProcesadorEntrante
 {
-    public function __construct(private KapsoClient $kapso) {}
+    public function __construct(private EnvioWhatsApp $envio, private AgenteIA $agente) {}
 
     public function procesar(array $payload, WaEvento $evento): void
     {
@@ -102,6 +102,17 @@ class ProcesadorEntrante
 
     private function responder($conversacion, WaLinea $linea, string $telefono, $empresa, WaAgenteConfig $config, string $tipo, string $texto): void
     {
+        if (preg_match('/^\s*(vendedor|vendedora|asesor|humano|persona|agente humano)\s*[.!]?\s*$/iu', $texto)) {
+            $conversacion->update(['estado' => 'humano']);
+            $this->enviarTexto($conversacion, $linea, $telefono, 'Listo, ya avisé a un vendedor. En breve te atiende una persona.');
+            return;
+        }
+
+        if ($config->modo === 'agente' && AgenteIA::disponible()) {
+            $this->agente->atender($conversacion, $linea, $telefono, $empresa, $config);
+            return;
+        }
+
         if ($tipo !== 'text' || trim($texto) === '') {
             $this->enviarTexto($conversacion, $linea, $telefono, 'Por ahora solo puedo leer mensajes de texto. Escribime qué producto buscás.');
             return;
@@ -146,34 +157,11 @@ class ProcesadorEntrante
 
     private function enviarTexto($conversacion, WaLinea $linea, string $telefono, string $texto): void
     {
-        $this->registrarSalida($conversacion, 'text', $texto, null, fn () => $this->kapso->sendText($linea->phone_number_id, $telefono, $texto));
+        $this->envio->texto($conversacion, $linea, $telefono, $texto);
     }
 
     private function enviarImagen($conversacion, WaLinea $linea, string $telefono, string $url, string $caption): void
     {
-        $this->registrarSalida($conversacion, 'image', $caption, $url, fn () => $this->kapso->sendImage($linea->phone_number_id, $telefono, $url, $caption));
-    }
-
-    private function registrarSalida($conversacion, string $tipo, string $texto, ?string $mediaUrl, callable $envio): void
-    {
-        $msg = WaMensaje::create([
-            'conversacion_id' => $conversacion->id,
-            'direccion'       => 'out',
-            'autor'           => 'agente',
-            'tipo'            => $tipo,
-            'texto'           => $texto,
-            'media_url'       => $mediaUrl,
-            'estado'          => 'enviado',
-        ]);
-
-        try {
-            $id = $envio();
-            if ($id) {
-                $msg->update(['kapso_message_id' => $id]);
-            }
-        } catch (Throwable $e) {
-            Log::warning('WhatsApp: no se pudo enviar el mensaje: ' . $e->getMessage());
-            $msg->update(['estado' => 'error', 'error' => mb_substr($e->getMessage(), 0, 500)]);
-        }
+        $this->envio->imagen($conversacion, $linea, $telefono, $url, $caption);
     }
 }
