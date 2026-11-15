@@ -34,6 +34,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
 
         if ($empresa) {
             $this->form->fill([
+                'tipo' => array_key_exists($empresa->tipo, \App\Filament\Pages\PosPage::TIPOS) ? $empresa->tipo : 'general',
                 'modulo_caja_enabled' => $empresa->modulo_caja_enabled ?? true,
                 'permitir_venta_sin_stock' => $empresa->permitir_venta_sin_stock ?? false,
                 'mostrar_productos_sin_stock' => $empresa->mostrar_productos_sin_stock ?? true,
@@ -53,6 +54,18 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                     ->tabs([
                         Tab::make('Ventas')
                             ->schema([
+                                Section::make('Tipo de punto de venta')
+                                    ->description('Elegí cómo se ve la pantalla de Ventas de esta empresa. Los demás ajustes de esta página aplican a todos los tipos.')
+                                    ->schema([
+                                        Select::make('tipo')
+                                            ->label('Tipo de punto de venta')
+                                            ->options(\App\Filament\Pages\PosPage::TIPOS)
+                                            ->in(array_keys(\App\Filament\Pages\PosPage::TIPOS))
+                                            ->native(false)
+                                            ->required()
+                                            ->helperText('General: buscador y carrito, el POS de siempre. Supermercado: pensado para lector de códigos de barras y venta rápida. Catálogo / Boutique: los productos se ven como en una tienda online, con foto, y un botón "Información" que muestra la ficha completa del producto.'),
+                                    ]),
+
                                 Section::make('Módulo de Caja')
                                     ->description('Controla cómo se procesan las ventas y el registro de pagos.')
                                     ->schema([
@@ -145,6 +158,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
         $data = $this->form->getState();
 
         $empresa->update([
+            'tipo' => array_key_exists($data['tipo'] ?? '', \App\Filament\Pages\PosPage::TIPOS) ? $data['tipo'] : $empresa->tipo,
             'modulo_caja_enabled' => $data['modulo_caja_enabled'] ?? true,
             'permitir_venta_sin_stock' => $data['permitir_venta_sin_stock'] ?? false,
             'mostrar_productos_sin_stock' => $data['mostrar_productos_sin_stock'] ?? true,

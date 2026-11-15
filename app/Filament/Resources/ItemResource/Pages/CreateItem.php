@@ -3,21 +3,20 @@
 namespace App\Filament\Resources\ItemResource\Pages;
 
 use App\Filament\Resources\ItemResource;
-use App\Models\Item;
-use App\Models\ItemImage;
+use App\Services\Productos\FotosProducto;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class CreateItem extends CreateRecord
 {
     protected static string $resource = ItemResource::class;
 
+    /** Fotos elegidas en el formulario: se guardan cuando el producto ya tiene su código. */
+    protected array $fotosNuevas = [];
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        Log::info("🔵 mutateFormDataBeforeCreate - Data recibida:", $data);
-
         // Generar siguiente item (último ID + 1)
         $lastItem = DB::connection('delphi')
             ->table('items')
@@ -25,56 +24,30 @@ class CreateItem extends CreateRecord
             ->select('item')
             ->first();
 
-        $nextId = $lastItem ? ((int)$lastItem->item) + 1 : 1;
+        $nextId = $lastItem ? ((int) $lastItem->item) + 1 : 1;
         $data['item'] = str_pad($nextId, 7, '0', STR_PAD_LEFT);
-        Log::info("🔵 Item ID generado: {$data['item']}");
 
-        // Manejar cache key para imagen si existe
-        $cacheKey = session('pending_image_key');
-        if (!empty($cacheKey)) {
-            Log::info("🔵 Cache key encontrada: {$cacheKey}");
-            session(['pending_image_key' => $cacheKey]);
-        }
+        // Las fotos no son columnas de items: van a itemsimage (una fila por foto)
+        $this->fotosNuevas = array_values($data['fotos_nuevas'] ?? []);
+        unset($data['fotos_nuevas'], $data['image'], $data['fotos_actuales']);
 
-        // Remover image del data (no pertenece a items table, se maneja en callback)
-        unset($data['image']);
-
-        Log::info("🔵 Data antes de crear:", $data);
         return $data;
     }
 
     protected function afterCreate(): void
     {
-        $cacheKey = session('pending_image_key');
+        if (!$this->fotosNuevas) {
+            return;
+        }
 
-        Log::info("⏳ afterCreate - Buscando imagen en cache: {$cacheKey}");
+        $r = app(FotosProducto::class)->agregar($this->record->item, $this->fotosNuevas);
+        $this->fotosNuevas = [];
 
-        if (!empty($cacheKey)) {
-            try {
-                $imageData = \Illuminate\Support\Facades\Cache::get($cacheKey);
-
-                if ($imageData && isset($imageData['content'])) {
-                    $content = $imageData['content'];
-                    $size = strlen($content);
-
-                    Log::info("✅ Imagen encontrada: {$size} bytes");
-
-                    ItemImage::create([
-                        'item' => $this->record->item,
-                        'image' => $content,
-                    ]);
-
-                    Log::info("🎉 Foto guardada en itemsimage para item: {$this->record->item}");
-                } else {
-                    Log::error("❌ Datos no encontrados en cache: {$cacheKey}");
-                }
-            } catch (\Exception $e) {
-                Log::error("💥 Error al guardar foto: " . $e->getMessage());
-            }
-
-            // Limpiar cache y sesión
-            \Illuminate\Support\Facades\Cache::forget($cacheKey);
-            session()->forget('pending_image_key');
+        if ($r['agregadas'] > 0) {
+            Notification::make()->title($r['agregadas'] === 1 ? 'Foto agregada' : "{$r['agregadas']} fotos agregadas")->success()->send();
+        }
+        if ($r['invalidas'] > 0) {
+            Notification::make()->title('Hay archivos que no son imágenes válidas')->warning()->send();
         }
     }
 }

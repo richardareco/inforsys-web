@@ -34,6 +34,13 @@ class ItemResource extends Resource
     {
         return $form
             ->schema([
+                \Filament\Forms\Components\Tabs::make('Producto')
+                    ->columnSpanFull()
+                    ->persistTabInQueryString()
+                    ->tabs([
+                \Filament\Forms\Components\Tabs\Tab::make('Datos del producto')
+                    ->icon('heroicon-o-cube')
+                    ->schema([
                 \Filament\Forms\Components\Section::make('Información Básica')
                     ->schema([
                         \Filament\Forms\Components\TextInput::make('item')
@@ -91,85 +98,102 @@ class ItemResource extends Resource
                             ->step(0.0001),
                     ])->columns(3),
 
-                \Filament\Forms\Components\Section::make('Foto del Producto')
+                \Filament\Forms\Components\Section::make('Fotos del producto')
+                    ->description('La primera foto es la principal (la que se ve en la lista y en las tarjetas). Hasta 10 fotos por producto.')
                     ->schema([
-                        \Filament\Forms\Components\FileUpload::make('image')
-                            ->label('Subir Foto')
-                            ->image()
-                            ->imageEditor()
-                            ->imageEditorAspectRatios(['16:9', '4:3', '1:1'])
-                            ->directory('products')
-                            ->maxSize(5120)
-                            ->hiddenOn('index')
+                        \Filament\Forms\Components\ViewField::make('fotos_actuales')
+                            ->view('filament.resources.item-fotos')
                             ->dehydrated(false)
-                            ->saveUploadedFileUsing(function($file, $record) {
-                                $path = $file->store('products', 'local');
-                                $fullPath = \Illuminate\Support\Facades\Storage::disk('local')->path($path);
-
-                                // Comprimir y redimensionar imagen con GD
-                                $content = \Illuminate\Support\Facades\Storage::disk('local')->get($path);
-                                $originalSize = strlen($content);
-
-                                try {
-                                    $image = imagecreatefromstring($content);
-                                    if ($image) {
-                                        $width = imagesx($image);
-                                        $height = imagesy($image);
-
-                                        // Redimensionar a 600x600 píxeles (estandarizar tamaño)
-                                        $standardSize = 600;
-                                        $resized = imagecreatetruecolor($standardSize, $standardSize);
-
-                                        // Crear fondo blanco para mantener proporción
-                                        $white = imagecolorallocate($resized, 255, 255, 255);
-                                        imagefill($resized, 0, 0, $white);
-
-                                        // Calcular dimensiones para centrar imagen manteniendo proporción
-                                        $ratio = min($standardSize / $width, $standardSize / $height);
-                                        $newWidth = (int)($width * $ratio);
-                                        $newHeight = (int)($height * $ratio);
-                                        $offsetX = (int)(($standardSize - $newWidth) / 2);
-                                        $offsetY = (int)(($standardSize - $newHeight) / 2);
-
-                                        imagecopyresampled($resized, $image, $offsetX, $offsetY, 0, 0, $newWidth, $newHeight, $width, $height);
-
-                                        ob_start();
-                                        imagejpeg($resized, null, 75);
-                                        $content = ob_get_clean();
-                                        imagedestroy($resized);
-                                        imagedestroy($image);
-
-                                        $newSize = strlen($content);
-                                        $reduction = round((1 - $newSize / $originalSize) * 100);
-                                        \Illuminate\Support\Facades\Log::info("🖼️ Imagen comprimida: $originalSize bytes -> $newSize bytes (reducción: $reduction%)");
-                                    }
-                                } catch (\Exception $e) {
-                                    \Illuminate\Support\Facades\Log::warning("⚠️ Error comprimiendo: " . $e->getMessage());
-                                }
-
-                                if ($record) {
-                                    // En EDIT: eliminar imagen anterior y crear nueva (fuerza actualización)
-                                    \App\Models\ItemImage::where('item', $record->item)->delete();
-                                    \App\Models\ItemImage::create([
-                                        'item' => $record->item,
-                                        'image' => $content
-                                    ]);
-                                    \Illuminate\Support\Facades\Log::info("✅ EDIT: Foto actualizada para item {$record->item}");
-                                } else {
-                                    // En CREATE: guardar temporalmente en cache
-                                    $tempKey = 'pending_image_' . uniqid();
-                                    \Illuminate\Support\Facades\Cache::put($tempKey, [
-                                        'path' => $path,
-                                        'content' => $content
-                                    ], now()->addMinutes(30));
-                                    session(['pending_image_key' => $tempKey]);
-                                    \Illuminate\Support\Facades\Log::info("📤 CREATE: Foto en cache con key {$tempKey}");
-                                }
-
-                                return $path;
-                            }),
+                            ->visible(fn (?\Illuminate\Database\Eloquent\Model $record) => $record !== null)
+                            ->columnSpanFull(),
+                        \Filament\Forms\Components\FileUpload::make('fotos_nuevas')
+                            ->label('Agregar fotos')
+                            ->image()
+                            ->multiple()
+                            ->maxFiles(\App\Services\Productos\FotosProducto::MAXIMO)
+                            ->maxSize(5120)
+                            ->imageEditor()
+                            ->imageEditorAspectRatios(['1:1', '4:3', '16:9'])
+                            ->panelLayout('grid')
+                            ->storeFiles(false) // se guardan en la base (itemsimage) al guardar el producto, no en el disco
+                            ->helperText('Podés elegir varias a la vez. Cada foto se achica a 600 px para que cargue rápido.')
+                            ->columnSpanFull(),
                     ])->columns(1),
+                    ]),
+                ...self::tabFicha(),
+                    ]),
             ]);
+    }
+
+    /**
+     * Pestaña "Información del producto": lo que se le muestra a la clienta en el POS de catálogo.
+     * Incluye la ficha comercial (tabla Delphi items_ficha, opcional por base: sin la tabla no se arma, porque un campo
+     * oculto igual intentaría leer la relación y fallaría) y las secciones extra que cada empresa quiera agregar.
+     */
+    private static function tabFicha(): array
+    {
+        $ficha = [];
+        if (\App\Services\Productos\FichaProducto::tablaExiste()) {
+            $ficha[] = \Filament\Forms\Components\Group::make()
+                ->relationship('ficha', condition: fn (?array $state) => collect($state ?? [])->except(['destacado'])->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])->isNotEmpty() || ($state['destacado'] ?? false))
+                ->schema([
+                    \Filament\Forms\Components\Section::make('Ficha del producto')
+                        ->description('Esta información se le muestra a la clienta al tocar "Información" en el punto de venta de catálogo. Podés dejar vacío lo que no aplique.')
+                        ->schema([
+                            \Filament\Forms\Components\TextInput::make('marca')->label('Marca')->maxLength(80),
+                            \Filament\Forms\Components\TextInput::make('contenido')->label('Contenido')->maxLength(40)->placeholder('Ej: 30 ml, 250 g'),
+                            \Filament\Forms\Components\TextInput::make('tipo_piel')->label('Tipo de piel')->maxLength(100)->placeholder('Ej: Mixta a grasa'),
+                            \Filament\Forms\Components\Toggle::make('destacado')->label('Producto destacado')->inline(false),
+                            \Filament\Forms\Components\Textarea::make('descripcion')->label('Descripción')->rows(3)->columnSpanFull(),
+                            \Filament\Forms\Components\Textarea::make('beneficios')->label('Beneficios')->rows(3)->columnSpanFull(),
+                            \Filament\Forms\Components\Textarea::make('modo_uso')->label('Modo de uso')->rows(3)->columnSpanFull(),
+                            \Filament\Forms\Components\Textarea::make('ingredientes')->label('Ingredientes')->rows(3)->columnSpanFull(),
+                            \Filament\Forms\Components\Textarea::make('advertencias')->label('Advertencias')->rows(2)->columnSpanFull(),
+                            \Filament\Forms\Components\Repeater::make('tonos')
+                                ->label('Tonos / colores')
+                                ->schema([
+                                    \Filament\Forms\Components\TextInput::make('nombre')->label('Nombre del tono')->required()->maxLength(40),
+                                    \Filament\Forms\Components\ColorPicker::make('color')->label('Color')->required(),
+                                ])
+                                ->columns(2)
+                                ->addActionLabel('Agregar tono')
+                                ->maxItems(40)
+                                ->defaultItems(0)
+                                ->reorderable()
+                                ->collapsible()
+                                ->itemLabel(fn (array $state): ?string => $state['nombre'] ?? null)
+                                ->columnSpanFull(),
+                        ])->columns(2),
+                ]);
+        }
+
+        return [
+            \Filament\Forms\Components\Tabs\Tab::make('Información del producto')
+                ->icon('heroicon-o-document-text')
+                ->schema([
+                    ...$ficha,
+                    \Filament\Forms\Components\Group::make()
+                        ->relationship('infoExtra', condition: fn (?array $state) => \App\Models\ProductoInfoExtra::limpiar($state['secciones'] ?? []) !== [])
+                        ->schema([
+                            \Filament\Forms\Components\Section::make('Más información')
+                                ->description('Agregá las secciones que quieras con el título que prefieras (por ejemplo "Garantía", "Cuidados" u "Origen"). Se muestran en la ficha del producto, como los tonos.')
+                                ->schema([
+                                    \Filament\Forms\Components\Repeater::make('secciones')
+                                        ->label('Secciones')
+                                        ->schema([
+                                            \Filament\Forms\Components\TextInput::make('titulo')->label('Título')->required()->maxLength(\App\Models\ProductoInfoExtra::LARGO_TITULO)->placeholder('Ej: Garantía'),
+                                            \Filament\Forms\Components\Textarea::make('contenido')->label('Contenido')->required()->rows(3)->maxLength(\App\Models\ProductoInfoExtra::LARGO_CONTENIDO)->placeholder('Ej: 6 meses por defectos de fábrica'),
+                                        ])
+                                        ->addActionLabel('Agregar información')
+                                        ->maxItems(\App\Models\ProductoInfoExtra::MAXIMO)
+                                        ->defaultItems(0)
+                                        ->reorderable()
+                                        ->collapsible()
+                                        ->itemLabel(fn (array $state): ?string => $state['titulo'] ?? null),
+                                ]),
+                        ]),
+                ]),
+        ];
     }
 
     public static function table(Table $table): Table
@@ -183,7 +207,7 @@ class ItemResource extends Resource
             // Marca si el producto tiene foto, sin traer la imagen en cada fila
             ->modifyQueryUsing(fn (Builder $query) => $query->selectRaw(
                 'items.*, EXISTS(SELECT 1 FROM itemsimage WHERE itemsimage.item = items.item) AS tiene_imagen'
-            ))
+            )->whereRaw("TRIM(COALESCE(items.item, '')) <> ''")) // filas sin código (basura en la base) no se listan
             ->columns([
                 ImageColumn::make('foto')
                     ->label('')
@@ -217,7 +241,8 @@ class ItemResource extends Resource
                     ->color('gray')
                     ->placeholder('—')
                     ->copyable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('scode1')
                     ->label('Cód. barra')
@@ -225,7 +250,8 @@ class ItemResource extends Resource
                     ->color('gray')
                     ->placeholder('—')
                     ->copyable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('total_stock')
                     ->label('Stock')
@@ -245,21 +271,24 @@ class ItemResource extends Resource
                     ->size('sm')
                     ->color('warning')
                     ->alignEnd()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('precio1')
                     ->label('Precio 1')
                     ->formatStateUsing($precio)
                     ->size('sm')
                     ->alignEnd()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('precio2')
                     ->label('Precio 2')
                     ->formatStateUsing($precio)
                     ->size('sm')
                     ->alignEnd()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('precio3')
                     ->label('Precio 3')
@@ -278,6 +307,8 @@ class ItemResource extends Resource
                 Tables\Actions\Action::make('view')
                     ->label('Ver')
                     ->icon('heroicon-m-eye')
+                    ->color('gray')
+                    ->button()
                     ->action(function ($record) {
                         // La acción se maneja en el modal
                     })
@@ -291,8 +322,10 @@ class ItemResource extends Resource
                     ->modalCancelActionLabel('Cancelar'),
 
                 Tables\Actions\EditAction::make()
-                    ->label('Editar'),
-            ])
+                    ->label('Editar')
+                    ->icon('heroicon-m-pencil-square')
+                    ->button(),
+            ], position: Tables\Enums\ActionsPosition::BeforeCells)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

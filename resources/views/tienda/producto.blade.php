@@ -44,6 +44,16 @@
     .estado { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1rem; font-size: .88rem; font-weight: 600; }
     .estado i { width: .6rem; height: .6rem; border-radius: 999px; background: #10b981; } .estado.ag i { background: #ef4444; }
     .desc { margin-top: 1.4rem; padding-top: 1.2rem; border-top: 1px solid var(--bd); color: #374151; white-space: pre-line; }
+    .info-p .marca { font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--mu); }
+    .info-p .cont { margin-top: .5rem; display: inline-block; background: #f3f4f6; color: #374151; font-weight: 600; font-size: .8rem; padding: .25rem .75rem; border-radius: 999px; }
+    .ficha-sec { margin-top: 1.2rem; padding-top: 1.1rem; border-top: 1px solid var(--bd); }
+    .ficha-sec h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--c); font-weight: 800; margin-bottom: .45rem; }
+    .ficha-sec p { color: #374151; white-space: pre-line; overflow-wrap: anywhere; }
+    .ficha-sec.adv p { background: #fffbeb; border-left: 3px solid #f59e0b; color: #92400e; padding: .6rem .8rem; border-radius: .5rem; }
+    .tonos { display: flex; flex-wrap: wrap; gap: .9rem; }
+    .tono { display: flex; flex-direction: column; align-items: center; gap: .3rem; width: 4rem; }
+    .tono i { width: 2.4rem; height: 2.4rem; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15), 0 2px 6px rgba(0, 0, 0, .12); display: block; }
+    .tono span { font-size: .72rem; font-weight: 600; color: #4b5563; text-align: center; line-height: 1.15; overflow-wrap: anywhere; }
     .acc { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1.6rem; }
     .acc .btn { height: 3.1rem; font-size: 1rem; }
     .cod { margin-top: 1.2rem; font-size: .8rem; color: var(--mu); }
@@ -90,8 +100,10 @@
         </div>
 
         <div class="info-p">
+            @if(!empty($ficha['marca']))<div class="marca">{{ $ficha['marca'] }}</div>@endif
             <div class="cat">{{ $p['categoria'] }}</div>
             <h1>{{ $p['nombre'] }}</h1>
+            @if(!empty($ficha['contenido']))<span class="cont">{{ $ficha['contenido'] }}</span>@endif
 
             @if($tienePrecio)
                 <div class="pr">{{ $gs($p['precio']) }}</div>
@@ -104,7 +116,32 @@
                 <div class="estado {{ $agotado ? 'ag' : '' }}"><i></i> {{ $agotado ? 'Agotado por el momento' : 'Disponible' }}</div>
             @endif
 
-            @if($p['descripcion'] !== '')<p class="desc">{{ $p['descripcion'] }}</p>@endif
+            @php $descripcion = !empty($ficha['descripcion']) ? $ficha['descripcion'] : $p['descripcion']; @endphp
+            @if($descripcion !== '')<p class="desc">{{ $descripcion }}</p>@endif
+
+            @if($ficha)
+                @foreach(['beneficios' => 'Beneficios', 'modo_uso' => 'Modo de uso', 'ingredientes' => 'Ingredientes', 'tipo_piel' => 'Tipo de piel'] as $clave => $titulo)
+                    @if(!empty($ficha[$clave]))
+                        <section class="ficha-sec"><h2>{{ $titulo }}</h2><p>{{ $ficha[$clave] }}</p></section>
+                    @endif
+                @endforeach
+                @if(!empty($ficha['tonos']))
+                    <section class="ficha-sec">
+                        <h2>Tonos</h2>
+                        <div class="tonos">
+                            @foreach($ficha['tonos'] as $tono)
+                                <div class="tono" title="{{ $tono['nombre'] }}"><i style="background: {{ $tono['color'] }}"></i><span>{{ $tono['nombre'] }}</span></div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+                @foreach(($ficha['extras'] ?? []) as $extra)
+                    <section class="ficha-sec"><h2>{{ $extra['titulo'] }}</h2><p>{{ $extra['contenido'] }}</p></section>
+                @endforeach
+                @if(!empty($ficha['advertencias']))
+                    <section class="ficha-sec adv"><h2>Advertencias</h2><p>{{ $ficha['advertencias'] }}</p></section>
+                @endif
+            @endif
 
             <div class="acc">
                 @if($carritoOn && !$agotado)

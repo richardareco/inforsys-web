@@ -89,7 +89,7 @@ class CatalogoTienda
             default       => $q->orderBy('items.descr'),
         };
 
-        $filas = $q->offset(($pagina - 1) * $porPagina)->limit($porPagina)->get()->map(fn ($r) => $this->formatear($r))->all();
+        $filas = $this->conMarcas($q->offset(($pagina - 1) * $porPagina)->limit($porPagina)->get()->map(fn ($r) => $this->formatear($r))->all());
 
         return new LengthAwarePaginator($filas, $total, $porPagina, $pagina, ['path' => $rutaBase]);
     }
@@ -110,15 +110,43 @@ class CatalogoTienda
     {
         $r = $this->base()->where('items.item', $codigo)->first();
 
-        return $r ? $this->formatear($r) : null;
+        return $r ? $this->conMarcas([$this->formatear($r)])[0] : null;
     }
 
     /** @return array<int, array<string, mixed>> */
     public function relacionados(string $grupnr, string $excluir, int $n = 4): array
     {
-        return $this->base()->where('items.grupnr', $grupnr)->where('items.item', '!=', $excluir)
+        return $this->conMarcas($this->base()->where('items.grupnr', $grupnr)->where('items.item', '!=', $excluir)
             ->orderByRaw('tiene_foto DESC')->orderBy('items.descr')->limit($n)->get()
-            ->map(fn ($r) => $this->formatear($r))->all();
+            ->map(fn ($r) => $this->formatear($r))->all());
+    }
+
+    /**
+     * Agrega la marca de la ficha a cada producto. items_ficha es opcional por base y se puede apagar desde la
+     * configuración de la tienda; si algo falla al leerla, los productos se muestran igual, sin marca.
+     *
+     * @param array<int, array<string, mixed>> $filas
+     * @return array<int, array<string, mixed>>
+     */
+    private function conMarcas(array $filas): array
+    {
+        if (!$filas || !$this->config->mostrar_ficha) {
+            return $filas;
+        }
+
+        try {
+            $this->db();
+            if (!\App\Services\Productos\FichaProducto::tablaExiste()) {
+                return $filas;
+            }
+            $marcas = $this->db()->table('items_ficha')->whereIn('item', array_column($filas, 'codigo'))->pluck('marca', 'item');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return $filas;
+        }
+
+        return array_map(fn ($f) => array_merge($f, ['marca' => $this->limpio($marcas[$f['codigo']] ?? '')]), $filas);
     }
 
     /**
@@ -148,6 +176,35 @@ class CatalogoTienda
         }
 
         return $salida;
+    }
+
+    /**
+     * Información del producto para la página pública: solo los campos de la ficha pensados para el cliente, nunca
+     * costos ni stock. null si la tienda no la muestra, si el producto no tiene nada cargado o si algo falla (la ficha
+     * es un extra: nunca debe tumbar la página del producto).
+     */
+    public function ficha(string $codigo): ?array
+    {
+        if (!$this->config->mostrar_ficha) {
+            return null;
+        }
+
+        try {
+            $this->db();
+            $f = (new \App\Services\Productos\FichaProducto)->obtener($codigo, null, (int) $this->config->empresa_id);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
+        if (!$f) {
+            return null;
+        }
+
+        $pub = array_intersect_key($f, array_flip(['marca', 'contenido', 'descripcion', 'beneficios', 'modo_uso', 'ingredientes', 'tipo_piel', 'tonos', 'extras', 'advertencias']));
+        $hay = collect($pub)->contains(fn ($v) => $v !== null && $v !== '' && $v !== []);
+
+        return $hay ? $pub : null;
     }
 
     /** Identificadores (itemsimage.nro) de todas las fotos del producto, en orden. */
@@ -223,6 +280,7 @@ class CatalogoTienda
             'codigo'           => (string) $r->item,
             'nombre'           => $this->limpio($r->descr),
             'descripcion'      => $this->limpio($r->descr1),
+            'marca'            => $this->limpio($r->marca ?? ''),
             'grupnr'           => (string) $r->grupnr,
             'categoria'        => $this->limpio($r->categoria),
             'precio'           => round((float) $r->precio3),

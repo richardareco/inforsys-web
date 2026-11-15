@@ -64,13 +64,10 @@ class EmpresaResource extends Resource
 
             Select::make('tipo')
                 ->label('Tipo de negocio')
-                ->options([
-                    'general'      => 'General (POS estándar)',
-                    'supermercado' => 'Supermercado (POS lector de barras)',
-                ])
+                ->options(\App\Filament\Pages\PosPage::TIPOS)
                 ->default('general')
                 ->required()
-                ->helperText('Define el modo del Punto de Venta. "Supermercado" activa el layout optimizado para lectores de código de barras.')
+                ->helperText('Define el modo del Punto de Venta. "Supermercado" activa el layout optimizado para lectores de código de barras; "Catálogo" muestra los productos con fotos y ficha.')
                 ->columnSpan(2),
         ])->columns(2);
     }

@@ -15,9 +15,17 @@
 | POS / Punto de Venta | Filament Page (Livewire) | invo1, invo2, cajareg, items, itemsdepo | ✅ Completo |
 | Dashboard Analytics | Widgets Filament | invo1, gastos, dev_cliente1, cuentas_acobrar | ✅ Completo |
 | Clientes | Resource | cliente | ✅ Completo |
-| Productos / Ítems | Resource (solo lectura) | items, itemsdepo, deposito, proveedor | ✅ Completo |
+| Productos / Ítems | Resource | items, itemsdepo, deposito, proveedor, itemsimage, items_ficha (opcional) | ✅ Completo |
 | Usuarios | Resource | users (local) | ✅ Completo |
 | Empresas | Resource (superadmin) | empresas (local) | ✅ Completo |
+
+### Tablas Delphi creadas para la web
+- `items_ficha` (ficha comercial: marca, contenido, descripcion, beneficios, modo_uso, ingredientes, tipo_piel, tonos JSON, advertencias, destacado, mod_fecha; `item` único = `items.item`). La creamos para la web, también se puede completar desde Delphi y **su existencia es opcional por base**: verificar siempre con `FichaProducto::tablaExiste()` y, si falta, caer en `items.descr1`. Es latin1 (el modelo `ItemFicha` limpia lo que no entra en latin1). No se usa `itemsobs` (son observaciones internas de compra). La ficha nunca expone costos.
+
+- `producto_info_extra` (tabla **local** de la web, por empresa): secciones de información extra con título y contenido libres que cada empresa agrega a la ficha de un producto (formato igual a los tonos). Se carga en Productos → pestaña "Información del producto" y se muestra en el modal del POS de catálogo. No toca la base Delphi.
+
+### Tipos de punto de venta (`empresas.tipo`)
+- `general` → `pos-page`, `supermercado` → `pos-page-minimal`, `catalogo` → `pos-page-catalogo` (Catálogo / Boutique: grilla con fotos y ficha del producto). Lista en `PosPage::TIPOS`; el administrador de cada empresa lo elige en Configuraciones → Ventas. Cada tipo tiene su propia vista y comparte la lógica de `PosPage`; un cambio en un tipo no debe tocar a los demás.
 
 ## Roadmap de Módulos (prioridad según impacto para clientes)
 

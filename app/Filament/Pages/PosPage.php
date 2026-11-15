@@ -6,6 +6,7 @@ use App\Traits\CheckUserAcceso;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Enums\MaxWidth;
 use Illuminate\Support\Facades\DB;
 
 class PosPage extends Page
@@ -13,12 +14,32 @@ class PosPage extends Page
     use CheckUserAcceso;
     protected static string  $view            = 'filament.pages.pos-page';
 
+    /** El catálogo usa todo el ancho de la pantalla (más columnas de productos en monitores grandes); los demás tipos no cambian. */
+    public function getMaxContentWidth(): MaxWidth|string|null
+    {
+        return $this->esCatalogo() ? MaxWidth::Full : parent::getMaxContentWidth();
+    }
+
+    /** Tipos de punto de venta que puede tener una empresa (empresas.tipo). */
+    public const TIPOS = [
+        'general'      => 'General (POS estándar)',
+        'supermercado' => 'Supermercado (POS lector de barras)',
+        'catalogo'     => 'Catálogo / Boutique (productos con fotos y ficha)',
+    ];
+
+    /**
+     * Cada empresa usa la vista de su tipo; el resto de la lógica (carrito, cobro, clientes) es la misma.
+     * Un tipo desconocido, o una vista que todavía no existe, cae en el POS estándar.
+     */
     public function getView(): string
     {
-        $tipo = auth()->user()?->empresa?->tipo ?? 'general';
-        return $tipo === 'supermercado'
-            ? 'filament.pages.pos-page-minimal'
-            : 'filament.pages.pos-page';
+        $vista = match (auth()->user()?->empresa?->tipo ?? 'general') {
+            'supermercado' => 'filament.pages.pos-page-minimal',
+            'catalogo'     => 'filament.pages.pos-page-catalogo',
+            default        => 'filament.pages.pos-page',
+        };
+
+        return view()->exists($vista) ? $vista : 'filament.pages.pos-page';
     }
 
     protected static ?string $navigationIcon  = 'heroicon-o-shopping-cart';
@@ -34,6 +55,16 @@ class PosPage extends Page
 
     // Categorías
     public array  $categorias       = [];
+
+    // Catálogo / Boutique: cuántos productos se muestran y si hay más para cargar
+    public const CATALOGO_PAGINA = 24;
+    public int    $catalogoLimite = self::CATALOGO_PAGINA;
+    public bool   $hayMasProductos = false;
+    protected bool $sinAutoagregar = false;
+    // Modal "Información del producto": ficha (sin costos) y productos relacionados
+    public ?string $infoItem = null;
+    public array   $infoFicha = [];
+    public array   $infoRelacionados = [];
 
     // Selección de contexto
     public mixed  $clienteId  = null;
@@ -151,6 +182,11 @@ class PosPage extends Page
         // Depósito por defecto: D01
         $this->depositoId = 'D01';
 
+        // Catálogo / Boutique: la grilla de productos se ve desde el inicio
+        if ($this->esCatalogo()) {
+            $this->loadCategoryProducts();
+        }
+
         // Vendedor: si el usuario tiene uno asignado, usarlo y bloquearlo
         $userPersonalId = auth()->user()?->personal_id;
         if ($userPersonalId) {
@@ -172,8 +208,17 @@ class PosPage extends Page
     {
         $term = trim($this->search);
 
+        // Catálogo: una búsqueda nueva vuelve a la primera tanda de productos
+        if (!$this->sinAutoagregar) {
+            $this->catalogoLimite = self::CATALOGO_PAGINA;
+        }
+
         if (strlen($term) < 2) {
-            $this->searchResults = [];
+            if ($this->esCatalogo()) {
+                $this->loadCategoryProducts();
+            } else {
+                $this->searchResults = [];
+            }
             return;
         }
 
@@ -187,6 +232,7 @@ class PosPage extends Page
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
             )
+            ->tap(fn ($q) => $this->columnasCatalogo($q))
             ->whereRaw("TRIM(COALESCE(items.item, '')) <> ''")
             ->when(!$mostrarProductosSinStock, fn ($q) => $q->whereRaw(
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) > 0',
@@ -223,12 +269,9 @@ class PosPage extends Page
             }
         }
 
-        $results = $query
+        $results = $this->limitarResultados($query
             ->when(!$mostrarProductosSinStock, fn ($q) => $q->where('items.stock', '>', 0))
-            ->orderBy('items.descr')
-            ->limit(12)
-            ->get()
-            ->toArray();
+            ->orderBy('items.descr'));
 
         // Si el término coincide exactamente con item, scode o scode1 → agregar al carrito automáticamente
         $lowerCandidatos = array_map('strtolower', $candidatos);
@@ -238,7 +281,7 @@ class PosPage extends Page
             in_array(strtolower((string) ($r->scode1 ?? '')), $lowerCandidatos, true)
         );
 
-        if ($exact) {
+        if ($exact && !$this->sinAutoagregar) {
             $this->addToCartItem($exact);
             return;
         }
@@ -257,6 +300,7 @@ class PosPage extends Page
     public function updatedCategoriaId(): void
     {
         $this->search = '';
+        $this->catalogoLimite = self::CATALOGO_PAGINA;
         $this->loadCategoryProducts();
     }
 
@@ -277,6 +321,7 @@ class PosPage extends Page
                 'COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo',
                 [$this->depositoId]
             )
+            ->tap(fn ($q) => $this->columnasCatalogo($q))
             // Se ignoran filas sin código (basura en la base): no se pueden vender ni tienen foto
             ->whereRaw("TRIM(COALESCE(items.item, '')) <> ''");
 
@@ -293,13 +338,134 @@ class PosPage extends Page
             );
         }
 
-        $results = $query
-            ->orderBy('items.descr')
-            ->limit(12)
-            ->get()
-            ->toArray();
+        $this->searchResults = $this->limitarResultados($query->orderBy('items.descr'));
+    }
 
-        $this->searchResults = $results;
+    public function esCatalogo(): bool
+    {
+        return (auth()->user()?->empresa?->tipo ?? 'general') === 'catalogo';
+    }
+
+    /** Catálogo / Boutique: agrega marca (de la ficha) y si tiene foto, para dibujar la tarjeta sin pedir fotos que no existen. */
+    private function columnasCatalogo($query): void
+    {
+        if (!$this->esCatalogo()) {
+            return;
+        }
+
+        $query->selectRaw('EXISTS(SELECT 1 FROM itemsimage WHERE itemsimage.item = items.item) AS tiene_foto');
+        if (\App\Services\Productos\FichaProducto::tablaExiste()) {
+            $query->leftJoin('items_ficha', 'items_ficha.item', '=', 'items.item')->addSelect('items_ficha.marca');
+        } else {
+            $query->selectRaw('NULL AS marca');
+        }
+    }
+
+    /**
+     * Trae los resultados. En el catálogo se piden uno más que el límite para saber si hay más para "Cargar más";
+     * en los demás tipos de POS el límite sigue siendo 12.
+     */
+    private function limitarResultados($query): array
+    {
+        if (!$this->esCatalogo()) {
+            return $query->limit(12)->get()->toArray();
+        }
+
+        $filas = $query->limit($this->catalogoLimite + 1)->get();
+        $this->hayMasProductos = $filas->count() > $this->catalogoLimite;
+
+        return $filas->take($this->catalogoLimite)->values()->toArray();
+    }
+
+    /** Catálogo: "Cargar más productos" suma otra tanda a la búsqueda o categoría actual (sin agregar nada al carrito). */
+    public function cargarMas(): void
+    {
+        if (!$this->esCatalogo()) {
+            return;
+        }
+
+        $this->catalogoLimite += self::CATALOGO_PAGINA;
+        $this->sinAutoagregar = true;
+        if (strlen(trim($this->search)) >= 2) {
+            $this->updatedSearch();
+        } else {
+            $this->loadCategoryProducts();
+        }
+        $this->sinAutoagregar = false;
+    }
+
+    /** Abre la ficha completa del producto para mostrársela a la clienta. Nunca incluye costos. */
+    public function verInfoProducto(string $item): void
+    {
+        if (!$this->esCatalogo() || $item === '' || strlen($item) > 20) {
+            return;
+        }
+
+        $fichas = app(\App\Services\Productos\FichaProducto::class);
+        $ficha  = $fichas->obtener($item, $this->depositoId !== null ? (string) $this->depositoId : null);
+        if (!$ficha) {
+            Notification::make()->title('Producto no encontrado')->warning()->send();
+            return;
+        }
+
+        $mostrarSinStock = auth()->user()?->empresa?->mostrar_productos_sin_stock ?? true;
+        $relacionados = $fichas->relacionados($item, $ficha['grupnr'], $this->depositoId !== null ? (string) $this->depositoId : null, 4);
+        if (!$mostrarSinStock) {
+            $relacionados = array_values(array_filter($relacionados, fn ($r) => $r['stock'] > 0));
+        }
+
+        $this->infoItem         = $item;
+        $this->infoFicha        = $ficha;
+        $this->infoRelacionados = $relacionados;
+    }
+
+    public function cerrarInfoProducto(): void
+    {
+        $this->infoItem         = null;
+        $this->infoFicha        = [];
+        $this->infoRelacionados = [];
+    }
+
+    /**
+     * "Agregar a la venta" desde la ficha: usa la misma lógica del carrito (stock, sin duplicar líneas) una vez por
+     * unidad y se detiene si el stock no alcanza. El producto puede no estar en la grilla (por ejemplo un relacionado).
+     */
+    public function agregarDesdeFicha(string $item, int $cantidad = 1): void
+    {
+        if (!$this->esCatalogo() || $item === '' || strlen($item) > 20) {
+            return;
+        }
+
+        $cantidad = max(1, min(999, $cantidad));
+        $actual   = fn () => (int) (collect($this->cart)->firstWhere('item', $item)['qty'] ?? 0);
+
+        $grilla = $this->searchResults;
+        if (!collect($grilla)->contains(fn ($r) => $r->item === $item)) {
+            $fila = DB::connection('delphi')->table('items')
+                ->select('items.item', 'items.scode', 'items.scode1', 'items.descr', 'items.precio3 as precio', 'items.costo')
+                ->selectRaw('COALESCE((SELECT qty FROM itemsdepo WHERE itemsdepo.item = items.item AND itemsdepo.depo = ?), 0) AS stock_depo', [$this->depositoId])
+                ->where('items.item', $item)->first();
+            if (!$fila) {
+                return;
+            }
+            $this->searchResults[] = $fila;
+        }
+
+        $antes = $actual();
+        for ($i = 0; $i < $cantidad; $i++) {
+            $previa = $actual();
+            $this->addToCartKeepSearch($item);
+            if ($actual() === $previa) {
+                break; // sin stock suficiente: la notificación ya la mostró addToCartKeepSearch
+            }
+        }
+
+        $this->searchResults = $grilla;
+
+        // Si no alcanzó el stock la ficha queda abierta para que se vea el aviso y se ajuste la cantidad
+        if ($actual() >= $antes + $cantidad) {
+            $this->cerrarInfoProducto();
+        }
     }
 
     private function addToCartItem(object $item): void
@@ -322,6 +488,9 @@ class PosPage extends Page
         $this->search        = '';
         $this->searchResults = [];
         $this->dispatch('focus-search');
+        if ($this->esCatalogo()) {
+            $this->loadCategoryProducts();
+        }
     }
 
     public function updatedDepositoId(): void
@@ -329,6 +498,9 @@ class PosPage extends Page
         $this->search        = '';
         $this->searchResults = [];
         $this->cart          = [];
+        if ($this->esCatalogo()) {
+            $this->loadCategoryProducts();
+        }
     }
 
     public function addToCart(string $itemCode): void

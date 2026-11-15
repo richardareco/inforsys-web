@@ -14,7 +14,7 @@ class EcomConfig extends Model
     protected $fillable = [
         'empresa_id', 'activo', 'slug', 'nombre', 'eslogan', 'texto_inicio', 'logo', 'portada', 'color', 'anuncio_activo', 'anuncios', 'anuncio_fondo', 'anuncio_color_texto',
         'whatsapp', 'instagram', 'facebook', 'direccion', 'horarios',
-        'mostrar_precios', 'mostrar_mayorista', 'mayorista_min_unidades', 'mostrar_stock', 'mostrar_sin_stock', 'carrito_activo',
+        'mostrar_precios', 'mostrar_mayorista', 'mayorista_min_unidades', 'mostrar_stock', 'mostrar_sin_stock', 'carrito_activo', 'mostrar_ficha',
         'categorias_ocultas', 'depositos', 'por_pagina', 'mensaje_whatsapp', 'seo_titulo', 'seo_descripcion',
     ];
 
@@ -22,6 +22,7 @@ class EcomConfig extends Model
         'activo'             => 'boolean',
         'anuncio_activo'     => 'boolean',
         'mostrar_precios'    => 'boolean',
+        'mostrar_ficha'      => 'boolean',
         'mostrar_mayorista'  => 'boolean',
         'mostrar_stock'      => 'boolean',
         'mostrar_sin_stock'  => 'boolean',

@@ -22,7 +22,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('comprobante.ticket');
 
     // Ruta para servir imágenes de productos
-    Route::get('/api/item-image/{item}', [ItemImageController::class, 'show'])
+    Route::get('/api/item-image/{item}/{nro?}', [ItemImageController::class, 'show'])
+        ->where(['item' => '[^/]{1,20}', 'nro' => '[0-9]{1,10}'])
         ->name('item-image.show');
 
     // Rutas para Productos - manejadas mediante un helper para evitar conflicto Filament

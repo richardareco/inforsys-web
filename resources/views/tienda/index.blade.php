@@ -63,7 +63,7 @@
                     @endif
                     </div>
                     <a class="info" href="{{ $enlace }}">
-                        <div class="cat">{{ $p['categoria'] }}</div>
+                        <div class="cat">{{ $p['marca'] !== '' ? $p['marca'] . ' · ' : '' }}{{ $p['categoria'] }}</div>
                         <h3>{{ $p['nombre'] }}</h3>
                         @if($t->mostrar_precios && $p['precio'] > 0)
                             <div class="precio">{{ $gs($p['precio']) }}</div>

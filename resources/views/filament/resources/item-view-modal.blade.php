@@ -90,31 +90,38 @@
     <!-- Contenido: Foto -->
     <div x-show="tab === 'foto'" class="w-full py-4" style="display: flex; justify-content: center; align-items: flex-start; overflow: auto;">
         @php
-            $hasImage = false;
+            $nros = [];
             try {
-                $foto = $record->images()->first();
-                $hasImage = $foto && !empty($foto->image) && strlen($foto->image) > 50;
+                $nros = app(\App\Services\Productos\FotosProducto::class)->listar($record->item);
             } catch (\Exception $e) {
-                $hasImage = false;
+                $nros = [];
             }
         @endphp
 
-        @if($hasImage)
-            <div class="text-center w-full px-2" style="width: 100%; display: flex; justify-content: center;">
-                <img
-                    src="{{ route('item-image.show', ['item' => $record->item]) }}"
-                    alt="Foto de {{ $record->descr }}"
-                    loading="lazy"
-                    class="rounded-lg shadow-lg"
-                    style="max-width: 100%; max-height: 550px; object-fit: contain; display: block;"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                />
-                <div style="display: none;" class="flex flex-col items-center space-y-3 w-full">
-                    <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <p class="text-gray-500 text-sm">Foto no disponible</p>
+        @if(!empty($nros))
+            <div class="text-center w-full px-2" x-data="{ i: 0 }" style="width: 100%;">
+                <div style="display: flex; justify-content: center;">
+                    @foreach($nros as $k => $nro)
+                        <img
+                            x-show="i === {{ $k }}"
+                            @if($k > 0) x-cloak @endif
+                            src="{{ route('item-image.show', ['item' => $record->item, 'nro' => $nro]) }}"
+                            alt="Foto {{ $k + 1 }} de {{ $record->descr }}"
+                            loading="lazy"
+                            class="rounded-lg shadow-lg"
+                            style="max-width: 100%; max-height: 500px; object-fit: contain; display: block;"
+                        />
+                    @endforeach
                 </div>
+                @if(count($nros) > 1)
+                    <div style="display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; margin-top: .75rem;">
+                        @foreach($nros as $k => $nro)
+                            <button type="button" @click.stop="i = {{ $k }}" :style="i === {{ $k }} ? 'border-color:#0047AB' : 'border-color:transparent'" style="width: 3.4rem; height: 3.4rem; border: 2px solid transparent; border-radius: .5rem; overflow: hidden; padding: 0; cursor: pointer;" aria-label="Ver foto {{ $k + 1 }}">
+                                <img src="{{ route('item-image.show', ['item' => $record->item, 'nro' => $nro]) }}" alt="" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         @else
             <div class="text-center space-y-3 w-full">

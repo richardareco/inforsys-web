@@ -174,6 +174,8 @@ class TiendaOnlinePage extends Page implements HasForms
             Section::make('Qué se muestra en el catálogo')->columns(2)->schema([
                 Toggle::make('carrito_activo')->label('Carrito de compras')->columnSpanFull()
                     ->helperText('Los clientes arman su pedido en la tienda y lo envían por WhatsApp. Necesita el WhatsApp cargado en Contacto. Apagado: queda solo el botón “Consultar por WhatsApp” de cada producto.'),
+                Toggle::make('mostrar_ficha')->label('Mostrar la información del producto')->columnSpanFull()
+                    ->helperText('Muestra en la página de cada producto la marca, beneficios, modo de uso, tonos y las secciones extra que cargaste en Productos → Información del producto. Solo aparece lo que completaste.'),
                 Toggle::make('mostrar_precios')->label('Mostrar precios')->helperText('Apagado: se muestra “Consultar precio”.'),
                 Toggle::make('mostrar_stock')->label('Mostrar disponibilidad')->helperText('Etiqueta “Agotado” y estado “Disponible”.'),
                 Toggle::make('mostrar_sin_stock')->label('Listar productos sin stock')->helperText('Apagado: solo se ven los que tienen stock.'),

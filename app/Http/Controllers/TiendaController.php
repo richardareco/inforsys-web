@@ -86,7 +86,7 @@ class TiendaController extends Controller
         }
 
         return view('tienda.producto', [
-            't' => $t, 'catalogo' => $catalogo, 'p' => $p, 'fotos' => $catalogo->fotoIds($codigo),
+            't' => $t, 'catalogo' => $catalogo, 'p' => $p, 'fotos' => $catalogo->fotoIds($codigo), 'ficha' => $catalogo->ficha($codigo),
             'relacionados' => $catalogo->relacionados($p['grupnr'], $codigo),
         ]);
     }

@@ -3,13 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\ItemImage;
-use Illuminate\Http\Response;
 
 class ItemImageController extends Controller
 {
-    public function show($item)
+    /** Foto de un producto: la indicada por su nro (itemsimage.nro) o, sin nro, la primera. */
+    public function show($item, $nro = null)
     {
-        $image = ItemImage::where('item', $item)->first();
+        if ($nro !== null && !ctype_digit((string) $nro)) {
+            return response('', 404);
+        }
+
+        $consulta = ItemImage::where('item', $item);
+        $image = $nro !== null
+            ? $consulta->where('nro', (int) $nro)->first()
+            : $consulta->orderBy('nro')->first();
 
         if (!$image || empty($image->image)) {
             return response('', 404);
@@ -23,10 +30,13 @@ class ItemImageController extends Controller
             $mimeType = 'image/png';
         } elseif (str_starts_with($firstBytes, "GIF")) {
             $mimeType = 'image/gif';
+        } elseif ($firstBytes === 'RIFF' && substr($image->image, 8, 4) === 'WEBP') {
+            $mimeType = 'image/webp';
         }
 
         return response($image->image)
             ->header('Content-Type', $mimeType)
-            ->header('Cache-Control', 'public, max-age=86400');
+            ->header('X-Content-Type-Options', 'nosniff')
+            ->header('Cache-Control', 'private, max-age=86400');
     }
 }

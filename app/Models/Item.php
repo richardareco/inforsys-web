@@ -31,6 +31,18 @@ class Item extends Model
         return $this->hasMany(ItemImage::class, 'item', 'item');
     }
 
+    /** Ficha comercial (items_ficha). Solo existe en las bases que tienen esa tabla: ver FichaProducto::tablaExiste(). */
+    public function ficha()
+    {
+        return $this->hasOne(ItemFicha::class, 'item', 'item');
+    }
+
+    /** Secciones de información extra que la empresa agregó a la ficha (tabla propia de la web, por empresa). */
+    public function infoExtra()
+    {
+        return $this->hasOne(ProductoInfoExtra::class, 'item', 'item')->where('empresa_id', ProductoInfoExtra::empresaActualId());
+    }
+
     public function depos()
     {
         return $this->hasMany(ItemDepo::class, 'item', 'item');
