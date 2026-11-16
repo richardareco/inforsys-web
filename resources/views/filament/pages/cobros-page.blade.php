@@ -19,7 +19,7 @@
     .cj-buscar:focus-within { border-color: #0047AB; box-shadow: 0 0 0 4px rgba(0,71,171,.12); }
     .cj-buscar input { flex: 1; border: 0; outline: 0; background: transparent; padding: .6rem 0; font-size: .92rem; min-width: 0; }
     .cj-buscar svg { width: 1.1rem; height: 1.1rem; color: #94a3b8; flex: 0 0 auto; }
-    .cj-sel { border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: .6rem 1rem; font-size: .88rem; font-weight: 600; }
+    .cj-sel { border: 1px solid #e2e8f0; border-radius: 999px; font-size: .88rem; font-weight: 600; color: #0b1b3a; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; background-color: #fff !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E") !important; background-repeat: no-repeat !important; background-position: right .85rem center !important; background-size: 1rem 1rem !important; padding: .6rem 2.5rem .6rem 1rem !important; min-width: 8.5rem; cursor: pointer; line-height: 1.3; }
     .cj-btn-son { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 999px; padding: .6rem 1rem; font-size: .85rem; font-weight: 700; color: #475569; cursor: pointer; }
     .cj-btn-son.on { background: #eef3fc; color: #0047AB; border-color: #c7d6ef; }
     .cj-aviso { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 1rem; padding: .7rem 1rem; font-size: .85rem; }

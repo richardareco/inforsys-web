@@ -224,6 +224,17 @@ class ConsultaCobrosTest extends TestCase
         Livewire::test(ConsultaCobrosPage::class)->set('periodo', 'inventado')->set('forma', 'inventada')->assertSuccessful()->assertSee('Gs. 100.000');
     }
 
+    public function test_los_selectores_de_filtro_usan_su_propia_flecha_y_no_la_del_navegador(): void
+    {
+        $this->actingAs($this->cajero);
+
+        $html = Livewire::test(ConsultaCobrosPage::class)->html();
+
+        $this->assertStringContainsString('.cc-sel', $html);
+        $this->assertMatchesRegularExpression('/\.cc-sel \{[^}]*appearance: none !important[^}]*background-repeat: no-repeat !important/', $html);
+        $this->assertSame(2, substr_count($html, 'class="cc-sel"'));
+    }
+
     public function test_sin_cobros_la_pantalla_lo_dice(): void
     {
         $this->actingAs($this->cajero);

@@ -454,6 +454,16 @@ class CobrosCajaTest extends TestCase
         $this->assertSame(1, $t->get('cantidad'));
     }
 
+    public function test_el_selector_de_periodo_usa_su_propia_flecha_y_no_la_del_navegador(): void
+    {
+        $this->actingAs($this->cajero);
+
+        $html = Livewire::test(CobrosPage::class)->html();
+
+        $this->assertMatchesRegularExpression('/\.cj-sel \{[^}]*appearance: none !important[^}]*background-repeat: no-repeat !important/', $html);
+        $this->assertSame(1, substr_count($html, 'class="cj-sel"'));
+    }
+
     public function test_la_busqueda_de_la_pantalla_filtra(): void
     {
         $this->pendiente('001', 11000, cliente: '0002');
