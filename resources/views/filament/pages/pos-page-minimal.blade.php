@@ -258,6 +258,9 @@
             <svg class="pos-search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input
                 id="pos-search-input"
+                x-bind:inputmode="tactil && !tecladoPedido ? 'none' : 'search'"
+                @pointerdown="pedirTeclado($event)"
+                @blur="tecladoPedido = false"
                 type="text"
                 wire:model.live.debounce.200ms="search"
                 placeholder="Escanee código de barras o escriba descripción…"
@@ -413,6 +416,21 @@
 <script>
 function posMinimal() {
     return {
+        // En pantallas táctiles el buscador recibe el foco (para lectores de código) sin abrir el teclado en pantalla;
+        // aparece solo si la persona toca el campo. Antes se abría y cerraba en cada producto y la pantalla parpadeaba.
+        tactil: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches),
+        tecladoPedido: false,
+        pedirTeclado(e) {
+            if (!this.tactil || this.tecladoPedido) return;
+            const el = e.target;
+            this.tecladoPedido = true;
+            // si ya tenía el foco (lo puso el sistema) se lo quita y se lo devuelve para que el teclado aparezca; el blur apaga
+            // la bandera, por eso se vuelve a prender antes de enfocar
+            if (document.activeElement === el) {
+                el.blur();
+                this.$nextTick(() => { this.tecladoPedido = true; this.$nextTick(() => el.focus()); });
+            }
+        },
         init() { this.$nextTick(() => this.focusSearch()); },
         focusSearch() {
             this.$nextTick(() => { const el = document.getElementById('pos-search-input'); if(el) el.focus(); });

@@ -1280,7 +1280,7 @@ body.pos-keyboard-visible .pos-left::after {
 }
 </style>
 
-<div x-data="posApp()" data-cart-key="pos-cart:{{ auth()->id() }}:{{ auth()->user()?->empresa_id ?? 0 }}" @focus-search.window="$nextTick(() => { if (window.innerWidth > 767) $refs.search?.focus() })" @toggle-fullscreen.window="toggleFullscreen()">
+<div x-data="posApp()" data-cart-key="pos-cart:{{ auth()->id() }}:{{ auth()->user()?->empresa_id ?? 0 }}" @focus-search.window="if (window.innerWidth > 767) enfocarBuscador()" @toggle-fullscreen.window="toggleFullscreen()">
 
 <div class="pos-wrap">
 
@@ -1332,6 +1332,9 @@ body.pos-keyboard-visible .pos-left::after {
                     type="text"
                     wire:model.live.debounce.200ms="search"
                     x-ref="search"
+                    x-bind:inputmode="tactil && !tecladoPedido ? 'none' : 'search'"
+                    @pointerdown="pedirTeclado($event)"
+                    @blur="tecladoPedido = false"
                     placeholder="Buscar producto..."
                     class="pos-search"
                     @keydown.arrow-down.prevent="arrowDown()"
@@ -1901,6 +1904,11 @@ function posApp() {
         _scanner: null,
         keyboardVisible: false,
         lastViewportHeight: 0,
+        // En tablets y celulares (pantalla táctil) el buscador recibe el foco para los lectores de código, pero sin abrir el
+        // teclado en pantalla: abrirlo y cerrarlo en cada producto agregado hacía parpadear la pantalla y mostraba los
+        // controles del sistema (salir de pantalla completa, etc.). El teclado aparece solo si la persona toca el campo.
+        tactil: !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches),
+        tecladoPedido: false,
 
         init() {
             this.$watch('$wire.searchResults', () => { this.activeIdx = -1; });
@@ -2016,7 +2024,23 @@ function posApp() {
             // Foco inicial en el buscador solo en escritorio/tablet grande (lector USB de códigos).
             // En celular no se enfoca solo: el catálogo es la vista principal y no debe abrirse el teclado.
             if (window.innerWidth > 767) {
-                this.$nextTick(() => this.$refs.search?.focus());
+                this.enfocarBuscador();
+            }
+        },
+
+        /* ─── Foco del buscador ─── */
+        enfocarBuscador() {
+            this.$nextTick(() => this.$refs.search?.focus());
+        },
+        pedirTeclado(e) {
+            if (!this.tactil || this.tecladoPedido) return;
+            const el = e.target;
+            this.tecladoPedido = true;
+            // si ya tenía el foco (lo puso el sistema) se lo quita y se lo devuelve para que el teclado aparezca; el blur apaga
+            // la bandera, por eso se vuelve a prender antes de enfocar
+            if (document.activeElement === el) {
+                el.blur();
+                this.$nextTick(() => { this.tecladoPedido = true; this.$nextTick(() => el.focus()); });
             }
         },
 
@@ -2222,7 +2246,7 @@ function posApp() {
             this.scannerStatus = '';
             this.scannerError = '';
             await this.stopScanner();
-            this.$nextTick(() => this.$refs.search?.focus());
+            this.enfocarBuscador();
         },
 
         handleViewportChange() {
@@ -2278,7 +2302,7 @@ function posApp() {
             if (items[idx]) { items[idx].focus(); items[idx].scrollIntoView({ block: 'nearest' }); }
         },
         clearSearch() {
-            this.$wire.set('search', ''); this.activeIdx = -1; this.$refs.search?.focus();
+            this.$wire.set('search', ''); this.activeIdx = -1; this.enfocarBuscador();
         },
 
         openEdit(idx, qty, precio, descr, stock_depo) {
@@ -2289,11 +2313,11 @@ function posApp() {
             // Validar que el precio no esté por debajo del mínimo permitido
             this.$wire.validateAndUpdateCartItem(this.edit.idx, this.edit.qty, this.edit.precio);
             this.edit.open = false;
-            this.$nextTick(() => this.$refs.search?.focus());
+            this.enfocarBuscador();
         },
         cancelEdit() {
             this.edit.open = false;
-            this.$nextTick(() => this.$refs.search?.focus());
+            this.enfocarBuscador();
         },
 
         toggleFullscreen() {
@@ -2314,7 +2338,7 @@ function posApp() {
                     // Fallar silenciosamente
                 }
             }
-            this.$nextTick(() => this.$refs.search?.focus());
+            this.enfocarBuscador();
         },
     };
 }
