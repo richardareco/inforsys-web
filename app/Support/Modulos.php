@@ -21,6 +21,7 @@ class Modulos
         'ecommerce'        => ['Tienda online (catálogo web)', 'E-commerce', 'Administradores: configurar la tienda. Vendedores: copiar y abrir el link para enviárselo a un cliente'],
         'clientes'         => ['Clientes', 'Catálogo', 'Alta y consulta de clientes'],
         'productos'        => ['Productos / Ítems', 'Catálogo', 'Consulta y edición de productos'],
+        'cobros'           => ['Caja: cobros', 'Caja', 'Cobrar las ventas que el vendedor dejó pendientes de cobro'],
         'cierre_caja'      => ['Cierre de caja', 'Caja', 'Resumen y cierre diario de caja'],
         'reportes'         => ['Informes', 'Informes', 'Informes de ventas, compras, ganancias, stock, caja y financieros'],
         'metas'            => ['Metas de ventas', 'Configuración', 'Definir metas por vendedor'],
@@ -49,7 +50,7 @@ class Modulos
     {
         return match ($rol) {
             'administrador' => array_keys(self::LISTA),
-            'cajero'        => ['ventas', 'clientes', 'productos', 'cierre_caja'],
+            'cajero'        => ['ventas', 'cobros', 'clientes', 'productos', 'cierre_caja'],
             default         => ['ventas', 'dashboard', 'ecommerce', 'clientes', 'productos'],
         };
     }
@@ -74,6 +75,10 @@ class Modulos
         }
 
         $candidatos = [];
+        // El cajero atiende en caja: entra directo a los cobros pendientes
+        if ($user->role === 'cajero') {
+            $candidatos[] = ['cobros', \App\Filament\Pages\CobrosPage::class];
+        }
         if (in_array($user->role, ['vendedor', 'cajero'], true)) {
             $candidatos[] = ['ventas', \App\Filament\Pages\PosPage::class];
         }
@@ -86,6 +91,7 @@ class Modulos
             ['whatsapp', \App\Filament\Pages\ConversacionesWhatsAppPage::class],
             ['clientes', \App\Filament\Resources\ClienteResource::class],
             ['productos', \App\Filament\Resources\ItemResource::class],
+            ['cobros', \App\Filament\Pages\CobrosPage::class],
             ['cierre_caja', \App\Filament\Pages\CierreCajaPage::class],
             ['reportes', \App\Filament\Pages\Informes\InformeVentasPage::class],
             ['metas', \App\Filament\Resources\MetaResource::class],

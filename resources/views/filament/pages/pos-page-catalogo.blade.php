@@ -2253,6 +2253,13 @@ body.pos-keyboard-visible .pos-left::after {
         <p style="font-size:1.1rem;font-weight:900;color:#111827;" class="dark:text-white">Venta registrada</p>
         <p style="font-size:.78rem;color:#6b7280;margin-top:.15rem;">Ticket Nº {{ str_pad($lastInvoiceNumber, 6, '0', STR_PAD_LEFT) }} · Gs. {{ number_format($lastTotal, 0, ',', '.') }}</p>
 
+        @if($lastPaymentMethod === 'pendiente')
+        <div style="margin:.9rem 0 .2rem;background:#fffbeb;border-radius:.8rem;padding:.65rem;">
+            <p style="font-size:.8rem;font-weight:800;color:#b45309;">Queda pendiente de cobro</p>
+            <p style="font-size:.7rem;color:#92400e;margin-top:.1rem;">La venta se guardó sin pasar por caja.</p>
+        </div>
+        @endif
+
         @if($vueltoVenta > 0)
         <div style="margin:.9rem 0 .2rem;background:#f0fdf4;border-radius:.8rem;padding:.65rem;">
             <p style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#16a34a;">Vuelto</p>

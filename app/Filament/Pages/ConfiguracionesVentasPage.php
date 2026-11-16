@@ -71,7 +71,7 @@ class ConfiguracionesVentasPage extends Page implements HasForms
                                     ->schema([
                                         Toggle::make('modulo_caja_enabled')
                                             ->label('Módulo de Caja')
-                                            ->helperText('Cuando está ACTIVO: El POS registra inmediatamente el pago en caja. Cuando está INACTIVO: Las ventas quedan pendientes de cobro.')
+                                            ->helperText('Cuando está ACTIVO: el POS cobra y registra el pago en caja al instante. Cuando está INACTIVO: el POS solo guarda la venta, que queda pendiente de cobro, y el cajero la cobra desde el módulo Caja → Cobros.')
                                             ->live(),
                                     ]),
 

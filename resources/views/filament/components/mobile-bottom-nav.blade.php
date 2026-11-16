@@ -14,6 +14,9 @@
     if (\App\Filament\Resources\HistorialVentasResource::canAccess()) {
         $items[] = ['Ventas', route('filament.admin.resources.historial-ventas.index'), request()->routeIs('filament.admin.resources.historial-ventas.*'), 'receipt'];
     }
+    if (\App\Filament\Pages\CobrosPage::canAccess()) {
+        $items[] = ['Cobros', route('filament.admin.pages.cobros'), request()->routeIs('filament.admin.pages.cobros'), 'cash'];
+    }
     if (\App\Filament\Pages\CierreCajaPage::canAccess()) {
         $items[] = ['Caja', route('filament.admin.pages.cierre-caja'), request()->routeIs('filament.admin.pages.cierre-caja'), 'cash'];
     }

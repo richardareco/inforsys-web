@@ -8,6 +8,7 @@
         'tarjeta' => 'TARJETA',
         'qr' => 'QR',
         'credito' => 'CRÉDITO',
+        'pendiente' => 'PENDIENTE DE COBRO',
         default => 'EFECTIVO',
     };
     $pagoMonto = $pago !== null ? (float) $pago : $total;

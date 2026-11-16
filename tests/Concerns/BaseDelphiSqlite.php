@@ -15,6 +15,7 @@ trait BaseDelphiSqlite
 {
     protected Empresa $empresa;
     protected User $usuario;
+    private ?\PDO $delphiVivo = null;
 
     protected function prepararDelphi(bool $conFicha = true): void
     {
@@ -22,6 +23,10 @@ trait BaseDelphiSqlite
             'driver' => 'sqlite', 'database' => 'file:t' . uniqid() . '?mode=memory&cache=shared', 'prefix' => '', 'foreign_key_constraints' => false,
         ]]);
         DB::purge('delphi');
+
+        // Una conexión aparte mantiene viva la base en memoria aunque la de Laravel se cierre y se vuelva a abrir
+        // (el middleware SetDelphiConnection purga la conexión en cada pedido HTTP)
+        $this->delphiVivo = new \PDO('sqlite:' . config('database.connections.delphi.database'));
 
         // SQLite no trae CONCAT_WS (lo usa el buscador del POS)
         DB::connection('delphi')->getPdo()->sqliteCreateFunction(
@@ -100,6 +105,11 @@ trait BaseDelphiSqlite
             $t->decimal('saldo', 14, 4)->default(0);
             $t->decimal('acredito', 14, 4)->default(0);
             $t->string('flag', 1)->nullable();
+            $t->decimal('totalv', 14, 4)->default(0);
+            $t->string('depo', 4)->nullable();
+            $t->string('sta_num', 3)->nullable();
+            $t->integer('sucursal_id')->nullable();
+            $t->string('nro_factura', 20)->nullable();
         });
         $s->create('invo2', function ($t) {
             $t->increments('nro');
@@ -110,7 +120,27 @@ trait BaseDelphiSqlite
             $t->decimal('precio', 14, 4)->default(0);
             $t->string('flag', 1)->nullable();
             $t->date('fecha')->nullable();
+            $t->string('depo', 4)->nullable();
+            $t->decimal('costo', 14, 4)->default(0);
         });
+        $s->create('cajareg', function ($t) {
+            $t->increments('nro');
+            $t->string('cajanr', 20)->nullable();
+            $t->date('fecha')->nullable();
+            $t->decimal('totalus', 14, 4)->default(0);
+            $t->decimal('total', 14, 4)->default(0);
+            $t->decimal('paygs', 14, 4)->default(0);
+            $t->decimal('paytr', 14, 4)->default(0);
+            $t->decimal('paytj', 14, 4)->default(0);
+            $t->decimal('ctotal', 14, 4)->default(0);
+            $t->string('sta_num', 3)->nullable();
+            $t->string('op', 4)->nullable();
+            $t->integer('flag')->nullable();
+            $t->string('tipo_moneda', 4)->nullable();
+        });
+        // En MySQL el invnr de la venta y el cajanr del cobro los genera un trigger: se imita aquí
+        $s->getConnection()->unprepared("CREATE TRIGGER invo1_invnr AFTER INSERT ON invo1 WHEN NEW.invnr IS NULL BEGIN UPDATE invo1 SET invnr = printf('%07d', NEW.nro) WHERE nro = NEW.nro; END");
+        $s->getConnection()->unprepared("CREATE TRIGGER cajareg_cajanr AFTER INSERT ON cajareg BEGIN UPDATE cajareg SET cajanr = printf('%012d', NEW.nro) WHERE nro = NEW.nro; END");
 
         if ($conFicha) {
             $s->create('items_ficha', function ($t) {

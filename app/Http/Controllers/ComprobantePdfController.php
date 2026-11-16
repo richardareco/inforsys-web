@@ -36,7 +36,7 @@ class ComprobantePdfController extends Controller
         $cajero   = DB::connection('delphi')->table('personal')->where('pernr', $factura->pernr)->first();
 
         $medio = $request->query('medio');
-        if (!in_array($medio, ['efectivo', 'transferencia', 'tarjeta', 'qr', 'credito'], true)) {
+        if (!in_array($medio, ['efectivo', 'transferencia', 'tarjeta', 'qr', 'credito', 'pendiente'], true)) {
             $medio = $this->medioDePago($factura);
         }
         $pago = is_numeric($request->query('pago')) ? (float) $request->query('pago') : null;
@@ -64,6 +64,11 @@ class ComprobantePdfController extends Controller
         $caja = $factura->cajanr
             ? DB::connection('delphi')->table('cajareg')->where('cajanr', $factura->cajanr)->first()
             : null;
+
+        // Sin módulo de caja las ventas no pasan por caja: quedan pendientes de cobro (no son "efectivo")
+        if (!$caja && !(Auth::user()?->empresa?->modulo_caja_enabled ?? true)) {
+            return 'pendiente';
+        }
 
         if ($caja) {
             $caja = (object) array_change_key_case((array) $caja, CASE_LOWER);

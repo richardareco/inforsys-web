@@ -18,6 +18,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/cierre-caja/imprimir', [ComprobantePdfController::class, 'cierreCaja'])
         ->name('cierre-caja.imprimir');
+    // Huella liviana de las ventas pendientes de cobro: la pantalla de caja la consulta cada 2 s
+    Route::get('/caja/cobros/firma', [\App\Http\Controllers\CobrosFirmaController::class, 'firma'])
+        ->middleware('throttle:120,1')
+        ->name('caja.cobros.firma');
     Route::get('/comprobante/{invnr}/ticket', [ComprobantePdfController::class, 'ticket'])
         ->name('comprobante.ticket');
 

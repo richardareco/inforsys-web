@@ -1067,11 +1067,16 @@ class PosPage extends Page
 
             // Guardar datos de la venta para ofrecer la impresión del ticket
             $this->lastTotal         = $total;
-            $this->lastPaymentMethod = $this->paymentMethod;
-            $this->lastReceived      = $this->paymentMethod === 'efectivo' && $this->amountReceived > 0
+            $this->lastPaymentMethod = $moduloCajaEnabled ? $this->paymentMethod : 'pendiente';
+            $this->lastReceived      = $moduloCajaEnabled && $this->paymentMethod === 'efectivo' && $this->amountReceived > 0
                 ? (float) $this->amountReceived
                 : $total;
             $this->lastInvoiceNumber = $invnr;
+
+            // Catálogo sin módulo de caja: no hubo modal de cobro, así que se abre el aviso de "venta registrada" para imprimir el ticket
+            if (!$moduloCajaEnabled && $this->esCatalogo()) {
+                $this->showPaymentModal = true;
+            }
 
             $this->cart             = [];
             $this->search           = '';
