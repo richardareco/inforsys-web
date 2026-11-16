@@ -464,7 +464,7 @@ class DashboardVendedorTest extends TestCase
         $this->actingAs($admin);
 
         Livewire::test(CreateMeta::class)
-            ->fillForm(['personal_id' => '001', 'mes' => '2026-11-01', 'monto' => 800000])
+            ->fillForm(['tipo' => 'vendedor', 'personal_id' => '001', 'mes' => '2026-11-01', 'monto' => 800000])
             ->call('create')
             ->assertHasNoFormErrors();
 
@@ -473,11 +473,11 @@ class DashboardVendedorTest extends TestCase
         $this->assertEquals(800000, $m->monto);
 
         // la misma meta (mes + vendedor) no se puede duplicar, pero la de la empresa y la de otro vendedor sí
-        Livewire::test(CreateMeta::class)->fillForm(['personal_id' => '001', 'mes' => '2026-11-01', 'monto' => 1])->call('create');
+        Livewire::test(CreateMeta::class)->fillForm(['tipo' => 'vendedor', 'personal_id' => '001', 'mes' => '2026-11-01', 'monto' => 1])->call('create');
         $this->assertSame(1, Meta::where('personal_id', '001')->count());
 
-        Livewire::test(CreateMeta::class)->fillForm(['personal_id' => '', 'mes' => '2026-11-01', 'monto' => 5000000])->call('create')->assertHasNoFormErrors();
-        Livewire::test(CreateMeta::class)->fillForm(['personal_id' => '002', 'mes' => '2026-11-01', 'monto' => 700000])->call('create')->assertHasNoFormErrors();
+        Livewire::test(CreateMeta::class)->fillForm(['tipo' => 'empresa', 'mes' => '2026-11-01', 'monto' => 5000000])->call('create')->assertHasNoFormErrors();
+        Livewire::test(CreateMeta::class)->fillForm(['tipo' => 'vendedor', 'personal_id' => '002', 'mes' => '2026-11-01', 'monto' => 700000])->call('create')->assertHasNoFormErrors();
         $this->assertSame(3, Meta::count());
     }
 

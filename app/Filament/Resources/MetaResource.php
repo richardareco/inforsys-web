@@ -6,6 +6,7 @@ use App\Filament\Resources\MetaResource\Pages;
 use App\Models\Meta;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\DeleteAction;
@@ -47,13 +48,24 @@ class MetaResource extends Resource
         }
 
         return $form->schema([
+            ToggleButtons::make('tipo')
+                ->label('Tipo de meta')
+                ->options(['empresa' => 'De la empresa', 'vendedor' => 'Por vendedor'])
+                ->icons(['empresa' => 'heroicon-m-building-office-2', 'vendedor' => 'heroicon-m-user'])
+                ->default('empresa')
+                ->inline()
+                ->live()
+                ->dehydrated(false)
+                ->afterStateHydrated(fn ($component, $record) => $component->state($record && ($record->personal_id ?? '') !== '' ? 'vendedor' : 'empresa'))
+                ->helperText('La meta de la empresa la ve el administrador. La meta por vendedor se ve en el dashboard de ese vendedor y en la pestaña "Metas por vendedor" del dashboard administrativo.'),
+
             Select::make('personal_id')
                 ->label('Vendedor')
-                ->options(fn () => ['' => 'Meta de toda la empresa'] + self::vendedores())
-                ->default('')
+                ->options(fn () => self::vendedores())
                 ->native(false)
                 ->searchable()
-                ->helperText('Elegí un vendedor para fijarle una meta propia; se ve en su dashboard.'),
+                ->required(fn ($get) => $get('tipo') === 'vendedor')
+                ->visible(fn ($get) => $get('tipo') === 'vendedor'),
 
             Select::make('mes')
                 ->label('Mes')

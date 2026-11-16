@@ -27,6 +27,8 @@
 ### Dashboard del vendedor
 - Un usuario con rol `vendedor` ve en el Dashboard solo sus propias ventas (`invo1.pernr` = su `users.personal_id`): total, ventas, ticket, unidades, ventas por día, por categoría, productos más vendidos y su meta; filtrable por mes o rango. Los widgets están en `app/Filament/Widgets/Vendedor/` y los datos en `Services/Dashboard/VentasVendedor`. Nunca muestra datos de la empresa ni de otros vendedores (ni el PDF del dashboard). Las metas pueden ser de la empresa (`metas.personal_id = ''`) o de un vendedor (`personal_id` = `personal.pernr`).
 
+- Dashboard administrativo: tiene la pestaña **Metas por vendedor** (filtro "General / Metas por vendedor" y selector de mes): meta de la empresa y avance de cada vendedor con meta (servicio `Services/Dashboard/MetasVendedores`; estado Cumplida / Al día / Atrasada según el ritmo esperado del mes). En Metas de Ventas el tipo de meta es "De la empresa" o "Por vendedor".
+
 ### Tipos de punto de venta (`empresas.tipo`)
 - `general` → `pos-page`, `supermercado` → `pos-page-minimal`, `catalogo` → `pos-page-catalogo` (Catálogo / Boutique: grilla con fotos y ficha del producto). Lista en `PosPage::TIPOS`; el administrador de cada empresa lo elige en Configuraciones → Ventas. Cada tipo tiene su propia vista y comparte la lógica de `PosPage`; un cambio en un tipo no debe tocar a los demás.
 

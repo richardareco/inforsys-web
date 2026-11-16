@@ -13,6 +13,8 @@ use App\Filament\Widgets\TopProductosWidget;
 use App\Filament\Widgets\VelocimetroKpiWidget;
 use App\Filament\Widgets\VendedoresWidget;
 use App\Filament\Widgets\VentasChartWidget;
+use App\Filament\Widgets\Metas\MetasVendedoresWidget;
+use App\Filament\Widgets\Metas\ResumenMetasWidget;
 use App\Filament\Widgets\Vendedor\CategoriasVendedorWidget;
 use App\Filament\Widgets\Vendedor\MetaVendedorWidget;
 use App\Filament\Widgets\Vendedor\ResumenVendedorWidget;
@@ -24,6 +26,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -108,7 +111,21 @@ class Dashboard extends BaseDashboard
             ]);
         }
 
+        // Meses para la pestaña de metas: el actual y los 11 anteriores
+        $meses = [];
+        for ($i = 0; $i < 12; $i++) {
+            $m = now()->startOfMonth()->subMonths($i);
+            $meses[$m->toDateString()] = ucfirst($m->locale('es')->isoFormat('MMMM YYYY'));
+        }
+
         return $form->schema([
+            ToggleButtons::make('vista')
+                ->label('')
+                ->options(['general' => 'General', 'metas' => 'Metas por vendedor'])
+                ->icons(['general' => 'heroicon-m-squares-2x2', 'metas' => 'heroicon-m-flag'])
+                ->default('general')
+                ->inline()
+                ->live(),
             Select::make('period')
                 ->label('')
                 ->options([
@@ -120,7 +137,15 @@ class Dashboard extends BaseDashboard
                 ])
                 ->default('dia')
                 ->selectablePlaceholder(false)
-                ->native(false),
+                ->native(false)
+                ->visible(fn ($get) => ($get('vista') ?? 'general') === 'general'),
+            Select::make('mes_metas')
+                ->label('')
+                ->options($meses)
+                ->default(now()->startOfMonth()->toDateString())
+                ->selectablePlaceholder(false)
+                ->native(false)
+                ->visible(fn ($get) => $get('vista') === 'metas'),
         ]);
     }
 
@@ -136,6 +161,11 @@ class Dashboard extends BaseDashboard
                     TopProductosVendedorWidget::class,
                 ]
                 : [SinVendedorWidget::class];
+        }
+
+        // Pestaña "Metas por vendedor": avance del mes de la empresa y de cada vendedor con meta
+        if (($this->filters['vista'] ?? 'general') === 'metas') {
+            return [ResumenMetasWidget::class, MetasVendedoresWidget::class];
         }
 
         return [
