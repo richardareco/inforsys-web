@@ -284,6 +284,19 @@ class ConsultaCobrosTest extends TestCase
         $this->assertStringContainsString('REIMPRESI', strtoupper($html));
     }
 
+    public function test_el_ticket_deja_espacio_entre_cantidad_precio_y_subtotal(): void
+    {
+        [$inv] = $this->cobro(52500, ['efectivo' => 52500]);
+        $this->actingAs($this->cajero);
+
+        $html = $this->ticket($inv);
+
+        $this->assertMatchesRegularExpression('/th\.r, td\.r \{[^}]*padding-left: 12px/', $html);
+        foreach (['CANT', 'PRECIO', 'SUBT'] as $col) {
+            $this->assertStringContainsString('<th class="r">' . $col . '</th>', $html);
+        }
+    }
+
     public function test_el_ticket_reimpreso_de_un_cobro_mixto_detalla_cada_forma(): void
     {
         [$inv] = $this->cobro(100000, ['efectivo' => 30000, 'transferencia' => 50000, 'tarjeta' => 20000]);

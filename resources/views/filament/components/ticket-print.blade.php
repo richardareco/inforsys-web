@@ -75,7 +75,8 @@
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         th { text-align: left; font-weight: 700; padding: 0 0 1.2mm 4px; font-size: 11px; }
         th:first-child, td:first-child { padding-left: 0; }
-        th.r, td.r { text-align: right; white-space: nowrap; }
+        /* Más aire entre CANT, PRECIO y SUBT para que las cifras no se lean pegadas */
+        th.r, td.r { text-align: right; white-space: nowrap; padding-left: 12px; }
         td { vertical-align: top; padding: .5mm 0 .5mm 4px; }
         td.desc { word-break: break-word; width: 100%; }
         .totales .row { margin: .8mm 0; }
