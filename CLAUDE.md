@@ -34,6 +34,8 @@
 ### Caja → Cobros (módulo `cobros`)
 - Pantalla del cajero (`CobrosPage`, servicio `Services/Caja/CobrosPendientes`): lista las ventas pendientes de cobro (flag 4, sin `cajanr`, sin crédito) que dejó el POS de empresas con el módulo de caja apagado, y las cobra con efectivo / transferencia / tarjeta (o mezcladas), insertando `cajareg` y enlazando `invo1.cajanr` igual que el POS. El cajero entra directo a esta pantalla. Se mantiene al día consultando cada 2 s una huella liviana (`GET /caja/cobros/firma`, `CobrosFirmaController`) y recargando el listado solo si cambió; avisa con sonido cuando entra una venta nueva. El cobro bloquea la fila de la venta para que dos cajeros no la cobren dos veces.
 
+- Caja → **Consulta de cobros** (`ConsultaCobrosPage`, `Services/Caja/CobrosRealizados`, mismo módulo `cobros`): cobros ya registrados en `cajareg` enlazados a su venta (también los del POS con caja), con resumen por forma de pago, búsqueda, período y botón **Reimprimir** (ticket de la venta con la forma de pago real; si fue mixto lo detalla).
+
 ### Tipos de punto de venta (`empresas.tipo`)
 - `general` → `pos-page`, `supermercado` → `pos-page-minimal`, `catalogo` → `pos-page-catalogo` (Catálogo / Boutique: grilla con fotos y ficha del producto). Lista en `PosPage::TIPOS`; el administrador de cada empresa lo elige en Configuraciones → Ventas. Cada tipo tiene su propia vista y comparte la lógica de `PosPage`; un cambio en un tipo no debe tocar a los demás.
 

@@ -132,6 +132,9 @@ trait BaseDelphiSqlite
             $t->decimal('paygs', 14, 4)->default(0);
             $t->decimal('paytr', 14, 4)->default(0);
             $t->decimal('paytj', 14, 4)->default(0);
+            $t->decimal('paycq', 14, 4)->default(0);
+            $t->decimal('payot', 14, 4)->default(0);
+            $t->boolean('es_devolucion')->default(0);
             $t->decimal('ctotal', 14, 4)->default(0);
             $t->string('sta_num', 3)->nullable();
             $t->string('op', 4)->nullable();

@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Services\Caja\CobroInvalido;
 use App\Services\Caja\CobrosPendientes;
 use App\Support\Modulos;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
@@ -45,6 +46,14 @@ class CobrosPage extends Page
     public static function shouldRegisterNavigation(): bool
     {
         return static::canAccess();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('consulta')->label('Consulta de cobros')->icon('heroicon-o-clipboard-document-list')->color('gray')
+                ->url(fn () => ConsultaCobrosPage::getUrl()),
+        ];
     }
 
     public function getHeading(): string

@@ -42,6 +42,7 @@ class ComprobantePdfController extends Controller
         $pago = is_numeric($request->query('pago')) ? (float) $request->query('pago') : null;
 
         return view('filament.components.ticket-print', [
+            'pagos'    => $this->pagosDeCaja($factura),
             'empresa'  => Auth::user()->empresa,
             'factura'  => $factura,
             'detalles' => $detalles,
@@ -52,6 +53,31 @@ class ComprobantePdfController extends Controller
             'pago'     => $pago,
             'reimpresion' => $request->boolean('reimpresion'),
         ]);
+    }
+
+    /**
+     * Importe cobrado con cada forma de pago según el movimiento de caja de la venta (solo las usadas).
+     *
+     * @return array<string, float>
+     */
+    private function pagosDeCaja(object $factura): array
+    {
+        if (trim((string) ($factura->cajanr ?? '')) === '') {
+            return [];
+        }
+
+        $caja = DB::connection('delphi')->table('cajareg')->where('cajanr', $factura->cajanr)->first();
+        if (!$caja) {
+            return [];
+        }
+        $caja = (object) array_change_key_case((array) $caja, CASE_LOWER);
+
+        return array_filter([
+            'efectivo'      => (float) ($caja->paygs ?? 0),
+            'transferencia' => (float) ($caja->paytr ?? 0),
+            'tarjeta'       => (float) ($caja->paytj ?? 0),
+            'otros'         => (float) ($caja->paycq ?? 0) + (float) ($caja->payot ?? 0),
+        ], fn ($v) => $v > 0);
     }
 
     /** Deduce la forma de pago de una venta a partir de su registro en caja. */

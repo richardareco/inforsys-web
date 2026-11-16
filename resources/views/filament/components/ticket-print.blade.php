@@ -12,7 +12,11 @@
         default => 'EFECTIVO',
     };
     $pagoMonto = $pago !== null ? (float) $pago : $total;
-    $vuelto = $medio === 'efectivo' ? max(0, $pagoMonto - $total) : 0;
+    $pagos = $pagos ?? [];
+    $mixto = count($pagos) > 1;   // cobro dividido en varias formas de pago
+    $vuelto = $mixto
+        ? ($pago !== null && isset($pagos['efectivo']) ? max(0, $pago - $pagos['efectivo']) : 0)
+        : ($medio === 'efectivo' ? max(0, $pagoMonto - $total) : 0);
     $fecha = \Carbon\Carbon::parse($factura->fecha)->format('d/m/Y');
     $hora = $factura->hora ? substr((string) $factura->hora, 0, 5) : '';
     $ruc = $empresa->ruc ?? null;
@@ -147,9 +151,19 @@
             <div class="row"><span>SUBTOTAL:</span><span>{{ $fmt($total) }}</span></div>
             <div class="row"><span>IVA 10% (incl.):</span><span>{{ $fmt($iva10) }}</span></div>
             <div class="row total-line"><span>TOTAL GS:</span><span>{{ $fmt($total) }}</span></div>
-            <div class="row"><span>PAGO: {{ $medioTxt }}</span><span>{{ $medio === 'efectivo' ? $fmt($pagoMonto) : '' }}</span></div>
-            @if($medio === 'efectivo' && $pago !== null)
-                <div class="row"><span>VUELTO:</span><span>{{ $fmt($vuelto) }}</span></div>
+            @if($mixto)
+                <div class="row"><span>PAGO MIXTO:</span><span></span></div>
+                @foreach($pagos as $forma => $monto)
+                    <div class="row"><span>&nbsp;&nbsp;{{ strtoupper($forma) }}:</span><span>{{ $fmt($monto) }}</span></div>
+                @endforeach
+                @if($vuelto > 0)
+                    <div class="row"><span>VUELTO:</span><span>{{ $fmt($vuelto) }}</span></div>
+                @endif
+            @else
+                <div class="row"><span>PAGO: {{ $medioTxt }}</span><span>{{ $medio === 'efectivo' ? $fmt($pagoMonto) : '' }}</span></div>
+                @if($medio === 'efectivo' && $pago !== null)
+                    <div class="row"><span>VUELTO:</span><span>{{ $fmt($vuelto) }}</span></div>
+                @endif
             @endif
         </div>
 
