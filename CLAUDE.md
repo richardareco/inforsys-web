@@ -29,6 +29,8 @@
 
 - Dashboard administrativo: tiene la pestaña **Metas por vendedor** (filtro "General / Metas por vendedor" y selector de mes): meta de la empresa y avance de cada vendedor con meta (servicio `Services/Dashboard/MetasVendedores`; estado Cumplida / Al día / Atrasada según el ritmo esperado del mes). En Metas de Ventas el tipo de meta es "De la empresa" o "Por vendedor".
 
+- Tienda online (módulo `ecommerce`): administradores y superadministradores configuran la tienda; el rol vendedor solo ve la tarjeta del enlace (**Copiar link** y **Abrir tienda**) para enviárselo a un cliente, sin formulario y sin poder guardar (`TiendaOnlinePage::puedeConfigurar()`).
+
 ### Tipos de punto de venta (`empresas.tipo`)
 - `general` → `pos-page`, `supermercado` → `pos-page-minimal`, `catalogo` → `pos-page-catalogo` (Catálogo / Boutique: grilla con fotos y ficha del producto). Lista en `PosPage::TIPOS`; el administrador de cada empresa lo elige en Configuraciones → Ventas. Cada tipo tiene su propia vista y comparte la lógica de `PosPage`; un cambio en un tipo no debe tocar a los demás.
 

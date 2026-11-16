@@ -18,7 +18,7 @@ class Modulos
         'historial_ventas' => ['Ventas realizadas', 'Ventas', 'Consultar e imprimir ventas hechas'],
         'presupuestos'     => ['Presupuestos', 'Ventas', 'Crear y consultar presupuestos'],
         'whatsapp'         => ['WhatsApp: conversaciones, pedidos y cotizaciones', 'Ventas', 'Atender chats y gestionar pedidos del agente'],
-        'ecommerce'        => ['Tienda online (catálogo web)', 'E-commerce', 'Configurar el catálogo público y qué datos se muestran'],
+        'ecommerce'        => ['Tienda online (catálogo web)', 'E-commerce', 'Administradores: configurar la tienda. Vendedores: copiar y abrir el link para enviárselo a un cliente'],
         'clientes'         => ['Clientes', 'Catálogo', 'Alta y consulta de clientes'],
         'productos'        => ['Productos / Ítems', 'Catálogo', 'Consulta y edición de productos'],
         'cierre_caja'      => ['Cierre de caja', 'Caja', 'Resumen y cierre diario de caja'],
@@ -50,7 +50,7 @@ class Modulos
         return match ($rol) {
             'administrador' => array_keys(self::LISTA),
             'cajero'        => ['ventas', 'clientes', 'productos', 'cierre_caja'],
-            default         => ['ventas', 'dashboard', 'clientes', 'productos'],
+            default         => ['ventas', 'dashboard', 'ecommerce', 'clientes', 'productos'],
         };
     }
 

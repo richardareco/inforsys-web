@@ -51,18 +51,45 @@ class TiendaOnlinePage extends Page implements HasForms
         return static::canAccess();
     }
 
+    /**
+     * Solo administradores y superadministradores configuran la tienda. Los demás roles con acceso al módulo (vendedores)
+     * ven únicamente el enlace: copiarlo para enviárselo a un cliente y abrir la tienda.
+     */
+    public static function puedeConfigurar(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) ($user && ($user->isSuperAdmin() || $user->isAdministrador()));
+    }
+
+    /** Enlace público de la tienda de la empresa; null si todavía no tiene tienda. No crea nada. */
+    public function enlace(): ?array
+    {
+        $empresa = Auth::user()?->empresa;
+        $c = $empresa ? EcomConfig::where('empresa_id', $empresa->id)->first() : null;
+
+        return $c ? ['url' => $c->urlPublica(), 'activo' => (bool) $c->activo, 'nombre' => $c->nombreTienda()] : null;
+    }
+
     private function config(): EcomConfig
     {
         $empresa = Auth::user()->empresa;
 
-        return EcomConfig::firstOrCreate(
+        $c = EcomConfig::firstOrCreate(
             ['empresa_id' => $empresa->id],
             ['slug' => EcomConfig::sugerirSlug($empresa->nombre), 'nombre' => $empresa->nombre]
         );
+
+        // Recién creada no trae los valores por defecto de la base (color, opciones): sin esto el primer guardado fallaba
+        return $c->wasRecentlyCreated ? $c->refresh() : $c;
     }
 
     public function mount(): void
     {
+        if (!static::puedeConfigurar()) {
+            return;   // el vendedor no carga el formulario ni crea la configuración
+        }
+
         $c = $this->config();
         $todas = array_keys($this->categoriasDeLaBase());
         $ocultas = array_map('strval', (array) $c->categorias_ocultas);
@@ -76,10 +103,7 @@ class TiendaOnlinePage extends Page implements HasForms
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('abrir')->label('Abrir la tienda')->icon('heroicon-o-arrow-top-right-on-square')->color('gray')
-                ->url(fn () => $this->config()->urlPublica())->openUrlInNewTab(),
-        ];
+        return [];   // "Copiar link" y "Abrir la tienda" están en la tarjeta del enlace
     }
 
     private function categoriasDeLaBase(): array
@@ -205,6 +229,8 @@ class TiendaOnlinePage extends Page implements HasForms
 
     public function save(): void
     {
+        abort_unless(static::puedeConfigurar(), 403, 'Solo un administrador puede configurar la tienda.');
+
         $c    = $this->config();
         $data = $this->form->getState();
 
