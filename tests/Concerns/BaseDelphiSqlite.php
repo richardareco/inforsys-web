@@ -87,6 +87,31 @@ trait BaseDelphiSqlite
             $t->string('pername', 60)->nullable();
         });
 
+        $s->create('invo1', function ($t) {
+            $t->increments('nro');
+            $t->string('invnr', 20)->nullable();
+            $t->string('pernr', 6)->nullable();
+            $t->string('custnr', 20)->nullable();
+            $t->string('cajanr', 20)->nullable();
+            $t->date('fecha')->nullable();
+            $t->string('hora', 8)->nullable();
+            $t->decimal('total', 14, 4)->default(0);
+            $t->decimal('ctotal', 14, 4)->default(0);
+            $t->decimal('saldo', 14, 4)->default(0);
+            $t->decimal('acredito', 14, 4)->default(0);
+            $t->string('flag', 1)->nullable();
+        });
+        $s->create('invo2', function ($t) {
+            $t->increments('nro');
+            $t->string('invnr', 20)->nullable();
+            $t->string('item', 20)->nullable();
+            $t->string('descr', 120)->nullable();
+            $t->decimal('qty', 12, 3)->default(0);
+            $t->decimal('precio', 14, 4)->default(0);
+            $t->string('flag', 1)->nullable();
+            $t->date('fecha')->nullable();
+        });
+
         if ($conFicha) {
             $s->create('items_ficha', function ($t) {
                 $t->increments('nro');
@@ -135,6 +160,26 @@ trait BaseDelphiSqlite
         $d = DB::connection('delphi');
         $d->table('items')->insert(array_merge(['item' => $codigo, 'descr' => 'PRODUCTO ' . $codigo, 'grupnr' => 'MK', 'precio3' => 10000, 'precio1' => 0, 'costo' => 4321.5], $attrs));
         $d->table('itemsdepo')->insert(['depo' => 'D01', 'item' => $codigo, 'qty' => $stock]);
+    }
+
+    /**
+     * Registra una venta completada de un vendedor con sus renglones: [[item, descr, qty, precio], ...].
+     * El total sale de los renglones.
+     */
+    protected function venta(string $pernr, string $fecha, array $renglones, string $flag = '4'): string
+    {
+        static $n = 0;
+        $invnr = sprintf('%07d', ++$n);
+        $d = DB::connection('delphi');
+        $d->table('invo1')->insert([
+            'invnr' => $invnr, 'pernr' => $pernr, 'fecha' => $fecha, 'flag' => $flag, 'custnr' => '0001',
+            'total' => array_sum(array_map(fn ($r) => $r[2] * $r[3], $renglones)),
+        ]);
+        foreach ($renglones as [$item, $descr, $qty, $precio]) {
+            $d->table('invo2')->insert(['invnr' => $invnr, 'item' => $item, 'descr' => $descr, 'qty' => $qty, 'precio' => $precio, 'flag' => '3', 'fecha' => $fecha]);
+        }
+
+        return $invnr;
     }
 
     protected function foto(string $codigo, string $contenido = "\xFF\xD8\xFFfoto"): int

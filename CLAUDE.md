@@ -24,6 +24,9 @@
 
 - `producto_info_extra` (tabla **local** de la web, por empresa): secciones de información extra con título y contenido libres que cada empresa agrega a la ficha de un producto (formato igual a los tonos). Se carga en Productos → pestaña "Información del producto" y se muestra en el modal del POS de catálogo. No toca la base Delphi.
 
+### Dashboard del vendedor
+- Un usuario con rol `vendedor` ve en el Dashboard solo sus propias ventas (`invo1.pernr` = su `users.personal_id`): total, ventas, ticket, unidades, ventas por día, por categoría, productos más vendidos y su meta; filtrable por mes o rango. Los widgets están en `app/Filament/Widgets/Vendedor/` y los datos en `Services/Dashboard/VentasVendedor`. Nunca muestra datos de la empresa ni de otros vendedores (ni el PDF del dashboard). Las metas pueden ser de la empresa (`metas.personal_id = ''`) o de un vendedor (`personal_id` = `personal.pernr`).
+
 ### Tipos de punto de venta (`empresas.tipo`)
 - `general` → `pos-page`, `supermercado` → `pos-page-minimal`, `catalogo` → `pos-page-catalogo` (Catálogo / Boutique: grilla con fotos y ficha del producto). Lista en `PosPage::TIPOS`; el administrador de cada empresa lo elige en Configuraciones → Ventas. Cada tipo tiene su propia vista y comparte la lógica de `PosPage`; un cambio en un tipo no debe tocar a los demás.
 

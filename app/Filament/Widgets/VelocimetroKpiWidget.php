@@ -36,7 +36,8 @@ class VelocimetroKpiWidget extends Widget
 
         $metaMes = (float) (DB::table('metas')
             ->where('empresa_id', $empresaId)
-            ->where('mes', now()->startOfMonth()->format('Y-m-d'))
+            ->where('personal_id', '')
+            ->whereDate('mes', now()->startOfMonth()->format('Y-m-d'))
             ->value('monto') ?? 0);
 
         if ($this->periodo === 'dia') {

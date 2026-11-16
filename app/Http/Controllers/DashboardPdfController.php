@@ -15,6 +15,7 @@ class DashboardPdfController extends Controller
 
         $period  = str_replace("\u{00F1}", 'n', $request->input('period', 'dia'));
         $user    = Auth::user();
+        abort_if($user->isVendedor(), 403, 'El informe de la empresa no está disponible para vendedores.');
         $empresa = $user->empresa;
 
         [$start, $end]         = $this->getDateRange($period);
@@ -98,7 +99,8 @@ class DashboardPdfController extends Controller
 
         $metaMes = (float) (DB::table('metas')
             ->where('empresa_id', $user->empresa_id)
-            ->where('mes', now()->startOfMonth()->format('Y-m-d'))
+            ->where('personal_id', '')
+            ->whereDate('mes', now()->startOfMonth()->format('Y-m-d'))
             ->value('monto') ?? 0);
 
         $ventasMes = (float) DB::connection('delphi')->table('invo1')

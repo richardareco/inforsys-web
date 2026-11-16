@@ -47,6 +47,14 @@ class MetaResource extends Resource
         }
 
         return $form->schema([
+            Select::make('personal_id')
+                ->label('Vendedor')
+                ->options(fn () => ['' => 'Meta de toda la empresa'] + self::vendedores())
+                ->default('')
+                ->native(false)
+                ->searchable()
+                ->helperText('Elegí un vendedor para fijarle una meta propia; se ve en su dashboard.'),
+
             Select::make('mes')
                 ->label('Mes')
                 ->options($meses)
@@ -72,6 +80,12 @@ class MetaResource extends Resource
                     ->label('Mes')
                     ->formatStateUsing(fn ($state) => \Carbon\Carbon::parse($state)->isoFormat('MMMM YYYY'))
                     ->sortable(),
+
+                TextColumn::make('personal_id')
+                    ->label('Vendedor')
+                    ->formatStateUsing(fn ($state) => $state === '' || $state === null ? 'Toda la empresa' : (self::vendedores()[$state] ?? $state))
+                    ->badge()
+                    ->color(fn ($state) => $state === '' || $state === null ? 'gray' : 'info'),
 
                 TextColumn::make('monto')
                     ->label('Meta (Gs.)')
@@ -99,6 +113,29 @@ class MetaResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /** Vendedores de la base Delphi de la empresa (pernr => nombre). Si la base no responde, lista vacía. */
+    public static function vendedores(): array
+    {
+        static $cache = [];
+        $base = (string) config('database.connections.delphi.database');
+
+        return $cache[$base] ??= (function () {
+            try {
+                return \Illuminate\Support\Facades\DB::connection('delphi')->table('personal')->orderBy('pername')
+                    ->pluck('pername', 'pernr')->map(fn ($n) => trim((string) $n))->all();
+            } catch (\Throwable) {
+                return [];
+            }
+        })();
+    }
+
+    /** ¿Ya hay una meta para ese mes y ese vendedor (o toda la empresa)? Evita duplicados antes de llegar a la base. */
+    public static function existeMeta(int $empresaId, string $mes, string $personal, ?int $ignorar = null): bool
+    {
+        return Meta::where('empresa_id', $empresaId)->whereDate('mes', $mes)->where('personal_id', $personal)
+            ->when($ignorar, fn ($q) => $q->where('id', '!=', $ignorar))->exists();
     }
 
     public static function getEloquentQuery(): Builder

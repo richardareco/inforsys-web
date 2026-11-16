@@ -50,7 +50,7 @@ class Modulos
         return match ($rol) {
             'administrador' => array_keys(self::LISTA),
             'cajero'        => ['ventas', 'clientes', 'productos', 'cierre_caja'],
-            default         => ['ventas', 'clientes', 'productos'],
+            default         => ['ventas', 'dashboard', 'clientes', 'productos'],
         };
     }
 
